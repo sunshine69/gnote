@@ -1,0 +1,206 @@
+package forms
+
+import (
+	"time"
+	"github.com/araddon/dateparse"
+	"fmt"
+	"github.com/gotk3/gotk3/gtk"
+)
+
+
+//NotePad - GUI related
+type NotePad struct {
+	w *gtk.Window
+	builder *gtk.Builder
+	Note
+}
+
+//Load - Load note data and set the widget with data
+func (np *NotePad) Load(id int) {
+	if id < 0 { return }
+	if e := DbConn.FirstOrInit(&np.Note, Note{ID: id}).Error; e != nil {
+		fmt.Printf("INFO Can not find that note ID %d\n", id)
+		return
+	} else {
+		b := np.builder
+		_w, e := b.GetObject("title")
+		if e != nil {
+			fmt.Printf("ERROR Can not load widget\n")
+			return
+		}
+		w := _w.(*gtk.Entry)
+		w.SetText(np.Title)
+
+		_w, e = b.GetObject("datelog")
+		if e != nil {
+			fmt.Printf("ERROR Can not load widget\n")
+			return
+		}
+		w = _w.(*gtk.Entry)
+		w.SetText(fmt.Sprintf("%v", np.Datelog))
+
+		_w, e = b.GetObject("flags")
+		if e != nil {
+			fmt.Printf("ERROR Can not load widget\n")
+			return
+		}
+		w = _w.(*gtk.Entry)
+		w.SetText(np.Flags)
+
+		_w, e = b.GetObject("url")
+		if e != nil {
+			fmt.Printf("ERROR Can not load widget\n")
+			return
+		}
+		w = _w.(*gtk.Entry)
+		w.SetText(np.URL)
+
+		_w, e = b.GetObject("content")
+		if e != nil {
+			fmt.Printf("ERROR Can not load widget\n")
+			return
+		}
+		wc := _w.(*gtk.TextView)
+		buff, e := wc.GetBuffer()
+		if e != nil {
+			fmt.Printf("ERROR Can not load widget\n")
+			return
+		}
+		buff.SetText(np.Content)
+		wc.SetEditable(!(np.Readonly == 1))
+
+		_w, e = b.GetObject("bt_toggle_rw")
+		if e != nil {
+			fmt.Printf("ERROR Can not load widget\n")
+			return
+		}
+		wTB := _w.(*gtk.ToggleButton)
+		wTB.SetActive((np.Readonly == 1))
+		wc.GrabFocus()
+	}
+
+}
+
+//NewNotePad - Create new  NotePad
+func NewNotePad(id int) *NotePad {
+	np := &NotePad{}
+	builder, err := gtk.BuilderNewFromFile("glade/note.glade")
+	np.builder = builder
+	if err != nil {
+		panic(err)
+	}
+	_obj, err := builder.GetObject("notepad")
+	if err != nil {
+		panic(err)
+	}
+	np.w = _obj.(*gtk.Window)
+	np.NewNote(map[string]interface{}{})
+	fmt.Printf("Empty note created %v\n", np.Title)
+
+	signals := map[string]interface{} {
+		"SaveBtnClick": np.saveBtnClick,
+		"CloseBtnClick": np.closeBtnClick,
+		"ToggleReadOnly": np.ToggleReadOnly,
+	}
+	builder.ConnectSignals(signals)
+	_widget, e := builder.GetObject("content")
+	if e != nil {
+		fmt.Printf("ERROR get content\n")
+	}
+	vWidget := _widget.(*gtk.TextView)
+	vWidget.SetWrapMode(gtk.WRAP_WORD)
+
+	np.Load(id)
+	np.w.ShowAll()
+	return np
+}
+
+func (np *NotePad) saveBtnClick() {
+	b := np.builder
+	_widget, e := b.GetObject("title")
+	if e != nil {
+		fmt.Printf("ERROR get title entry\n")
+	}
+	widget := _widget.(*gtk.Entry)
+	np.Title, e = widget.GetText()
+	if e != nil {fmt.Printf("ERROR get title entry text\n")}
+
+	_widget, e = b.GetObject("datelog")
+	if e != nil {
+		fmt.Printf("ERROR get datelog\n")
+	}
+	widget = _widget.(*gtk.Entry)
+	_datelogStr, e := widget.GetText()
+	if e != nil {
+		fmt.Printf("ERROR get entry datelog\n")
+	} else {
+		np.Datelog, e = dateparse.ParseLocal(_datelogStr)
+		if e != nil {
+			fmt.Printf("ERROR can not parse datelog. Use Now\n")
+			np.Datelog = time.Now()
+		}
+	}
+	_widget, e = b.GetObject("flags")
+	if e != nil {
+		fmt.Printf("ERROR get flags\n")
+	}
+	widget = _widget.(*gtk.Entry)
+	np.Flags, e = widget.GetText()
+	if e != nil {
+		fmt.Printf("ERROR get entry flags\n")
+	}
+	_widget, e = b.GetObject("url")
+	if e != nil {
+		fmt.Printf("ERROR get url\n")
+	}
+	widget = _widget.(*gtk.Entry)
+	np.URL, e = widget.GetText()
+	if e != nil {
+		fmt.Printf("ERROR get entry url\n")
+	}
+
+	_widget, e = b.GetObject("content")
+	if e != nil {
+		fmt.Printf("ERROR get content\n")
+	}
+	vWidget := _widget.(*gtk.TextView)
+	textBuffer, e := vWidget.GetBuffer()
+	if e != nil {
+		fmt.Printf("ERROR get text buffer content\n")
+	} else {
+		startIter := textBuffer.GetStartIter()
+        endIter := textBuffer.GetEndIter()
+		np.Content, e = textBuffer.GetText(startIter, endIter, true)
+		if e != nil {
+			fmt.Printf("ERROR can get content\n")
+		}
+	}
+	np.Timestamp = time.Now()
+	if np.Title == "" {
+		_l := len(np.Content)
+		if _l > 64 {_l = 64}
+		np.Title = np.Content[0:_l]
+	}
+	if e = DbConn.Save(&np.Note).Error; e != nil {
+		fmt.Printf("ERROR can not save note - %v\n", e)
+	} else {
+		fmt.Printf("INFO Note saved\n")
+	}
+}
+
+func (np *NotePad) closeBtnClick() {
+	np.w.Destroy()
+}
+
+//ToggleReadOnly - set content readonly mode
+func (np *NotePad) ToggleReadOnly(bt *gtk.ToggleButton) {
+	state := bt.GetActive()
+	if state {
+		np.Readonly = 1
+	} else {
+		np.Readonly = 0
+	}
+	_w, _ := np.builder.GetObject("content")
+	w := _w.(*gtk.TextView)
+	w.SetEditable(! (np.Readonly == 1))
+}
