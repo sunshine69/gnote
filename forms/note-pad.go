@@ -140,15 +140,24 @@ func (np *NotePad) SaveWindowSize() {
 	}
 }
 
+//NoteSearch - Search text in the note
+func (np *NotePad) NoteSearch() {
+	NewNoteSearch(np)
+}
+
 //KeyPressed - handle key board
 func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) {
 	keyEvent := &gdk.EventKey{ev}
 	// if keyEvent.KeyVal() == 65535 {//Delete key	}
 
 	if keyEvent.State() & gdk.GDK_CONTROL_MASK > 0 { //Control key pressed
-		if gdk.KeyvalFromName("s") == keyEvent.KeyVal() {//Ctrol + s doSave
+		switch keyEvent.KeyVal() {
+		case gdk.KeyvalFromName("s"):
 			np.SaveNote()
+		case gdk.KeyvalFromName("f"):
+			np.NoteSearch()
 		}
+
 	}
 }
 
