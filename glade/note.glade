@@ -45,6 +45,7 @@
   <object class="GtkWindow" id="notepad">
     <property name="can_focus">False</property>
     <property name="icon">../icons/cookie.png</property>
+    <signal name="key-press-event" handler="KeyPressed" swapped="no"/>
     <child>
       <placeholder/>
     </child>
@@ -79,6 +80,7 @@
                   <object class="GtkEntry" id="title">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <signal name="changed" handler="TextChanged" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -144,6 +146,7 @@
                       <object class="GtkEntry" id="flags">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <signal name="changed" handler="TextChanged" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -350,6 +353,7 @@
                   <object class="GtkEntry" id="url">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <signal name="changed" handler="TextChanged" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -409,7 +413,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkButton">
+                      <object class="GtkButton" id="bt_close">
                         <property name="label" translatable="yes">Close</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>

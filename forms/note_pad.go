@@ -1,6 +1,9 @@
 package forms
 
 import (
+	"strconv"
+	"strings"
+	"github.com/gotk3/gotk3/gdk"
 	"time"
 	"github.com/araddon/dateparse"
 	"fmt"
@@ -68,6 +71,7 @@ func (np *NotePad) Load(id int) {
 		}
 		buff.SetText(np.Content)
 		wc.SetEditable(!(np.Readonly == 1))
+		buff.Connect("changed", np.TextChanged)
 
 		_w, e = b.GetObject("bt_toggle_rw")
 		if e != nil {
@@ -101,6 +105,8 @@ func NewNotePad(id int) *NotePad {
 		"SaveBtnClick": np.saveBtnClick,
 		"CloseBtnClick": np.closeBtnClick,
 		"ToggleReadOnly": np.ToggleReadOnly,
+		"TextChanged": np.TextChanged,
+		"KeyPressed": np.KeyPressed,
 	}
 	builder.ConnectSignals(signals)
 	_widget, e := builder.GetObject("content")
@@ -111,11 +117,50 @@ func NewNotePad(id int) *NotePad {
 	vWidget.SetWrapMode(gtk.WRAP_WORD)
 
 	np.Load(id)
+	_o, _ := np.builder.GetObject("bt_close")
+	b := _o.(*gtk.Button)
+	b.SetLabel("Close")
+
+	wSize, _ := GetConfig("window_size")
+	_size := strings.Split(wSize, "x")
+	w, _ := strconv.Atoi(_size[0])
+	h, _ := strconv.Atoi(_size[1])
+	np.w.SetDefaultSize(w, h)
+
 	np.w.ShowAll()
 	return np
 }
+//SaveWindowSize -
+func (np *NotePad) SaveWindowSize() {
+	w,h := np.w.GetSize()
+	windowSize := fmt.Sprintf("%dx%d", w, h)
+	fmt.Printf("save side - %dx%d\n", w, h)
+	if e := SetConfig("window_size", windowSize); e != nil {
+		fmt.Printf("ERROR save side - %v\n", e)
+	}
+}
 
-func (np *NotePad) saveBtnClick() {
+//KeyPressed - handle key board
+func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) {
+	keyEvent := &gdk.EventKey{ev}
+	// if keyEvent.KeyVal() == 65535 {//Delete key	}
+
+	if keyEvent.State() & gdk.GDK_CONTROL_MASK > 0 { //Control key pressed
+		if gdk.KeyvalFromName("s") == keyEvent.KeyVal() {//Ctrol + s doSave
+			np.SaveNote()
+		}
+	}
+}
+
+//TextChanged - Marked as changed
+func (np *NotePad) TextChanged() {
+	_o, _ := np.builder.GetObject("bt_close")
+	b := _o.(*gtk.Button)
+	b.SetLabel("Cancel")
+}
+
+//SaveNote - save current note
+func (np *NotePad) SaveNote() {
 	b := np.builder
 	_widget, e := b.GetObject("title")
 	if e != nil {
@@ -185,7 +230,15 @@ func (np *NotePad) saveBtnClick() {
 		fmt.Printf("ERROR can not save note - %v\n", e)
 	} else {
 		fmt.Printf("INFO Note saved\n")
+		_o, _ := np.builder.GetObject("bt_close")
+		b := _o.(*gtk.Button)
+		b.SetLabel("Close")
 	}
+}
+func (np *NotePad) saveBtnClick() {
+	np.SaveNote()
+	np.SaveWindowSize()
+	np.w.Destroy()
 }
 
 func (np *NotePad) closeBtnClick() {

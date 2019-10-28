@@ -195,7 +195,7 @@ func (app *GnoteApp) doSearch() {
 
 	app.model.Clear()
 
-	var id int
+	id, count := 0, 0
 	var title, datelog, lastUpdate string
 	for rows.Next() {
 		rows.Scan(&id, &title, &datelog, &lastUpdate)
@@ -206,7 +206,12 @@ func (app *GnoteApp) doSearch() {
 			[]interface{}{id, title, datelog, lastUpdate}); e != nil {
 				fmt.Printf("ERROR appending data to model %v\n", e)
 			}
+		count = count + 1
 	}
+	_o, _ := app.builder.GetObject("status_bar")
+	s := _o.(*gtk.Statusbar)
+	s.Pop(1)
+	s.Push(1, fmt.Sprintf( "Found %d notes", count))
 }
 
 func main() {
