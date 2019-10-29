@@ -32,23 +32,38 @@ func (ns *NoteSearch) NoteFindText(o *gtk.Button) {
 	searchFlag := gtk.TEXT_SEARCH_TEXT_ONLY
 	var foundIter1, foundIter2 *gtk.TextIter
 	var ok bool = true
-	ns.curIter = buf.GetIterAtMark(buf.GetInsert())
+	// ns.curIter = buf.GetIterAtMark(buf.GetInsert())
 
 	if ns.isIcase {
 		searchFlag = gtk.TEXT_SEARCH_CASE_INSENSITIVE
 	}
 	if ns.isBackward {
+		if ns.m1 != nil {
+			buf.PlaceCursor(buf.GetIterAtMark(ns.m1))
+			ns.curIter = buf.GetIterAtMark(buf.GetInsert())
+		}
 		foundIter1, foundIter2, ok = ns.curIter.BackwardSearch(keyword, searchFlag, nil)
 	} else {
+		if ns.m2 != nil {
+			buf.PlaceCursor(buf.GetIterAtMark(ns.m2))
+          	ns.curIter = buf.GetIterAtMark(buf.GetInsert())
+		}
 		foundIter1, foundIter2, ok = ns.curIter.ForwardSearch(keyword, searchFlag, nil)
 	}
 	if ok {
 		ns.np.textView.ScrollToIter(foundIter2, 0, true, 0, 0)
 		buf.SelectRange(foundIter1, foundIter2)
-		ns.m1 , ns.m2 = buf.CreateMark ("", foundIter1, true), buf.CreateMark("", foundIter2, true)
+		ns.m1 , ns.m2 = buf.CreateMark ("s1", foundIter1, true), buf.CreateMark("s2", foundIter2, true)
 	} else {
 		if !ok {
-			MessageBox("Search text not found")
+			MessageBox("Search text not found. Will reset iter")
+			if ns.isBackward {
+				ns.curIter = buf.GetEndIter()
+				ns.m1, ns.m2 = nil, nil
+			} else {
+				ns.curIter = buf.GetStartIter()
+				ns.m1, ns.m2 = nil, nil
+			}
 		}
 	}
 }
@@ -104,9 +119,8 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 	}
 
 	buf := ns.np.buff
-	ns.curIter =  np.buff.GetIterAtMark(np.buff.GetInsert())
-	ns.m1 , ns.m2 = buf.CreateMark("start", ns.curIter, true), buf.CreateMark("end", buf.GetEndIter(), true)
-	ns.np.buff.SelectRange(ns.curIter, ns.curIter)
+	ns.curIter =  buf.GetIterAtMark(buf.GetInsert())
+	ns.m1 , ns.m2 = nil, nil
 
 	// ns.w.ShowAll()
 	return ns
