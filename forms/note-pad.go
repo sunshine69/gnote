@@ -143,7 +143,8 @@ func (np *NotePad) SaveWindowSize() {
 
 //NoteSearch - Search text in the note
 func (np *NotePad) NoteSearch() {
-	NewNoteSearch(np)
+	ns := NewNoteSearch(np)
+	ns.w.Show()
 }
 
 //KeyPressed - handle key board
