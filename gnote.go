@@ -38,7 +38,6 @@ func (app *GnoteApp) ResultListKeyPress(w *gtk.TreeView, ev *gdk.Event) {
 	keyEvent := &gdk.EventKey{ev}
 	// fmt.Printf("DEBUG KEY %v\n", keyEvent.KeyVal() )
 	if keyEvent.KeyVal() == 65535 {//Delete key
-		fmt.Printf("Whole list: %v\n",*app.selectedID)
 		for _, id := range(*app.selectedID) {
 			fmt.Printf("ID %v\n",id)
 			sql := fmt.Sprintf("DELETE FROM notes WHERE ID = '%d';", id)

@@ -10,11 +10,12 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-
 //NotePad - GUI related
 type NotePad struct {
 	w *gtk.Window
 	builder *gtk.Builder
+	textView *gtk.TextView
+	buff *gtk.TextBuffer
 	Note
 }
 
@@ -63,15 +64,15 @@ func (np *NotePad) Load(id int) {
 			fmt.Printf("ERROR Can not load widget\n")
 			return
 		}
-		wc := _w.(*gtk.TextView)
-		buff, e := wc.GetBuffer()
+		np.textView = _w.(*gtk.TextView)
+		np.buff, e = np.textView.GetBuffer()
 		if e != nil {
 			fmt.Printf("ERROR Can not load widget\n")
 			return
 		}
-		buff.SetText(np.Content)
-		wc.SetEditable(!(np.Readonly == 1))
-		buff.Connect("changed", np.TextChanged)
+		np.buff.SetText(np.Content)
+		np.textView.SetEditable(!(np.Readonly == 1))
+		np.buff.Connect("changed", np.TextChanged)
 
 		_w, e = b.GetObject("bt_toggle_rw")
 		if e != nil {
@@ -80,7 +81,7 @@ func (np *NotePad) Load(id int) {
 		}
 		wTB := _w.(*gtk.ToggleButton)
 		wTB.SetActive((np.Readonly == 1))
-		wc.GrabFocus()
+		np.textView.GrabFocus()
 	}
 
 }
@@ -265,4 +266,19 @@ func (np *NotePad) ToggleReadOnly(bt *gtk.ToggleButton) {
 	_w, _ := np.builder.GetObject("content")
 	w := _w.(*gtk.TextView)
 	w.SetEditable(! (np.Readonly == 1))
+}
+
+//GetSelection - Get the current selection and return start_iter, end_iter, text
+//To be used in various places
+func (np *NotePad) GetSelection() (string, *gtk.TextIter, *gtk.TextIter) {
+	buff, _ := np.textView.GetBuffer()
+	if st, en, ok := buff.GetSelectionBounds(); ok {
+		if selectedText, e := buff.GetText(st, en, true); e == nil {
+			return selectedText, st, en
+		} else {
+			fmt.Printf("ERROR gettext %v\n", e)
+			return "", st, en
+		}
+	}
+	return "", nil, nil
 }

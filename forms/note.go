@@ -2,10 +2,7 @@ package forms
 
 import (
 	"fmt"
-	// "log"
 	"time"
-	// "github.com/gotk3/gotk3/gtk"
-	// "github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/araddon/dateparse"
 )
