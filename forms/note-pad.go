@@ -1,6 +1,7 @@
 package forms
 
 import (
+	"io/ioutil"
 	"strconv"
 	"strings"
 	"github.com/gotk3/gotk3/gdk"
@@ -16,6 +17,9 @@ type NotePad struct {
 	builder *gtk.Builder
 	textView *gtk.TextView
 	buff *gtk.TextBuffer
+	wTitle *gtk.Entry
+	wFlags *gtk.Entry
+	wURL *gtk.Entry
 	Note
 }
 
@@ -59,17 +63,6 @@ func (np *NotePad) Load(id int) {
 		w = _w.(*gtk.Entry)
 		w.SetText(np.URL)
 
-		_w, e = b.GetObject("content")
-		if e != nil {
-			fmt.Printf("ERROR Can not load widget\n")
-			return
-		}
-		np.textView = _w.(*gtk.TextView)
-		np.buff, e = np.textView.GetBuffer()
-		if e != nil {
-			fmt.Printf("ERROR Can not load widget\n")
-			return
-		}
 		np.buff.SetText(np.Content)
 		np.textView.SetEditable(!(np.Readonly == 1))
 		np.buff.Connect("changed", np.TextChanged)
@@ -81,7 +74,6 @@ func (np *NotePad) Load(id int) {
 		}
 		wTB := _w.(*gtk.ToggleButton)
 		wTB.SetActive((np.Readonly == 1))
-		np.textView.GrabFocus()
 	}
 
 }
@@ -116,6 +108,24 @@ func NewNotePad(id int) *NotePad {
 	}
 	vWidget := _widget.(*gtk.TextView)
 	vWidget.SetWrapMode(gtk.WRAP_WORD)
+	np.textView = vWidget
+	np.buff, _ = vWidget.GetBuffer()
+
+	_w, e := builder.GetObject("title")
+	if e != nil {
+		fmt.Printf("ERROR get title\n")
+	}
+	np.wTitle = _w.(*gtk.Entry)
+	_w, e = builder.GetObject("flags")
+	if e != nil {
+		fmt.Printf("ERROR get flags\n")
+	}
+	np.wFlags = _w.(*gtk.Entry)
+	_w, e = builder.GetObject("url")
+	if e != nil {
+		fmt.Printf("ERROR get url\n")
+	}
+	np.wURL = _w.(*gtk.Entry)
 
 	np.Load(id)
 	_o, _ := np.builder.GetObject("bt_close")
@@ -128,9 +138,24 @@ func NewNotePad(id int) *NotePad {
 	h, _ := strconv.Atoi(_size[1])
 	np.w.SetDefaultSize(w, h)
 
+	if ! np.textView.HasGrab() { np.textView.GrabFocus() }
 	np.w.ShowAll()
 	return np
 }
+
+//NewNoteFromFile -
+func NewNoteFromFile(filename string) *NotePad {
+	ct, e := ioutil.ReadFile(filename)
+	if e !=nil {
+		MessageBox("Can not open file for reading")
+		return nil
+	}
+	np := NewNotePad(-1)
+	np.buff.SetText(string(ct))
+	np.wTitle.SetText(filename)
+	return np
+}
+
 //SaveWindowSize -
 func (np *NotePad) SaveWindowSize() {
 	w,h := np.w.GetSize()

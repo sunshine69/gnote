@@ -23,6 +23,7 @@ type Note struct {
 	AlertCount int8 `gorm:"type:int;default 0"`
 	PixbufDict []byte
 	TimeSpent int `gorm:"type:int;default 0"`
+	LastTextMark []byte
 }
 
 //NewNote - Create a new note object

@@ -67,6 +67,11 @@ func (app *GnoteApp) TreeSelectionChanged(s *gtk.TreeSelection) {
 	app.selectedID = &items
 }
 
+//NewNoteFromFile -
+func (app *GnoteApp) NewNoteFromFile(o *gtk.FileChooserButton) {
+	forms.NewNoteFromFile(o.GetFilename())
+}
+
 func (app *GnoteApp) initApp() {
 	builder := app.builder
 
@@ -81,6 +86,7 @@ func (app *GnoteApp) initApp() {
 		"RowActivated": app.RowActivated,
 		"ResultListKeyPress": app.ResultListKeyPress,
 		"TreeSelectionChanged": app.TreeSelectionChanged,
+		"NewNoteFromFile": app.NewNoteFromFile,
 	}
 
 	builder.ConnectSignals(signals)
@@ -128,6 +134,7 @@ func (app *GnoteApp) initApp() {
     selection, _ := wT.GetSelection()
 	selection.SetMode(gtk.SELECTION_MULTIPLE)
 	// wT.SetSearchColumn(0)
+
 	window.ShowAll()
 }
 
@@ -171,21 +178,41 @@ func (app *GnoteApp) doSearch() {
 	b := app.builder
 	_w, _ := b.GetObject("searchBox")
 	w := _w.(*gtk.SearchEntry)
-
+	searchFlags := false
 	keyword, _ := w.GetText()
-	tokens := strings.Split(keyword, " & ")
-	_l := len(tokens)
 	q := ""
-	for i, t := range(tokens) {
-		if i == _l - 1 {
-			q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') ORDER BY datelog DESC;", q, t, t)
-		} else {
-			q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') AND ", q, t, t)
-		}
+	tokens := []string{}
+	if strings.HasPrefix(keyword, "F:") {
+		tokens = strings.Split(keyword[2:], ":")
+		searchFlags = true
+	} else if strings.HasPrefix(keyword, "FLAGS:"){
+		tokens = strings.Split(keyword[6:], ":")
+		searchFlags = true
 	}
-	q = fmt.Sprintf("SELECT id, title, datelog, timestamp from notes WHERE %v", q)
-	fmt.Println(q)
+	if searchFlags {
+		_l := len(tokens)
+		for i, t := range(tokens) {
+			if i == _l - 1 {
+				q = fmt.Sprintf("%v (flags LIKE '%%%v%%') ORDER BY datelog DESC;", q, t)
+			} else {
+				q = fmt.Sprintf("%v (flags LIKE '%%%v%%') AND ", q, t)
+			}
+		}
+		q = fmt.Sprintf("SELECT id, title, datelog, timestamp from notes WHERE %v", q)
+	} else {
+		tokens := strings.Split(keyword, " & ")
+		_l := len(tokens)
 
+		for i, t := range(tokens) {
+			if i == _l - 1 {
+				q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') ORDER BY datelog DESC;", q, t, t)
+			} else {
+				q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') AND ", q, t, t)
+			}
+		}
+		q = fmt.Sprintf("SELECT id, title, datelog, timestamp from notes WHERE %v", q)
+	}
+	fmt.Println(q)
 	rows, e := forms.DbConn.Raw(q).Rows()
 	if e != nil {
 		fmt.Printf("ERROR - exec sql\n")

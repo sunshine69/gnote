@@ -51,9 +51,9 @@ func (ns *NoteSearch) NoteFindText(o *gtk.Button) {
 		foundIter1, foundIter2, ok = ns.curIter.ForwardSearch(keyword, searchFlag, nil)
 	}
 	if ok {
-		ns.np.textView.ScrollToIter(foundIter2, 0, true, 0, 0)
+		ns.np.textView.ScrollToIter(foundIter1, 0, true, 0, 0)
 		buf.SelectRange(foundIter1, foundIter2)
-		ns.m1 , ns.m2 = buf.CreateMark ("s1", foundIter1, true), buf.CreateMark("s2", foundIter2, true)
+		ns.m1 , ns.m2 = buf.CreateMark("s1", foundIter1, false), buf.CreateMark("s2", foundIter2, false)
 	} else {
 		if !ok {
 			MessageBox("Search text not found. Will reset iter")
@@ -111,6 +111,7 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 		panic(err)
 	}
 	ns.replaceBox = _obj.(*gtk.Entry)
+	if ! np.textView.HasGrab() { np.textView.GrabFocus() } //Crash the following code if textview does nto have pointer
 	if ns.np.buff.GetHasSelection(){
 		text, _, _ := ns.np.GetSelection()
 		if text != "" {
