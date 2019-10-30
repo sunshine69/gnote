@@ -10,7 +10,7 @@ import (
 func DoMigration() {
 	oldDBCon, _ := gorm.Open("sqlite3", "/home/stevek/Documents/clt.db")
 	DbConn, _ = gorm.Open("sqlite3", "/home/stevek/.gnote.db")
-	rows, e := oldDBCon.Raw(`SELECT note_id, title, cast(datelog as text), content, flags, url, timestamp, readonly FROM lsnote order by datelog LIMIT 1000;`).Rows()
+	rows, e := oldDBCon.Raw(`SELECT note_id, title, cast(datelog as text), content, flags, url, timestamp, readonly FROM lsnote;`).Rows()
 	if e != nil {
 		fmt.Printf("ERROR - exec sql\n")
 	}
