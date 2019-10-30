@@ -193,7 +193,7 @@ func (app *GnoteApp) doSearch() {
 		_l := len(tokens)
 		for i, t := range(tokens) {
 			if i == _l - 1 {
-				q = fmt.Sprintf("%v (flags LIKE '%%%v%%') ORDER BY datelog DESC;", q, t)
+				q = fmt.Sprintf("%v (flags LIKE '%%%v%%') ORDER BY datelog DESC LIMIT 200;", q, t)
 			} else {
 				q = fmt.Sprintf("%v (flags LIKE '%%%v%%') AND ", q, t)
 			}
@@ -205,7 +205,7 @@ func (app *GnoteApp) doSearch() {
 
 		for i, t := range(tokens) {
 			if i == _l - 1 {
-				q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') ORDER BY datelog DESC;", q, t, t)
+				q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') ORDER BY datelog DESC LIMIT 200;", q, t, t)
 			} else {
 				q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') AND ", q, t, t)
 			}
@@ -248,7 +248,7 @@ func main() {
 		forms.DoMigration()
 		os.Exit(0)
 	}
-	
+
 	homeDir, e := os.UserHomeDir()
 	if e != nil {
 		fmt.Printf("ERROR %v\n", e)
