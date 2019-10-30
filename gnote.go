@@ -242,7 +242,13 @@ func (app *GnoteApp) doSearch() {
 
 func main() {
 	dbPath := flag.String("db","","Path to the database file")
+	doMigrate := flag.Bool("mig",false,"Migrate")
 	flag.Parse()
+	if *doMigrate {
+		forms.DoMigration()
+		os.Exit(0)
+	}
+	
 	homeDir, e := os.UserHomeDir()
 	if e != nil {
 		fmt.Printf("ERROR %v\n", e)
