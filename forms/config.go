@@ -64,6 +64,7 @@ func SetupDefaultConfig() {
 		"webnote_password" : "",
 		"window_size" : "429x503",
 		"default_font" : "None",
+		"webnote_user": "msh.computing@gmail.com",
 	}
 	for key, val := range(configSet) {
 		fmt.Printf("Inserting %s - %s\n", key, val)

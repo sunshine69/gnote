@@ -274,12 +274,17 @@ func (np *NotePad) FetchDataFromGUI() {
 			fmt.Printf("ERROR can get content\n")
 		}
 	}
+
 	np.Timestamp = time.Now()
 	if np.Title == "" {
-		_l := len(np.Content)
-		if _l > 64 {_l = 64}
-		np.Title = np.Content[0:_l]
+		np.Title = ChunkString(np.Content, 64)[0]
 	}
+}
+
+//SaveToWebnote - save to webnote store
+func (np *NotePad) SaveToWebnote() {
+	np.FetchDataFromGUI()
+	
 }
 
 //SaveNote - save current note
