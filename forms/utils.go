@@ -2,8 +2,8 @@ package forms
 
 import (
 	"log"
-	"strconv"
-	"time"
+	// "strconv"
+	// "time"
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -14,14 +14,14 @@ func MessageBox(msg string) {
 	d.Destroy()
 }
 
-func ticks2Time(ticks string) time.Time {
-	i, err := strconv.ParseInt(ticks, 10, 64)
-	if err != nil {
-		panic(err)
-	}
-	tm := time.Unix(i, 0)
-	return tm
-}
+// func ticks2Time(ticks string) time.Time {
+// 	i, err := strconv.ParseInt(ticks, 10, 64)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	tm := time.Unix(i, 0)
+// 	return tm
+// }
 
 //ChunkString -
 func ChunkString(s string, chunkSize int) []string {

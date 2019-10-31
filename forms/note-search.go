@@ -1,7 +1,7 @@
 package forms
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -26,12 +26,13 @@ func (ns *NoteSearch) NoteFindRegexp(o *gtk.CheckButton) {	ns.isRegexp = o.GetAc
 
 func (ns *NoteSearch) NoteFindBackward(o *gtk.CheckButton) {	ns.isBackward = o.GetActive()}
 
-func (ns *NoteSearch) NoteFindText(o *gtk.Button) {
+func (ns *NoteSearch) FindText() bool {
 	buf := ns.np.buff
 	keyword, _ := ns.searchBox.GetText()
 	searchFlag := gtk.TEXT_SEARCH_TEXT_ONLY
 	var foundIter1, foundIter2 *gtk.TextIter
 	var ok bool = true
+	var output = false
 
 	if ns.isIcase {
 		searchFlag = gtk.TEXT_SEARCH_CASE_INSENSITIVE
@@ -53,6 +54,7 @@ func (ns *NoteSearch) NoteFindText(o *gtk.Button) {
 		ns.np.textView.ScrollToIter(foundIter1, 0, true, 0, 0)
 		buf.SelectRange(foundIter1, foundIter2)
 		ns.m1 , ns.m2 = buf.CreateMark("s1", foundIter1, false), buf.CreateMark("s2", foundIter2, false)
+		output = true
 	} else {
 		if !ok {
 			MessageBox("Search text not found. Will reset iter")
@@ -65,14 +67,32 @@ func (ns *NoteSearch) NoteFindText(o *gtk.Button) {
 			}
 		}
 	}
+	return output
 }
-
+//NoteFindText -
+func (ns *NoteSearch) NoteFindText() {
+	ns.FindText()
+}
+//NoteReplaceText -
 func (ns *NoteSearch) NoteReplaceText(o *gtk.Button) {
-	fmt.Println("Do replace")
-}
+	buf := ns.np.buff
 
+	if buf.GetHasSelection() || ns.FindText() {
+		buf.DeleteSelection(true, true)
+		_rp := GetEntry(ns.builder, "replace_text")
+		replaceText, _ := _rp.GetText()
+		buf.InsertAtCursor(replaceText)
+	}
+}
+//NoteReplaceAll -
 func (ns *NoteSearch) NoteReplaceAll(o *gtk.Button) {
-	fmt.Println("Do replace all")
+	buf := ns.np.buff
+	if buf.GetHasSelection() || ns.FindText() {
+		buf.DeleteSelection(true, true)
+		_rp := GetEntry(ns.builder, "replace_text")
+		replaceText, _ := _rp.GetText()
+		buf.InsertAtCursor(replaceText)
+	}
 }
 
 //NewNoteSearch - Create new  NotePad
