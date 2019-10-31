@@ -216,19 +216,12 @@ func (np *NotePad) TextChanged() {
 //FetchDataFromGUI - populate the Note data from GUI widget. Prepare to save to db or anything else
 func (np *NotePad) FetchDataFromGUI() {
 	b := np.builder
-	_widget, e := b.GetObject("title")
-	if e != nil {
-		fmt.Printf("ERROR get title entry\n")
-	}
-	widget := _widget.(*gtk.Entry)
+	var e error
+	widget := GetEntry(b, "title")
 	np.Title, e = widget.GetText()
 	if e != nil {fmt.Printf("ERROR get title entry text\n")}
 
-	_widget, e = b.GetObject("datelog")
-	if e != nil {
-		fmt.Printf("ERROR get datelog\n")
-	}
-	widget = _widget.(*gtk.Entry)
+	widget = GetEntry(b, "datelog")
 	_datelogStr, e := widget.GetText()
 	if e != nil {
 		fmt.Printf("ERROR get entry datelog\n")
@@ -239,30 +232,20 @@ func (np *NotePad) FetchDataFromGUI() {
 			np.Datelog = time.Now()
 		}
 	}
-	_widget, e = b.GetObject("flags")
-	if e != nil {
-		fmt.Printf("ERROR get flags\n")
-	}
-	widget = _widget.(*gtk.Entry)
+
+	widget = GetEntry(b, "flags")
 	np.Flags, e = widget.GetText()
 	if e != nil {
 		fmt.Printf("ERROR get entry flags\n")
 	}
-	_widget, e = b.GetObject("url")
-	if e != nil {
-		fmt.Printf("ERROR get url\n")
-	}
-	widget = _widget.(*gtk.Entry)
+
+	widget = GetEntry(b, "url")
 	np.URL, e = widget.GetText()
 	if e != nil {
 		fmt.Printf("ERROR get entry url\n")
 	}
 
-	_widget, e = b.GetObject("content")
-	if e != nil {
-		fmt.Printf("ERROR get content\n")
-	}
-	vWidget := _widget.(*gtk.TextView)
+	vWidget := GetTextView(b, "content")
 	textBuffer, e := vWidget.GetBuffer()
 	if e != nil {
 		fmt.Printf("ERROR get text buffer content\n")
@@ -284,7 +267,7 @@ func (np *NotePad) FetchDataFromGUI() {
 //SaveToWebnote - save to webnote store
 func (np *NotePad) SaveToWebnote() {
 	np.FetchDataFromGUI()
-	
+
 }
 
 //SaveNote - save current note
@@ -294,8 +277,7 @@ func (np *NotePad) SaveNote() {
 		fmt.Printf("ERROR can not save note - %v\n", e)
 	} else {
 		fmt.Printf("INFO Note saved\n")
-		_o, _ := np.builder.GetObject("bt_close")
-		b := _o.(*gtk.Button)
+		b := GetButton(np.builder, "bt_close")
 		b.SetLabel("Close")
 	}
 }
@@ -318,8 +300,7 @@ func (np *NotePad) ToggleReadOnly(bt *gtk.ToggleButton) {
 	} else {
 		np.Readonly = 0
 	}
-	_w, _ := np.builder.GetObject("content")
-	w := _w.(*gtk.TextView)
+	w := GetTextView(np.builder, "content")
 	w.SetEditable(! (np.Readonly == 1))
 }
 

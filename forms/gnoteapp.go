@@ -95,29 +95,23 @@ func (app *GnoteApp) InitApp() {
 
 	Builder.ConnectSignals(signals)
 
-	_obj, err := Builder.GetObject("window")
-	if err != nil {
-		panic(err)
-	}
-	window := _obj.(*gtk.Window)
+	window := GetWindow(Builder, "window")
 
 	window.SetTitle("gnote")
 	window.SetDefaultSize(300, 250)
-	_, err = window.Connect("destroy", func() {
+	_, err := window.Connect("destroy", func() {
 		gtk.MainQuit()
 	})
 	if err != nil {
 		panic(err)
 	}
 
-	_obj, err = Builder.GetObject("status_bar")
-	statusBar := _obj.(*gtk.Statusbar)
+	statusBar := GetStatusBar(Builder, "status_bar")
 	statusBar.Push(1, "Welcome to gnote")
 
 	app.MainWindow = window
 
-	_w, _ := Builder.GetObject("treeView")
-	wT := _w.(*gtk.TreeView)
+	wT := GetTreeView(Builder, "treeview")
 	app.treeView = wT
 	app.model, _ = gtk.ListStoreNew(glib.TYPE_INT, glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
 	wT.SetModel(app.model)
@@ -149,12 +143,7 @@ func (app *GnoteApp) openPref() {
 	if err != nil {
 		panic(err)
 	}
-	_obj, err := Builder.GetObject("edit_pref")
-	if err != nil {
-		panic(err)
-	}
-	dialogWindow := _obj.(*gtk.Dialog)
-	dialogWindow.Show()
+	GetWindow(Builder, "edit_pref").Show()
 }
 
 func (app *GnoteApp) openDBFile() {
@@ -167,7 +156,7 @@ func (app *GnoteApp) newNote() {
 }
 
 func (app *GnoteApp) doExit() {
-	fmt.Println("Exit called")
+	gtk.MainQuit()
 }
 
 func (app *GnoteApp) showAbout() {
@@ -181,8 +170,7 @@ func (app *GnoteApp) doClearSearchbox() {
 func (app *GnoteApp) doSearch() {
 	fmt.Println("doSearch")
 	b := app.Builder
-	_w, _ := b.GetObject("searchBox")
-	w := _w.(*gtk.SearchEntry)
+	w := GetSearchEntry(b, "searchBox")
 	searchFlags := false
 	keyword, _ := w.GetText()
 	q := ""
@@ -239,8 +227,7 @@ func (app *GnoteApp) doSearch() {
 			}
 		count = count + 1
 	}
-	_o, _ := app.Builder.GetObject("status_bar")
-	s := _o.(*gtk.Statusbar)
+	s := GetStatusBar(app.Builder, "status_bar")
 	s.Pop(1)
 	s.Push(1, fmt.Sprintf( "Found %d notes", count))
 }
