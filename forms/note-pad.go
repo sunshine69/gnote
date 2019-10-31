@@ -112,6 +112,7 @@ func NewNotePad(id int) *NotePad {
 		"TextChanged": np.TextChanged,
 		"KeyPressed": np.KeyPressed,
 		"ShowMainWindowBtnClick": np.ShowMainWindowBtnClick,
+		"SendBtnClick": np.SaveToWebnote,
 	}
 	builder.ConnectSignals(signals)
 	_widget, e := builder.GetObject("content")
@@ -267,7 +268,8 @@ func (np *NotePad) FetchDataFromGUI() {
 //SaveToWebnote - save to webnote store
 func (np *NotePad) SaveToWebnote() {
 	np.FetchDataFromGUI()
-
+	pass := InputDialog("password-mask", '*')
+	fmt.Printf("%s\n", pass)
 }
 
 //SaveNote - save current note

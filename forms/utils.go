@@ -4,7 +4,6 @@ import (
 	"log"
 	"strconv"
 	"time"
-
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -51,6 +50,17 @@ func GetWindow(b *gtk.Builder, id string) (Window *gtk.Window) {
 	}
 
 	Window, _ = obj.(*gtk.Window)
+	return
+}
+
+func GetDialog(b *gtk.Builder, id string) (Window *gtk.Dialog) {
+	obj, e := b.GetObject(id)
+	if e != nil {
+		log.Printf("Get Dialog error: %s", e)
+		return nil
+	}
+
+	Window, _ = obj.(*gtk.Dialog)
 	return
 }
 
