@@ -13,7 +13,7 @@ import (
 
 //NotePad - GUI related
 type NotePad struct {
-	app interface{}
+	app *GnoteApp
 	w *gtk.Window
 	builder *gtk.Builder
 	textView *gtk.TextView
@@ -81,7 +81,7 @@ func (np *NotePad) Load(id int) {
 
 //ShowMainWindowBtnClick -
 func (np *NotePad) ShowMainWindowBtnClick(o *gtk.Button) {
-
+	np.app.ShowMain()
 }
 
 //NewNotePad - Create new  NotePad

@@ -18,6 +18,11 @@ type GnoteApp struct {
 	selectedID *[]int
 }
 
+//ShowMain - show main window to do something. Meant to be called from NotePad
+func (app *GnoteApp) ShowMain() {
+	app.MainWindow.Present()
+}
+
 //RowActivated - Process when a treeview list row activated. Pop up a note window with the id
 func (app *GnoteApp) RowActivated(treeView *gtk.TreeView,
 	path *gtk.TreePath,
@@ -27,7 +32,8 @@ func (app *GnoteApp) RowActivated(treeView *gtk.TreeView,
 	iter, _ := model.GetIter(path)
 	_v, _ := model.GetValue( iter, 0 )
 	v, _ := _v.GoValue()
-	NewNotePad(v.(int))
+	np := NewNotePad(v.(int))
+	np.app = app
 }
 
 //ResultListKeyPress - evt
@@ -156,7 +162,8 @@ func (app *GnoteApp) openDBFile() {
 }
 
 func (app *GnoteApp) newNote() {
-	NewNotePad(-1)
+	np := NewNotePad(-1)
+	np.app = app
 }
 
 func (app *GnoteApp) doExit() {
