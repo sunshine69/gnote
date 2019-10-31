@@ -6,7 +6,6 @@ import (
 	"strings"
 	"github.com/gotk3/gotk3/gdk"
 	"time"
-	"github.com/araddon/dateparse"
 	"fmt"
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -20,13 +19,24 @@ type NotePad struct {
 	buff *gtk.TextBuffer
 	wTitle *gtk.Entry
 	wFlags *gtk.Entry
+	wDateLog *gtk.Entry
 	wURL *gtk.Entry
 	Note
 }
 
+//ShowMainWindowBtnClick -
+func (np *NotePad) ShowMainWindowBtnClick(o *gtk.Button) {
+	np.app.ShowMain()
+}
+
 //Load - Load note data and set the widget with data
 func (np *NotePad) Load(id int) {
-	if id < 0 { return }
+	if id < 0 {
+		np.Datelog = time.Now()
+		np.wDateLog.SetText(np.Datelog.Format("02-01-2006 15:04:05 MST"))
+		return
+	}
+
 	if e := DbConn.FirstOrInit(&np.Note, Note{ID: id}).Error; e != nil {
 		fmt.Printf("INFO Can not find that note ID %d\n", id)
 		return
@@ -46,7 +56,7 @@ func (np *NotePad) Load(id int) {
 			return
 		}
 		w = _w.(*gtk.Entry)
-		w.SetText(fmt.Sprintf("%v", np.Datelog))
+		w.SetText(np.Datelog.Format("02-01-2006 15:04:05 MST"))
 
 		_w, e = b.GetObject("flags")
 		if e != nil {
@@ -77,11 +87,6 @@ func (np *NotePad) Load(id int) {
 		wTB.SetActive((np.Readonly == 1))
 	}
 
-}
-
-//ShowMainWindowBtnClick -
-func (np *NotePad) ShowMainWindowBtnClick(o *gtk.Button) {
-	np.app.ShowMain()
 }
 
 //NewNotePad - Create new  NotePad
@@ -133,6 +138,12 @@ func NewNotePad(id int) *NotePad {
 		fmt.Printf("ERROR get url\n")
 	}
 	np.wURL = _w.(*gtk.Entry)
+
+	_w, e = builder.GetObject("datelog")
+	if e != nil {
+		fmt.Printf("ERROR get datelog\n")
+	}
+	np.wDateLog = _w.(*gtk.Entry)
 
 	np.Load(id)
 	_o, _ := np.builder.GetObject("bt_close")
@@ -202,8 +213,8 @@ func (np *NotePad) TextChanged() {
 	b.SetLabel("Cancel")
 }
 
-//SaveNote - save current note
-func (np *NotePad) SaveNote() {
+//FetchDataFromGUI - populate the Note data from GUI widget. Prepare to save to db or anything else
+func (np *NotePad) FetchDataFromGUI() {
 	b := np.builder
 	_widget, e := b.GetObject("title")
 	if e != nil {
@@ -222,7 +233,7 @@ func (np *NotePad) SaveNote() {
 	if e != nil {
 		fmt.Printf("ERROR get entry datelog\n")
 	} else {
-		np.Datelog, e = dateparse.ParseLocal(_datelogStr)
+		np.Datelog, e = time.Parse("02-01-2006 15:04:05 MST",_datelogStr)
 		if e != nil {
 			fmt.Printf("ERROR can not parse datelog. Use Now\n")
 			np.Datelog = time.Now()
@@ -269,7 +280,12 @@ func (np *NotePad) SaveNote() {
 		if _l > 64 {_l = 64}
 		np.Title = np.Content[0:_l]
 	}
-	if e = DbConn.Save(&np.Note).Error; e != nil {
+}
+
+//SaveNote - save current note
+func (np *NotePad) SaveNote() {
+	np.FetchDataFromGUI()
+	if e := DbConn.Save(&np.Note).Error; e != nil {
 		fmt.Printf("ERROR can not save note - %v\n", e)
 	} else {
 		fmt.Printf("INFO Note saved\n")
@@ -278,6 +294,7 @@ func (np *NotePad) SaveNote() {
 		b.SetLabel("Close")
 	}
 }
+
 func (np *NotePad) saveBtnClick() {
 	np.SaveNote()
 	np.SaveWindowSize()
