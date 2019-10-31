@@ -87,7 +87,8 @@ func (ns *NoteSearch) NoteReplaceText(o *gtk.Button) {
 //NoteReplaceAll -
 func (ns *NoteSearch) NoteReplaceAll(o *gtk.Button) {
 	buf := ns.np.buff
-	if buf.GetHasSelection() || ns.FindText() {
+
+	for buf.GetHasSelection() || ns.FindText() {
 		buf.DeleteSelection(true, true)
 		_rp := GetEntry(ns.builder, "replace_text")
 		replaceText, _ := _rp.GetText()

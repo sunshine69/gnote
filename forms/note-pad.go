@@ -205,12 +205,14 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) {
 		switch keyEvent.KeyVal() {
 		case gdk.KeyvalFromName("s"):
 			np.SaveNote()
-		case gdk.KeyvalFromName("f"):
+		case gdk.KeyvalFromName("f")://Find & Replace
 			np.NoteSearch()
-		case gdk.KeyvalFromName("b"):
+		case gdk.KeyvalFromName("b")://Open in browser
 			md := []byte(np.Content)
 			output := markdown.ToHTML(md, nil, nil)
-			browser.OpenReader(strings.NewReader(string(output)) )
+			browser.OpenReader(strings.NewReader(string(output)))
+		case gdk.KeyvalFromName("F"): // Filter content using external command
+			fmt.Printf("TODO - Filter content using external command\n")
 		}
 
 	}
