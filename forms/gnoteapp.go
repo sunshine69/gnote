@@ -8,6 +8,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
+
 //GnoteApp - struct
 type GnoteApp struct {
 	Builder *gtk.Builder

@@ -7,6 +7,14 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
+//DateLayout - global
+var DateLayout string
+//WebNotePassword
+var WebNotePassword string
+//WebNoteUser
+var WebNoteUser string
+
+
 //AppConfig - Application config struct
 type AppConfig struct {
 	gorm.Model
@@ -18,10 +26,13 @@ type AppConfig struct {
 //DbConn - Global DB connection
 var DbConn *gorm.DB
 
-//SetupConfigDB - SetupDB
+//SetupConfigDB - SetupDB. This is the initial point of config setup. Note init() does not work if it relies
+//on DbConn as at the time the DBPATH is not yet available
 func SetupConfigDB() {
 	var err error
-	DbConn, err = gorm.Open("sqlite3", os.Getenv("DBPATH"))
+	dbPath := os.Getenv("DBPATH")
+	fmt.Printf("Use dbpath %v\n", dbPath)
+	DbConn, err = gorm.Open("sqlite3", dbPath)
 	if err != nil {
 	  panic("failed to connect database")
 	}
@@ -34,11 +45,9 @@ func SetupConfigDB() {
 	// 	log.Printf("Error can not load config table %v",err)
 	// }
 	// value := Config.Val
+	DateLayout, _ = GetConfig("date_layout")
+	WebNoteUser, _ = GetConfig("webnote_user")
 }
-
-// func init() {
-// 	SetupConfigDB()
-// }
 
 //SetupDefaultConfig - Setup/reset default configuration set
 func SetupDefaultConfig() {
@@ -65,6 +74,7 @@ func SetupDefaultConfig() {
 		"window_size" : "429x503",
 		"default_font" : "None",
 		"webnote_user": "msh.computing@gmail.com",
+		"date_layout": "02-01-2006 15:04:05 MST",
 	}
 	for key, val := range(configSet) {
 		fmt.Printf("Inserting %s - %s\n", key, val)

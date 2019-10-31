@@ -1,6 +1,9 @@
 package forms
 
 import (
+	"net/url"
+	"net/http"
+	"net/http/cookiejar"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -8,6 +11,7 @@ import (
 	"time"
 	"fmt"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/pkg/browser"
 )
 
 //NotePad - GUI related
@@ -33,7 +37,7 @@ func (np *NotePad) ShowMainWindowBtnClick(o *gtk.Button) {
 func (np *NotePad) Load(id int) {
 	if id < 0 {
 		np.Datelog = time.Now()
-		np.wDateLog.SetText(np.Datelog.Format("02-01-2006 15:04:05 MST"))
+		np.wDateLog.SetText(np.Datelog.Format(DateLayout))
 		return
 	}
 
@@ -56,7 +60,7 @@ func (np *NotePad) Load(id int) {
 			return
 		}
 		w = _w.(*gtk.Entry)
-		w.SetText(np.Datelog.Format("02-01-2006 15:04:05 MST"))
+		w.SetText(np.Datelog.Format(DateLayout))
 
 		_w, e = b.GetObject("flags")
 		if e != nil {
@@ -227,7 +231,7 @@ func (np *NotePad) FetchDataFromGUI() {
 	if e != nil {
 		fmt.Printf("ERROR get entry datelog\n")
 	} else {
-		np.Datelog, e = time.Parse("02-01-2006 15:04:05 MST",_datelogStr)
+		np.Datelog, e = time.Parse(DateLayout,_datelogStr)
 		if e != nil {
 			fmt.Printf("ERROR can not parse datelog. Use Now\n")
 			np.Datelog = time.Now()
@@ -267,9 +271,61 @@ func (np *NotePad) FetchDataFromGUI() {
 
 //SaveToWebnote - save to webnote store
 func (np *NotePad) SaveToWebnote() {
+	// SetupDefaultConfig()
 	np.FetchDataFromGUI()
-	pass := InputDialog("password-mask", '*')
-	fmt.Printf("%s\n", pass)
+	if WebNotePassword == "" {
+		WebNotePassword = InputDialog(
+			"title", "Password requried", "password-mask", '*', "label", "Enter webnote password")
+	}
+	cookieJar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: cookieJar,
+	}
+
+	data := url.Values{
+		"action": {"do_login"},
+		"path": {"action=show_frontpage"},
+		"username": {WebNoteUser},
+		"password": {WebNotePassword},
+		"totp_number":{""},
+		"login": {"Login"},
+	}
+	resp, err := client.PostForm("https://note.inxuanthuy.com", data)
+	if err != nil {
+		fmt.Printf("ERROR - CRITICAL login to webnote %v", err)
+		WebNotePassword = ""
+	}
+	defer resp.Body.Close()
+	respText, _ := ioutil.ReadAll(resp.Body)
+	if strings.HasPrefix(string(respText), "ERROR - Response is None") {
+		MessageBox("Error login to webnote. Check your password")
+		return
+	}
+
+	data = url.Values {
+		"action": {"save_newnote"},
+		"title": {np.Title},
+		"datelog": {np.Datelog.Format(DateLayout)},
+		"timestamp": {fmt.Sprintf("%d", np.Timestamp.Unix())},
+		"flags": {np.Flags},
+		"content": {np.Content},
+		"url": {np.URL},
+		"ngroup": {"default"},
+		"permission": {"0"},
+		"is_ajax": {"1"},
+		"raw_editor": {"1"},
+		"savenote": {"Save"},
+	}
+	resp, err = client.PostForm("https://note.inxuanthuy.com", data)
+	if err != nil {
+		fmt.Printf("ERROR - CRITICAL save to webnote %v", err)
+		panic(2)
+	}
+	defer resp.Body.Close()
+	respText, _ = ioutil.ReadAll(resp.Body)
+	if string(respText) != "OK note saved" {
+		browser.OpenReader(strings.NewReader(string(respText) ) )
+	}
 }
 
 //SaveNote - save current note
