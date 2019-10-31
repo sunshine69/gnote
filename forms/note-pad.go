@@ -13,6 +13,7 @@ import (
 
 //NotePad - GUI related
 type NotePad struct {
+	app interface{}
 	w *gtk.Window
 	builder *gtk.Builder
 	textView *gtk.TextView
@@ -78,6 +79,11 @@ func (np *NotePad) Load(id int) {
 
 }
 
+//ShowMainWindowBtnClick -
+func (np *NotePad) ShowMainWindowBtnClick(o *gtk.Button) {
+
+}
+
 //NewNotePad - Create new  NotePad
 func NewNotePad(id int) *NotePad {
 	np := &NotePad{}
@@ -100,6 +106,7 @@ func NewNotePad(id int) *NotePad {
 		"ToggleReadOnly": np.ToggleReadOnly,
 		"TextChanged": np.TextChanged,
 		"KeyPressed": np.KeyPressed,
+		"ShowMainWindowBtnClick": np.ShowMainWindowBtnClick,
 	}
 	builder.ConnectSignals(signals)
 	_widget, e := builder.GetObject("content")

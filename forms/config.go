@@ -62,7 +62,7 @@ func SetupDefaultConfig() {
 		"recent_filter_cmd" : "",
 		"maxcount_recent_filter_cmd" : "20",
 		"webnote_password" : "",
-		"window_size" : "1007x1004",
+		"window_size" : "429x503",
 		"default_font" : "None",
 	}
 	for key, val := range(configSet) {
