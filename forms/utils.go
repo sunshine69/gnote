@@ -75,27 +75,7 @@ func GetListStore(b *gtk.Builder, id string) (listStore *gtk.ListStore) {
 	return
 }
 
-func GetButton(b *gtk.Builder, id string) (btn *gtk.Button) {
-	obj, e := b.GetObject(id)
-	if e != nil {
-		log.Printf("Button error: %s", e)
-		return nil
-	}
 
-	btn, _ = obj.(*gtk.Button)
-	return
-}
-
-func GetToggleButton(b *gtk.Builder, id string) (btn *gtk.ToggleButton) {
-	obj, e := b.GetObject(id)
-	if e != nil {
-		log.Printf("Toggle button error: %s", e)
-		return nil
-	}
-
-	btn, _ = obj.(*gtk.ToggleButton)
-	return
-}
 
 func GetTreeView(b *gtk.Builder, id string) (treeView *gtk.TreeView) {
 	obj, e := b.GetObject(id)
@@ -127,28 +107,6 @@ func GetLabel(b *gtk.Builder, id string) (treeView *gtk.Label) {
 	}
 
 	treeView, _ = obj.(*gtk.Label)
-	return
-}
-
-func GetScrolledWindow(b *gtk.Builder, id string) (treeView *gtk.ScrolledWindow) {
-	obj, e := b.GetObject(id)
-	if e != nil {
-		log.Printf("Scrolled window error: %s", e)
-		return nil
-	}
-
-	treeView, _ = obj.(*gtk.ScrolledWindow)
-	return
-}
-
-func GetSpinner(b *gtk.Builder, id string) (treeView *gtk.Spinner) {
-	obj, e := b.GetObject(id)
-	if e != nil {
-		log.Printf("Spinner error: %s", e)
-		return nil
-	}
-
-	treeView, _ = obj.(*gtk.Spinner)
 	return
 }
 
@@ -185,39 +143,6 @@ func GetStatusBar(b *gtk.Builder, id string) (treeView *gtk.Statusbar) {
 	return
 }
 
-func GetComboBox(b *gtk.Builder, id string) (combobox *gtk.ComboBox) {
-	obj, e := b.GetObject(id)
-	if e != nil {
-		log.Printf("ComboBox error: %s", e)
-		return nil
-	}
-
-	combobox, _ = obj.(*gtk.ComboBox)
-	return
-}
-
-func GetCheckButton(b *gtk.Builder, id string) (el *gtk.CheckButton) {
-	obj, e := b.GetObject(id)
-	if e != nil {
-		log.Printf("CheckButton error: %s", e)
-		return nil
-	}
-
-	el, _ = obj.(*gtk.CheckButton)
-	return
-}
-
-func GetImage(b *gtk.Builder, id string) (el *gtk.Image) {
-	obj, e := b.GetObject(id)
-	if e != nil {
-		log.Printf("Image error: %s", e)
-		return nil
-	}
-
-	el, _ = obj.(*gtk.Image)
-	return
-}
-
 func GetMenuItem(b *gtk.Builder, id string) (el *gtk.MenuItem) {
 	obj, e := b.GetObject(id)
 	if e != nil {
@@ -239,3 +164,81 @@ func GetCheckMenuItem(b *gtk.Builder, id string) (el *gtk.CheckMenuItem) {
 	el, _ = obj.(*gtk.CheckMenuItem)
 	return
 }
+
+func GetButton(b *gtk.Builder, id string) (btn *gtk.Button) {
+	obj, e := b.GetObject(id)
+	if e != nil {
+		log.Printf("Button error: %s", e)
+		return nil
+	}
+
+	btn, _ = obj.(*gtk.Button)
+	return
+}
+
+// func GetComboBox(b *gtk.Builder, id string) (combobox *gtk.ComboBox) {
+// 	obj, e := b.GetObject(id)
+// 	if e != nil {
+// 		log.Printf("ComboBox error: %s", e)
+// 		return nil
+// 	}
+
+// 	combobox, _ = obj.(*gtk.ComboBox)
+// 	return
+// }
+
+// func GetCheckButton(b *gtk.Builder, id string) (el *gtk.CheckButton) {
+// 	obj, e := b.GetObject(id)
+// 	if e != nil {
+// 		log.Printf("CheckButton error: %s", e)
+// 		return nil
+// 	}
+
+// 	el, _ = obj.(*gtk.CheckButton)
+// 	return
+// }
+
+// func GetImage(b *gtk.Builder, id string) (el *gtk.Image) {
+// 	obj, e := b.GetObject(id)
+// 	if e != nil {
+// 		log.Printf("Image error: %s", e)
+// 		return nil
+// 	}
+
+// 	el, _ = obj.(*gtk.Image)
+// 	return
+// }
+
+
+// func GetToggleButton(b *gtk.Builder, id string) (btn *gtk.ToggleButton) {
+// 	obj, e := b.GetObject(id)
+// 	if e != nil {
+// 		log.Printf("Toggle button error: %s", e)
+// 		return nil
+// 	}
+
+// 	btn, _ = obj.(*gtk.ToggleButton)
+// 	return
+// }
+
+// func GetScrolledWindow(b *gtk.Builder, id string) (treeView *gtk.ScrolledWindow) {
+// 	obj, e := b.GetObject(id)
+// 	if e != nil {
+// 		log.Printf("Scrolled window error: %s", e)
+// 		return nil
+// 	}
+
+// 	treeView, _ = obj.(*gtk.ScrolledWindow)
+// 	return
+// }
+
+// func GetSpinner(b *gtk.Builder, id string) (treeView *gtk.Spinner) {
+// 	obj, e := b.GetObject(id)
+// 	if e != nil {
+// 		log.Printf("Spinner error: %s", e)
+// 		return nil
+// 	}
+
+// 	treeView, _ = obj.(*gtk.Spinner)
+// 	return
+// }

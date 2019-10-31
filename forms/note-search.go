@@ -32,7 +32,6 @@ func (ns *NoteSearch) NoteFindText(o *gtk.Button) {
 	searchFlag := gtk.TEXT_SEARCH_TEXT_ONLY
 	var foundIter1, foundIter2 *gtk.TextIter
 	var ok bool = true
-	// ns.curIter = buf.GetIterAtMark(buf.GetInsert())
 
 	if ns.isIcase {
 		searchFlag = gtk.TEXT_SEARCH_CASE_INSENSITIVE
@@ -94,24 +93,12 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 	}
 	builder.ConnectSignals(signals)
 
-	_obj, err := builder.GetObject("note_search")
-	if err != nil {
-		panic(err)
-	}
-	ns.w = _obj.(*gtk.Window)
+	ns.w = GetWindow(builder, "note_search")
 
-	_obj, err = builder.GetObject("text_ptn")
-	if err != nil {
-		panic(err)
-	}
-	ns.searchBox = _obj.(*gtk.SearchEntry)
+	ns.searchBox = GetSearchEntry(builder, "text_ptn")
 
-	_obj, err = builder.GetObject("replace_text")
-	if err != nil {
-		panic(err)
-	}
-	ns.replaceBox = _obj.(*gtk.Entry)
-	if ! np.textView.HasGrab() { np.textView.GrabFocus() } //Crash the following code if textview does nto have pointer
+	ns.replaceBox = GetEntry(builder, "replace_text")
+	if ! np.textView.HasGrab() { np.textView.GrabFocus() } //Crash the following code if textview does not have pointer
 	if ns.np.buff.GetHasSelection(){
 		text, _, _ := ns.np.GetSelection()
 		if text != "" {
@@ -123,6 +110,5 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 	ns.curIter =  buf.GetIterAtMark(buf.GetInsert())
 	ns.m1 , ns.m2 = nil, nil
 
-	// ns.w.ShowAll()
 	return ns
 }
