@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/pkg/browser"
+	"github.com/gomarkdown/markdown"
 )
 
 //NotePad - GUI related
@@ -206,6 +207,10 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) {
 			np.SaveNote()
 		case gdk.KeyvalFromName("f"):
 			np.NoteSearch()
+		case gdk.KeyvalFromName("b"):
+			md := []byte(np.Content)
+			output := markdown.ToHTML(md, nil, nil)
+			browser.OpenReader(strings.NewReader(string(output)) )
 		}
 
 	}
