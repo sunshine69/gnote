@@ -83,6 +83,7 @@ func (ns *NoteSearch) NoteReplaceText(o *gtk.Button) {
 		replaceText, _ := _rp.GetText()
 		buf.InsertAtCursor(replaceText)
 	}
+
 }
 //NoteReplaceAll -
 func (ns *NoteSearch) NoteReplaceAll(o *gtk.Button) {

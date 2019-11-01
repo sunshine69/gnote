@@ -1,6 +1,7 @@
 package forms
 
 import (
+	"github.com/alecthomas/chroma/lexers"
 	"net/url"
 	"net/http"
 	"net/http/cookiejar"
@@ -118,6 +119,7 @@ func NewNotePad(id int) *NotePad {
 		"KeyPressed": np.KeyPressed,
 		"ShowMainWindowBtnClick": np.ShowMainWindowBtnClick,
 		"SendBtnClick": np.SaveToWebnote,
+		"HighlightBtnClick": np.HighlightBtnClick,
 	}
 	builder.ConnectSignals(signals)
 	_widget, e := builder.GetObject("content")
@@ -382,4 +384,34 @@ func (np *NotePad) GetSelection() (string, *gtk.TextIter, *gtk.TextIter) {
 		}
 	}
 	return "", nil, nil
+}
+//HighlightBtnClick -
+func (np *NotePad) HighlightBtnClick() {
+	fmt.Printf("Start Highlight\n")
+	buf := np.buff
+	var someSourceCode string
+	var startI, endI *gtk.TextIter
+	if buf.GetHasSelection() {
+		someSourceCode, startI, endI = np.GetSelection()
+	} else {
+		startI = buf.GetStartIter()
+		endI = buf.GetEndIter()
+		someSourceCode, _ = buf.GetText(startI, endI, true)
+	}
+	lexer := lexers.Analyse(someSourceCode)
+	lexerStr := ""
+	if lexer != nil {
+		c := lexer.Config()
+		fmt.Printf("Lexer detected type: %v\n", c.Name)
+		lexerStr = c.Name
+	} else {
+		lexerStr = InputDialog("title", "Input required", "label", "Enter the language string for highlighter:", "default", "python")
+	}
+	formattedSource, err := ChromaHighlight(someSourceCode, lexerStr)
+	if err == nil {
+		buf.Delete(startI, endI)
+		buf.InsertMarkup(startI, formattedSource)
+	} else {
+		fmt.Printf("%v\n", err)
+	}
 }

@@ -23,6 +23,8 @@ func InputDialog(opt ...interface{}) string {
             case "password-mask":
                 entry.SetInvisibleChar(opt[i+1].(rune))
                 entry.SetVisibility(false)
+            case "default":
+                entry.SetText(opt[i+1].(string))
             }
         }
     }

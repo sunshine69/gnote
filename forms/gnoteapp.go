@@ -133,7 +133,9 @@ func (app *GnoteApp) InitApp() {
     selection, _ := wT.GetSelection()
 	selection.SetMode(gtk.SELECTION_MULTIPLE)
 	// wT.SetSearchColumn(0)
-
+	// window.SetPosition(gtk.WIN_POS_CENTER)
+	// window.SetGravity(gdk.GDK_GRAVITY_NORTH_EAST)
+	window.Move(3000,0)
 	window.ShowAll()
 }
 

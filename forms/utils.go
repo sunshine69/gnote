@@ -1,6 +1,14 @@
 package forms
 
 import (
+	"strings"
+	"fmt"
+	"io"
+	"github.com/alecthomas/chroma"
+	"github.com/alecthomas/chroma/quick"
+	"github.com/alecthomas/chroma/formatters"
+	"bufio"
+	"bytes"
 	"log"
 	// "strconv"
 	// "time"
@@ -242,3 +250,85 @@ func GetButton(b *gtk.Builder, id string) (btn *gtk.Button) {
 // 	treeView, _ = obj.(*gtk.Spinner)
 // 	return
 // }
+
+// ChromaHighlight: Syntax highlighter using Chroma syntax
+// highlighter: "github.com/alecthomas/chroma"
+// informations above
+func ChromaHighlight(inputString, lexer string) (out string, err error) {
+	var buff bytes.Buffer
+	writer := bufio.NewWriter(&buff)
+
+	// Registrering pango formatter
+	formatters.Register("pango", chroma.FormatterFunc(pangoFormatter))
+
+	// Doing the job
+	if err = quick.Highlight(writer, pangoPrepare(inputString), lexer, "pango", "github"); err != nil {
+		return
+	}
+	writer.Flush()
+	return pangoFinalize(string(buff.Bytes())), err
+}
+
+// pangoFormatter: is a part of "ChromaHighlight" function
+func pangoFormatter(w io.Writer, style *chroma.Style, it chroma.Iterator) error {
+
+	// Clear the background colour.
+	var clearBackground = func(style *chroma.Style) *chroma.Style {
+		builder := style.Builder()
+		bg := builder.Get(chroma.Background)
+		bg.Background = 0
+		bg.NoInherit = true
+		builder.AddEntry(chroma.Background, bg)
+		style, _ = builder.Build()
+		return style
+	}
+
+	closer, out := "", ""
+	style = clearBackground(style)
+	for token := it(); token != chroma.EOF; token = it() {
+		entry := style.Get(token.Type)
+		if !entry.IsZero() {
+			closer, out = "", ""
+			if entry.Bold == chroma.Yes {
+				out += "<b>"
+				closer = "</b>" + closer
+			}
+			if entry.Underline == chroma.Yes {
+				out += "<u>"
+				closer = "</u>" + closer
+			}
+			if entry.Italic == chroma.Yes {
+				out += "<i>"
+				closer = "</i>" + closer
+			}
+			if entry.Colour.IsSet() {
+				out += fmt.Sprintf("<span foreground=\"#%02X%02X%02X\">", entry.Colour.Red(), entry.Colour.Green(), entry.Colour.Blue())
+				closer = "</span>" + closer
+			}
+			if entry.Background.IsSet() {
+				out += fmt.Sprintf("<span background=\"#%02X%02X%02X\">", entry.Background.Red(), entry.Background.Green(), entry.Background.Blue())
+				closer = "</span>" + closer
+			}
+			fmt.Fprint(w, out)
+		}
+		fmt.Fprint(w, token.Value)
+		if !entry.IsZero() {
+			fmt.Fprint(w, closer)
+		}
+	}
+	return nil
+}
+
+var pangoEscapeChar = [][]string{{"<", "&lt;", "lOwErThAnTmPrEpLaCeMeNt"}, {"&", "&amp;", "aMpErSaNdTmPrEpLaCeMeNt"}}
+
+// prepare: sanitize input string to safely use with pango
+func pangoPrepare(inString string) string {
+	inString = strings.Replace(inString, pangoEscapeChar[1][0], pangoEscapeChar[1][2], -1)
+	return strings.Replace(inString, pangoEscapeChar[0][0], pangoEscapeChar[0][2], -1)
+}
+
+// finalize: restore originals characters using markup replacement
+func pangoFinalize(inString string) string {
+	inString = strings.Replace(inString, pangoEscapeChar[1][2], pangoEscapeChar[1][1], -1)
+	return strings.Replace(inString, pangoEscapeChar[0][2], pangoEscapeChar[0][1], -1)
+}
