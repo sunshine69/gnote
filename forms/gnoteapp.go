@@ -12,11 +12,12 @@ import (
 //GnoteApp - struct
 type GnoteApp struct {
 	Builder *gtk.Builder
-	signals map[string]interface{}
 	MainWindow *gtk.Window
 	model *gtk.ListStore
 	treeView *gtk.TreeView
 	selectedID *[]int
+	curNoteWindowID map[int]int8
+	searchBox *gtk.SearchEntry
 }
 
 //ShowMain - show main window to do something. Meant to be called from NotePad
@@ -33,8 +34,12 @@ func (app *GnoteApp) RowActivated(treeView *gtk.TreeView,
 	iter, _ := model.GetIter(path)
 	_v, _ := model.GetValue( iter, 0 )
 	v, _ := _v.GoValue()
-	np := NewNotePad(v.(int))
-	np.app = app
+	nID := v.(int)
+	if _, ok := app.curNoteWindowID[nID]; !ok {
+		app.curNoteWindowID[nID] = 1
+		np := NewNotePad(nID)
+		np.app = app
+	}
 }
 
 //ResultListKeyPress - evt
@@ -73,7 +78,9 @@ func (app *GnoteApp) TreeSelectionChanged(s *gtk.TreeSelection) {
 
 //NewNoteFromFile -
 func (app *GnoteApp) NewNoteFromFile(o *gtk.FileChooserButton) {
-	NewNoteFromFile(o.GetFilename())
+	np := NewNoteFromFile(o.GetFilename())
+	app.curNoteWindowID[np.ID] = 1
+	np.app = app
 }
 
 //InitApp -
@@ -135,6 +142,9 @@ func (app *GnoteApp) InitApp() {
 	// wT.SetSearchColumn(0)
 	// window.SetPosition(gtk.WIN_POS_CENTER)
 	// window.SetGravity(gdk.GDK_GRAVITY_NORTH_EAST)
+
+	app.curNoteWindowID = make(map[int]int8)
+	app.searchBox = GetSearchEntry(Builder, "searchBox")
 	window.Move(3000,0)
 	window.ShowAll()
 }

@@ -121,6 +121,7 @@ func NewNotePad(id int) *NotePad {
 		"SendBtnClick": np.SaveToWebnote,
 		"HighlightBtnClick": np.HighlightBtnClick,
 		"AppendUpdateMarkBtnClick": np.AppendUpdateMarkBtnClick,
+		"SearchNoteFromPad": np.SearchNoteFromPad,
 	}
 	builder.ConnectSignals(signals)
 	_widget, e := builder.GetObject("content")
@@ -166,8 +167,22 @@ func NewNotePad(id int) *NotePad {
 	np.w.SetDefaultSize(w, h)
 
 	if ! np.textView.HasGrab() { np.textView.GrabFocus() }
+	np.w.Connect("delete-event", func () bool {
+		delete(np.app.curNoteWindowID, np.ID)
+		return false
+	} )
 	np.w.ShowAll()
 	return np
+}
+
+func (np *NotePad) SearchNoteFromPad() {
+	buf := np.buff
+	if buf.GetHasSelection() {
+		text, _, _ := np.GetSelection()
+		np.app.searchBox.SetText(text)
+		np.app.doSearch()
+		np.app.MainWindow.Present()
+	}
 }
 
 func (np *NotePad) AppendUpdateMarkBtnClick() {
@@ -355,6 +370,7 @@ func (np *NotePad) SaveNote() {
 		fmt.Printf("INFO Note saved\n")
 		b := GetButton(np.builder, "bt_close")
 		b.SetLabel("Close")
+		np.app.curNoteWindowID[np.ID] = 1
 	}
 }
 
@@ -365,7 +381,7 @@ func (np *NotePad) saveBtnClick() {
 }
 
 func (np *NotePad) closeBtnClick() {
-	np.w.Destroy()
+	np.w.Close()
 }
 
 //ToggleReadOnly - set content readonly mode

@@ -252,7 +252,7 @@
                         <property name="receives_default">True</property>
                         <property name="tooltip_text" translatable="yes">select text and click to search note using selection, right click for filter menu</property>
                         <property name="image">img_clear_content</property>
-                        <signal name="pressed" handler="ClearContentBtnClick" swapped="no"/>
+                        <signal name="pressed" handler="SearchNoteFromPad" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
