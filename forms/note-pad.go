@@ -27,6 +27,7 @@ type NotePad struct {
 	wFlags *gtk.Entry
 	wDateLog *gtk.Entry
 	wURL *gtk.Entry
+	tabCount int
 	Note
 }
 
@@ -223,25 +224,45 @@ func (np *NotePad) NoteSearch() {
 }
 
 //KeyPressed - handle key board
-func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) {
+func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 	keyEvent := &gdk.EventKey{ev}
-	// if keyEvent.KeyVal() == 65535 {//Delete key	}
-
+	// fmt.Printf("Key val: %v\n", keyEvent.KeyVal())
 	if keyEvent.State() & gdk.GDK_CONTROL_MASK > 0 { //Control key pressed
 		switch keyEvent.KeyVal() {
+		case gdk.KeyvalFromName("T")://All tab clear
+			np.tabCount = 0
+		case gdk.KeyvalFromName("t")://reduce one tab level
+			if np.tabCount > 0 { np.tabCount = np.tabCount -1 }
 		case gdk.KeyvalFromName("s"):
 			np.SaveNote()
 		case gdk.KeyvalFromName("f")://Find & Replace
 			np.NoteSearch()
 		case gdk.KeyvalFromName("b")://Open in browser
-			md := []byte(np.Content)
+			_t, _ := np.buff.GetText(np.buff.GetStartIter(), np.buff.GetEndIter(), true)
+			md := []byte(_t)
 			output := markdown.ToHTML(md, nil, nil)
 			browser.OpenReader(strings.NewReader(string(output)))
 		case gdk.KeyvalFromName("F"): // Filter content using external command
 			fmt.Printf("TODO - Filter content using external command\n")
 		}
-
 	}
+	switch keyEvent.KeyVal() {
+		case 65293: // Enter key not sure what name is
+		if np.tabCount > 0 {
+			_str := ""
+			for i := 1; i<= np.tabCount; i++ {
+				_str = fmt.Sprintf("%s\t", _str)
+			}
+			_str = fmt.Sprintf("\n%s", _str)
+			np.buff.InsertAtCursor(_str)
+		} else {
+			np.buff.InsertAtCursor("\n")
+		}
+		return true
+		case gdk.KEY_Tab:
+			np.tabCount = np.tabCount + 1
+	}
+	return false
 }
 
 //TextChanged - Marked as changed
