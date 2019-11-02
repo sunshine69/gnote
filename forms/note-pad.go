@@ -120,6 +120,7 @@ func NewNotePad(id int) *NotePad {
 		"ShowMainWindowBtnClick": np.ShowMainWindowBtnClick,
 		"SendBtnClick": np.SaveToWebnote,
 		"HighlightBtnClick": np.HighlightBtnClick,
+		"AppendUpdateMarkBtnClick": np.AppendUpdateMarkBtnClick,
 	}
 	builder.ConnectSignals(signals)
 	_widget, e := builder.GetObject("content")
@@ -167,6 +168,14 @@ func NewNotePad(id int) *NotePad {
 	if ! np.textView.HasGrab() { np.textView.GrabFocus() }
 	np.w.ShowAll()
 	return np
+}
+
+func (np *NotePad) AppendUpdateMarkBtnClick() {
+	text := fmt.Sprintf("---\nUpdate %s\n", time.Now().Format(DateLayout) )
+	endI := np.buff.GetEndIter()
+	np.buff.PlaceCursor(endI)
+	np.buff.InsertAtCursor(text)
+	np.textView.GrabFocus()
 }
 
 //NewNoteFromFile -
@@ -281,7 +290,7 @@ func (np *NotePad) FetchDataFromGUI() {
 //SaveToWebnote - save to webnote store
 func (np *NotePad) SaveToWebnote() {
 	// SetupDefaultConfig()
-	np.FetchDataFromGUI()
+	np.SaveNote()
 	if WebNotePassword == "" {
 		WebNotePassword = InputDialog(
 			"title", "Password requried", "password-mask", '*', "label", "Enter webnote password")
