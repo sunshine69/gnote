@@ -1,6 +1,12 @@
 package forms
 
 import (
+	"encoding/hex"
+	"crypto/md5"
+	"encoding/base64"
+	"crypto/rand"
+	"crypto/cipher"
+	"crypto/aes"
 	"strings"
 	"fmt"
 	"io"
@@ -184,6 +190,74 @@ func GetButton(b *gtk.Builder, id string) (btn *gtk.Button) {
 	return
 }
 
+func CreateHash(key string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(key))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func Encrypt(text, key string) string {
+	text1 := []byte(text)
+	// generate a new aes cipher using our 32 byte long key
+    c, err := aes.NewCipher( []byte(CreateHash(key)) )
+
+    if err != nil {
+        fmt.Println(err)
+    }
+    gcm, err := cipher.NewGCM(c)
+    if err != nil {
+        fmt.Println(err)
+    }
+    nonce := make([]byte, gcm.NonceSize())
+    if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+        fmt.Println(err)
+    }
+	encData := gcm.Seal(nonce, nonce, text1, nil)
+	return base64.StdEncoding.EncodeToString(encData)
+
+}
+
+func Decrypt(ciphertextBase64 string, key string) (string, error) {
+	key1 := []byte(CreateHash(key))
+
+	ciphertext, err := base64.StdEncoding.DecodeString(ciphertextBase64)
+	if err != nil {
+		return "Decode error", err
+	}
+    c, err := aes.NewCipher(key1)
+    if err != nil {
+		return "NewCipher error", err
+    }
+
+    gcm, err := cipher.NewGCM(c)
+    if err != nil {
+        return "NewGCM error", err
+    }
+
+    nonceSize := gcm.NonceSize()
+    if len(ciphertext) < nonceSize {
+        return "Unexpected size with nonce data", err
+    }
+
+    nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+    plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+    if err != nil {
+        return "Decrypt error", err
+    }
+    return string(plaintext), nil
+}
+
+// func GetFileChooserButton(b *gtk.Builder, id string) (btn *gtk.FileChooserButton) {
+// 	obj, e := b.GetObject(id)
+// 	if e != nil {
+// 		log.Printf("Button error: %s", e)
+// 		return nil
+// 	}
+
+// 	btn, _ = obj.(*gtk.FileChooserButton)
+// 	return
+// }
+
 // func GetComboBox(b *gtk.Builder, id string) (combobox *gtk.ComboBox) {
 // 	obj, e := b.GetObject(id)
 // 	if e != nil {
@@ -251,7 +325,7 @@ func GetButton(b *gtk.Builder, id string) (btn *gtk.Button) {
 // 	return
 // }
 
-// ChromaHighlight: Syntax highlighter using Chroma syntax
+// ChromaHighlight - Syntax highlighter using Chroma syntax
 // highlighter: "github.com/alecthomas/chroma"
 // informations above
 func ChromaHighlight(inputString, lexer string) (out string, err error) {

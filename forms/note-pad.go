@@ -1,33 +1,35 @@
 package forms
 
 import (
-	"github.com/alecthomas/chroma/lexers"
-	"net/url"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
-	"io/ioutil"
+	"net/url"
 	"strconv"
 	"strings"
-	"github.com/gotk3/gotk3/gdk"
 	"time"
-	"fmt"
+
+	"github.com/alecthomas/chroma/lexers"
+	"github.com/gomarkdown/markdown"
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/pkg/browser"
-	"github.com/gomarkdown/markdown"
 )
 
 //NotePad - GUI related
 type NotePad struct {
-	app *GnoteApp
-	w *gtk.Window
-	builder *gtk.Builder
-	textView *gtk.TextView
-	buff *gtk.TextBuffer
-	wTitle *gtk.Entry
-	wFlags *gtk.Entry
-	wDateLog *gtk.Entry
-	wURL *gtk.Entry
-	tabCount int
+	app             *GnoteApp
+	w               *gtk.Window
+	builder         *gtk.Builder
+	textView        *gtk.TextView
+	buff            *gtk.TextBuffer
+	wTitle          *gtk.Entry
+	wFlags          *gtk.Entry
+	wDateLog        *gtk.Entry
+	wURL            *gtk.Entry
+	tabCount        int
+	StartUpdateTime time.Time
 	Note
 }
 
@@ -92,6 +94,7 @@ func (np *NotePad) Load(id int) {
 		}
 		wTB := _w.(*gtk.ToggleButton)
 		wTB.SetActive((np.Readonly == 1))
+		np.StartUpdateTime = time.Now()
 	}
 
 }
@@ -112,17 +115,21 @@ func NewNotePad(id int) *NotePad {
 	np.NewNote(map[string]interface{}{})
 	fmt.Printf("Empty note created %v\n", np.Title)
 
-	signals := map[string]interface{} {
-		"SaveBtnClick": np.saveBtnClick,
-		"CloseBtnClick": np.closeBtnClick,
-		"ToggleReadOnly": np.ToggleReadOnly,
-		"TextChanged": np.TextChanged,
-		"KeyPressed": np.KeyPressed,
-		"ShowMainWindowBtnClick": np.ShowMainWindowBtnClick,
-		"SendBtnClick": np.SaveToWebnote,
-		"HighlightBtnClick": np.HighlightBtnClick,
+	signals := map[string]interface{}{
+		"SaveBtnClick":             np.saveBtnClick,
+		"CloseBtnClick":            np.closeBtnClick,
+		"ToggleReadOnly":           np.ToggleReadOnly,
+		"TextChanged":              np.TextChanged,
+		"KeyPressed":               np.KeyPressed,
+		"ShowMainWindowBtnClick":   np.ShowMainWindowBtnClick,
+		"SendBtnClick":             np.SaveToWebnote,
+		"HighlightBtnClick":        np.HighlightBtnClick,
 		"AppendUpdateMarkBtnClick": np.AppendUpdateMarkBtnClick,
-		"SearchNoteFromPad": np.SearchNoteFromPad,
+		"SearchNoteFromPad":        np.SearchNoteFromPad,
+		"EndUpdateMarkBtnClick":    np.EndUpdateMarkBtnClick,
+		"InsertFileToNote":         np.InsertFileToNote,
+		"EncryptContent":           np.EncryptContent,
+		"DecryptContent":           np.DecryptContent,
 	}
 	builder.ConnectSignals(signals)
 	_widget, e := builder.GetObject("content")
@@ -167,13 +174,50 @@ func NewNotePad(id int) *NotePad {
 	h, _ := strconv.Atoi(_size[1])
 	np.w.SetDefaultSize(w, h)
 
-	if ! np.textView.HasGrab() { np.textView.GrabFocus() }
-	np.w.Connect("delete-event", func () bool {
+	if !np.textView.HasGrab() {
+		np.textView.GrabFocus()
+	}
+	np.w.Connect("delete-event", func() bool {
 		delete(np.app.curNoteWindowID, np.ID)
 		return false
-	} )
+	})
 	np.w.ShowAll()
 	return np
+}
+
+func (np *NotePad) DecryptContent() {
+	key := InputDialog("title", "Password required", "label", "Enter passphrase to encrypt: ", "password-mask", '*')
+	eCt, startI, endI := np.GetSelection()
+	ct, _ := Decrypt(eCt, key)
+	np.buff.SelectRange(startI, endI)
+	np.buff.DeleteSelection(true, true)
+	np.buff.InsertAtCursor(ct)
+}
+
+func (np *NotePad) EncryptContent() {
+	key := InputDialog("title", "Password required", "label", "Enter passphrase to encrypt: ", "password-mask", '*')
+	ct, startI, endI := np.GetSelection()
+	eCt := Encrypt(ct, key)
+	np.buff.SelectRange(startI, endI)
+	np.buff.DeleteSelection(true, true)
+	np.buff.InsertAtCursor(eCt)
+}
+
+func (np *NotePad) EndUpdateMarkBtnClick() {
+	durationInsec := time.Now().Unix() - np.StartUpdateTime.Unix()
+	dur, _ := time.ParseDuration(fmt.Sprintf("%ds", durationInsec))
+	text := fmt.Sprintf("---\nEnd Update %s. Time Spent: %s\n", time.Now().Format(DateLayout), dur.String())
+
+	endI := np.buff.GetEndIter()
+	np.buff.PlaceCursor(endI)
+	np.buff.InsertAtCursor(text)
+	np.textView.GrabFocus()
+}
+
+func (np *NotePad) InsertFileToNote(o *gtk.FileChooserButton) {
+	ct, _ := ioutil.ReadFile(o.GetFilename())
+	buf := np.buff
+	buf.InsertAtCursor(string(ct))
 }
 
 func (np *NotePad) SearchNoteFromPad() {
@@ -187,17 +231,18 @@ func (np *NotePad) SearchNoteFromPad() {
 }
 
 func (np *NotePad) AppendUpdateMarkBtnClick() {
-	text := fmt.Sprintf("---\nUpdate %s\n", time.Now().Format(DateLayout) )
+	text := fmt.Sprintf("---\nUpdate %s\n", time.Now().Format(DateLayout))
 	endI := np.buff.GetEndIter()
 	np.buff.PlaceCursor(endI)
 	np.buff.InsertAtCursor(text)
+	np.StartUpdateTime = time.Now()
 	np.textView.GrabFocus()
 }
 
 //NewNoteFromFile -
 func NewNoteFromFile(filename string) *NotePad {
 	ct, e := ioutil.ReadFile(filename)
-	if e !=nil {
+	if e != nil {
 		MessageBox("Can not open file for reading")
 		return nil
 	}
@@ -209,7 +254,7 @@ func NewNoteFromFile(filename string) *NotePad {
 
 //SaveWindowSize -
 func (np *NotePad) SaveWindowSize() {
-	w,h := np.w.GetSize()
+	w, h := np.w.GetSize()
 	windowSize := fmt.Sprintf("%dx%d", w, h)
 	fmt.Printf("save side - %dx%d\n", w, h)
 	if e := SetConfig("window_size", windowSize); e != nil {
@@ -227,17 +272,19 @@ func (np *NotePad) NoteSearch() {
 func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 	keyEvent := &gdk.EventKey{ev}
 	// fmt.Printf("Key val: %v\n", keyEvent.KeyVal())
-	if keyEvent.State() & gdk.GDK_CONTROL_MASK > 0 { //Control key pressed
+	if keyEvent.State()&gdk.GDK_CONTROL_MASK > 0 { //Control key pressed
 		switch keyEvent.KeyVal() {
-		case gdk.KeyvalFromName("T")://All tab clear
+		case gdk.KeyvalFromName("T"): //All tab clear
 			np.tabCount = 0
-		case gdk.KeyvalFromName("t")://reduce one tab level
-			if np.tabCount > 0 { np.tabCount = np.tabCount -1 }
+		case gdk.KeyvalFromName("t"): //reduce one tab level
+			if np.tabCount > 0 {
+				np.tabCount = np.tabCount - 1
+			}
 		case gdk.KeyvalFromName("s"):
 			np.SaveNote()
-		case gdk.KeyvalFromName("f")://Find & Replace
+		case gdk.KeyvalFromName("f"): //Find & Replace
 			np.NoteSearch()
-		case gdk.KeyvalFromName("b")://Open in browser
+		case gdk.KeyvalFromName("b"): //Open in browser
 			_t, _ := np.buff.GetText(np.buff.GetStartIter(), np.buff.GetEndIter(), true)
 			md := []byte(_t)
 			output := markdown.ToHTML(md, nil, nil)
@@ -247,10 +294,10 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 		}
 	}
 	switch keyEvent.KeyVal() {
-		case 65293: // Enter key not sure what name is
+	case 65293: // Enter key not sure what name is
 		if np.tabCount > 0 {
 			_str := ""
-			for i := 1; i<= np.tabCount; i++ {
+			for i := 1; i <= np.tabCount; i++ {
 				_str = fmt.Sprintf("%s\t", _str)
 			}
 			_str = fmt.Sprintf("\n%s", _str)
@@ -259,8 +306,8 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 			np.buff.InsertAtCursor("\n")
 		}
 		return true
-		case gdk.KEY_Tab:
-			np.tabCount = np.tabCount + 1
+	case gdk.KEY_Tab:
+		np.tabCount = np.tabCount + 1
 	}
 	return false
 }
@@ -278,14 +325,16 @@ func (np *NotePad) FetchDataFromGUI() {
 	var e error
 	widget := GetEntry(b, "title")
 	np.Title, e = widget.GetText()
-	if e != nil {fmt.Printf("ERROR get title entry text\n")}
+	if e != nil {
+		fmt.Printf("ERROR get title entry text\n")
+	}
 
 	widget = GetEntry(b, "datelog")
 	_datelogStr, e := widget.GetText()
 	if e != nil {
 		fmt.Printf("ERROR get entry datelog\n")
 	} else {
-		np.Datelog, e = time.Parse(DateLayout,_datelogStr)
+		np.Datelog, e = time.Parse(DateLayout, _datelogStr)
 		if e != nil {
 			fmt.Printf("ERROR can not parse datelog. Use Now\n")
 			np.Datelog = time.Now()
@@ -310,7 +359,7 @@ func (np *NotePad) FetchDataFromGUI() {
 		fmt.Printf("ERROR get text buffer content\n")
 	} else {
 		startIter := textBuffer.GetStartIter()
-        endIter := textBuffer.GetEndIter()
+		endIter := textBuffer.GetEndIter()
 		np.Content, e = textBuffer.GetText(startIter, endIter, true)
 		if e != nil {
 			fmt.Printf("ERROR can get content\n")
@@ -337,12 +386,12 @@ func (np *NotePad) SaveToWebnote() {
 	}
 
 	data := url.Values{
-		"action": {"do_login"},
-		"path": {"action=show_frontpage"},
-		"username": {WebNoteUser},
-		"password": {WebNotePassword},
-		"totp_number":{""},
-		"login": {"Login"},
+		"action":      {"do_login"},
+		"path":        {"action=show_frontpage"},
+		"username":    {WebNoteUser},
+		"password":    {WebNotePassword},
+		"totp_number": {""},
+		"login":       {"Login"},
 	}
 	resp, err := client.PostForm("https://note.inxuanthuy.com", data)
 	if err != nil {
@@ -356,19 +405,19 @@ func (np *NotePad) SaveToWebnote() {
 		return
 	}
 
-	data = url.Values {
-		"action": {"save_newnote"},
-		"title": {np.Title},
-		"datelog": {np.Datelog.Format(DateLayout)},
-		"timestamp": {fmt.Sprintf("%d", np.Timestamp.Unix())},
-		"flags": {np.Flags},
-		"content": {np.Content},
-		"url": {np.URL},
-		"ngroup": {"default"},
+	data = url.Values{
+		"action":     {"save_newnote"},
+		"title":      {np.Title},
+		"datelog":    {np.Datelog.Format(DateLayout)},
+		"timestamp":  {fmt.Sprintf("%d", np.Timestamp.Unix())},
+		"flags":      {np.Flags},
+		"content":    {np.Content},
+		"url":        {np.URL},
+		"ngroup":     {"default"},
 		"permission": {"0"},
-		"is_ajax": {"1"},
+		"is_ajax":    {"1"},
 		"raw_editor": {"1"},
-		"savenote": {"Save"},
+		"savenote":   {"Save"},
 	}
 	resp, err = client.PostForm("https://note.inxuanthuy.com", data)
 	if err != nil {
@@ -378,7 +427,7 @@ func (np *NotePad) SaveToWebnote() {
 	defer resp.Body.Close()
 	respText, _ = ioutil.ReadAll(resp.Body)
 	if string(respText) != "OK note saved" {
-		browser.OpenReader(strings.NewReader(string(respText) ) )
+		browser.OpenReader(strings.NewReader(string(respText)))
 	}
 }
 
@@ -414,23 +463,31 @@ func (np *NotePad) ToggleReadOnly(bt *gtk.ToggleButton) {
 		np.Readonly = 0
 	}
 	w := GetTextView(np.builder, "content")
-	w.SetEditable(! (np.Readonly == 1))
+	w.SetEditable(!(np.Readonly == 1))
 }
 
 //GetSelection - Get the current selection and return start_iter, end_iter, text
 //To be used in various places
 func (np *NotePad) GetSelection() (string, *gtk.TextIter, *gtk.TextIter) {
-	buff, _ := np.textView.GetBuffer()
-	if st, en, ok := buff.GetSelectionBounds(); ok {
-		if selectedText, e := buff.GetText(st, en, true); e == nil {
-			return selectedText, st, en
-		} else {
-			fmt.Printf("ERROR gettext %v\n", e)
-			return "", st, en
+	buff := np.buff
+	if buff.GetHasSelection() {
+		if st, en, ok := buff.GetSelectionBounds(); ok {
+			if selectedText, e := buff.GetText(st, en, true); e == nil {
+				return selectedText, st, en
+			} else {
+				fmt.Printf("ERROR gettext %v\n", e)
+				return "", st, en
+			}
 		}
+	} else {
+		startI := buff.GetStartIter()
+		endI := buff.GetEndIter()
+		o, _ := buff.GetText(startI, endI, true)
+		return o, startI, endI
 	}
 	return "", nil, nil
 }
+
 //HighlightBtnClick -
 func (np *NotePad) HighlightBtnClick() {
 	fmt.Printf("Start Highlight\n")
