@@ -447,7 +447,7 @@ func (np *NotePad) SaveNote() {
 func (np *NotePad) saveBtnClick() {
 	np.SaveNote()
 	np.SaveWindowSize()
-	np.w.Destroy()
+	np.w.Close()
 }
 
 func (np *NotePad) closeBtnClick() {
