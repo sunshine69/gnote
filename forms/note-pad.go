@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/alecthomas/chroma/lexers"
 	"github.com/gomarkdown/markdown"
 	"github.com/gotk3/gotk3/gdk"
@@ -172,7 +171,7 @@ func NewNotePad(id int) *NotePad {
 	b := _o.(*gtk.Button)
 	b.SetLabel("Close")
 
-	wSize, _ := GetConfig("window_size")
+	wSize, _ := GetConfig("window_size", "429x503")
 	_size := strings.Split(wSize, "x")
 	w, _ := strconv.Atoi(_size[0])
 	h, _ := strconv.Atoi(_size[1])

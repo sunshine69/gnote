@@ -72,6 +72,7 @@ func SetupDefaultConfig() {
 		"maxcount_recent_filter_cmd" : "20",
 		"webnote_password" : "",
 		"window_size" : "429x503",
+		"main_window_size" : "300x291",
 		"default_font" : "None",
 		"webnote_user": "msh.computing@gmail.com",
 		"date_layout": "02-01-2006 15:04:05 MST",
@@ -84,11 +85,19 @@ func SetupDefaultConfig() {
 	}
 }
 
-//GetConfig - by key and return value
-func GetConfig(key string) (string, error) {
+//GetConfig - by key and return value. Give second arg as default value.
+func GetConfig(key ...string) (string, error) {
 	var cfg = AppConfig{}
-	err := DbConn.Find(&cfg, AppConfig{Key: key}).Error
-	return cfg.Val, err
+	err := DbConn.Find(&cfg, AppConfig{Key: key[0]}).Error
+	if err != nil {
+		if len(key) == 2 {
+			return key[1], nil
+		} else {
+			return "", err
+		}
+	} else {
+		return cfg.Val, err
+	}
 }
 
 //SetConfig - Set a config key with value

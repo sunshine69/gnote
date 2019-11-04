@@ -1,6 +1,7 @@
 package forms
 
 import (
+	"strconv"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"strings"
@@ -104,12 +105,10 @@ func (app *GnoteApp) InitApp() {
 	Builder.ConnectSignals(signals)
 
 	window := GetWindow(Builder, "window")
+	window.Connect("delete-event", app.doExit )
 
 	window.SetTitle("gnote")
-	window.SetDefaultSize(300, 250)
-	_, err := window.Connect("destroy", func() {
-		gtk.MainQuit()
-	})
+	_, err := window.Connect("destroy", app.doExit)
 	if err != nil {
 		panic(err)
 	}
@@ -145,6 +144,13 @@ func (app *GnoteApp) InitApp() {
 
 	app.curNoteWindowID = make(map[int]int8)
 	app.searchBox = GetSearchEntry(Builder, "searchBox")
+
+	wSize, _ := GetConfig("main_window_size", "300x291")
+	_size := strings.Split(wSize, "x")
+	w, _ := strconv.Atoi(_size[0])
+	h, _ := strconv.Atoi(_size[1])
+	window.SetDefaultSize(w, h)
+
 	window.Move(3000,0)
 	window.ShowAll()
 }
@@ -169,6 +175,12 @@ func (app *GnoteApp) newNote() {
 }
 
 func (app *GnoteApp) doExit() {
+	w, h := app.MainWindow.GetSize()
+	windowSize := fmt.Sprintf("%dx%d", w, h)
+	fmt.Printf("save side - %dx%d\n", w, h)
+	if e := SetConfig("main_window_size", windowSize); e != nil {
+		fmt.Printf("ERROR save side - %v\n", e)
+	}
 	gtk.MainQuit()
 }
 
