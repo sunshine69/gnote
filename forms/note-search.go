@@ -56,7 +56,8 @@ func (ns *NoteSearch) FindText() bool {
 			buf.InsertAtCursor(string(stdoutStderr))
 		}
 		os.Remove(_tmpF.Name())
-		ns.curIter =  buf.GetIterAtMark(buf.GetInsert())//Not sure why the curIter is invalid after running. Need to get back otherwise crash
+		//Not sure why the curIter is invalid after running. Need to get back otherwise crash
+		ns.curIter =  buf.GetIterAtMark(buf.GetInsert())
 		return false //stop other actions
 	} else {
 		if ns.isIcase {
@@ -146,7 +147,10 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 	ns.searchBox = GetSearchEntry(builder, "text_ptn")
 
 	ns.replaceBox = GetEntry(builder, "replace_text")
-	if ! np.textView.HasGrab() { np.textView.GrabFocus() } //Crash the following code if textview does not have pointer
+
+	//Crash the following code if textview does not have pointer
+	if ! np.textView.HasGrab() { np.textView.GrabFocus() }
+
 	// if np.buff.GetHasSelection(){
 	// 	text, startI, endI := np.GetSelection()
 	// 	if text != "" && len(text) < 64 {
