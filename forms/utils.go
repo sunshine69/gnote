@@ -1,6 +1,7 @@
 package forms
 
 import (
+	"os/exec"
 	"encoding/hex"
 	"crypto/md5"
 	"encoding/base64"
@@ -55,6 +56,26 @@ func ChunkString(s string, chunkSize int) []string {
 	}
 	return chunks
 }
+
+func runSystemCommand(command ...string) {
+	cmd := exec.Command(command[0], command[1])
+	var out, errOut bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errOut
+	err := cmd.Start()
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		cmd.Wait()
+		if cmd.ProcessState.Success() {
+			fmt.Printf("OUTPUT CMD '%s' =>\n'%s'\n", strings.Join(command, " "), out.String())
+		} else {
+			fmt.Printf("Some error - %s\n", errOut.String())
+		}
+	}
+}
+
+//GUI helpers
 
 func GetWindow(b *gtk.Builder, id string) (Window *gtk.Window) {
 	obj, e := b.GetObject(id)

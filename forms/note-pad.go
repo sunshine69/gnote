@@ -246,9 +246,11 @@ func (np *NotePad) SearchNoteFromPad() {
 	buf := np.buff
 	if buf.GetHasSelection() {
 		text, _, _ := np.GetSelection()
-		np.app.searchBox.SetText(text)
-		np.app.doSearch()
-		np.app.MainWindow.Present()
+		if len(text) < 64 {
+			np.app.searchBox.SetText(text)
+			np.app.doSearch()
+			np.app.MainWindow.Present()
+		}
 	}
 }
 
@@ -493,6 +495,7 @@ func (np *NotePad) ToggleReadOnly(bt *gtk.ToggleButton) {
 func (np *NotePad) GetSelection() (string, *gtk.TextIter, *gtk.TextIter) {
 	buff := np.buff
 	if buff.GetHasSelection() {
+		// fmt.Printf("GetSelection\n")
 		if st, en, ok := buff.GetSelectionBounds(); ok {
 			if selectedText, e := buff.GetText(st, en, true); e == nil {
 				return selectedText, st, en
@@ -502,6 +505,7 @@ func (np *NotePad) GetSelection() (string, *gtk.TextIter, *gtk.TextIter) {
 			}
 		}
 	} else {
+		// fmt.Printf("Get whole note content\n")
 		startI := buff.GetStartIter()
 		endI := buff.GetEndIter()
 		o, _ := buff.GetText(startI, endI, true)

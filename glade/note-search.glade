@@ -20,6 +20,7 @@
             <property name="can_focus">False</property>
             <child>
               <object class="GtkSearchEntry" id="text_ptn">
+                <property name="width_request">250</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="primary_icon_name">edit-find-symbolic</property>
@@ -52,12 +53,12 @@
             </child>
             <child>
               <object class="GtkCheckButton" id="btn_regexp">
-                <property name="label" translatable="yes">regexp</property>
+                <property name="label" translatable="yes">cmd</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="NoteFindRegexp" swapped="no"/>
+                <signal name="toggled" handler="CommandFilter" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -67,7 +68,7 @@
             </child>
             <child>
               <object class="GtkCheckButton">
-                <property name="label" translatable="yes">backward</property>
+                <property name="label" translatable="yes">back</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
@@ -120,7 +121,7 @@
             </child>
             <child>
               <object class="GtkButton">
-                <property name="label" translatable="yes">Replace</property>
+                <property name="label" translatable="yes">Repl</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -134,7 +135,7 @@
             </child>
             <child>
               <object class="GtkButton">
-                <property name="label" translatable="yes">Replace all</property>
+                <property name="label" translatable="yes">Repl all</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
