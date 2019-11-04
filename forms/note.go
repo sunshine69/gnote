@@ -19,7 +19,6 @@ type Note struct {
 	Timestamp time.Time
 	Readonly int8 `gorm:"default 0"`
 	FormatTag []byte
-	Econtent []byte
 	AlertCount int8 `gorm:"type:int;default 0"`
 	PixbufDict []byte
 	TimeSpent int `gorm:"type:int;default 0"`

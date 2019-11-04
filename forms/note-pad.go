@@ -130,7 +130,10 @@ func NewNotePad(id int) *NotePad {
 		"InsertFileToNote":         np.InsertFileToNote,
 		"EncryptContent":           np.EncryptContent,
 		"DecryptContent":           np.DecryptContent,
+		"NoteSearchText": 			np.NoteSearchText,
+		"ClearURL":					np.ClearURL,
 	}
+
 	builder.ConnectSignals(signals)
 	_widget, e := builder.GetObject("content")
 	if e != nil {
@@ -184,6 +187,14 @@ func NewNotePad(id int) *NotePad {
 	np.w.ShowAll()
 	return np
 }
+
+func (np *NotePad) NoteSearchText() { np.NoteSearch() }
+
+func (np *NotePad) ClearURL() {
+	wURL := GetEntry(np.builder, "url")
+	wURL.SetText("")
+	wURL.GrabFocus()
+ }
 
 func (np *NotePad) DecryptContent() {
 	key := InputDialog("title", "Password required", "label", "Enter passphrase to encrypt: ", "password-mask", '*')

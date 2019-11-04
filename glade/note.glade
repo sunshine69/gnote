@@ -2,17 +2,27 @@
 <!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">../icons/aptdaemon-resolve.png</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">../icons/decrypted.png</property>
+  </object>
   <object class="GtkImage" id="img_append_mark">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">../icons/kate.png</property>
   </object>
-  <object class="GtkImage" id="img_clear_content">
+  <object class="GtkImage" id="img_clear_flag">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">../icons/clear_left.png</property>
   </object>
-  <object class="GtkImage" id="img_clear_flag">
+  <object class="GtkImage" id="img_clear_flag1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">../icons/clear_left.png</property>
@@ -21,26 +31,6 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="pixbuf">../icons/kcoloredit.png</property>
-  </object>
-  <object class="GtkImage" id="img_redo">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">../icons/redo.png</property>
-  </object>
-  <object class="GtkImage" id="img_show_main">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">../icons/cookie.png</property>
-  </object>
-  <object class="GtkImage" id="img_show_sec">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">../icons/kgpg.png</property>
-  </object>
-  <object class="GtkImage" id="img_undo">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">../icons/undo.png</property>
   </object>
   <object class="GtkWindow" id="notepad">
     <property name="can_focus">False</property>
@@ -229,6 +219,7 @@
                     <property name="can_focus">False</property>
                     <property name="valign">center</property>
                     <property name="orientation">vertical</property>
+                    <property name="homogeneous">True</property>
                     <child>
                       <object class="GtkButton">
                         <property name="visible">True</property>
@@ -257,7 +248,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">2</property>
+                        <property name="position">1</property>
                       </packing>
                     </child>
                     <child>
@@ -272,7 +263,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">3</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                     <child>
@@ -287,7 +278,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">4</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                     <child>
@@ -295,9 +286,25 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="tooltip_text" translatable="yes">show main window for search; right click for language highlight mode menu</property>
+                        <property name="tooltip_text" translatable="yes">show main window for search </property>
                         <property name="image">img_show_main</property>
                         <signal name="pressed" handler="ShowMainWindowBtnClick" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="focus_on_click">False</property>
+                        <property name="receives_default">True</property>
+                        <property name="image">image1</property>
+                        <property name="always_show_image">True</property>
+                        <signal name="clicked" handler="NoteSearchText" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -311,13 +318,28 @@
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="tooltip_text" translatable="yes">Decrypt the curent active content (selection or note)</property>
-                        <property name="image">img_clear_content</property>
+                        <property name="image">image2</property>
                         <signal name="clicked" handler="DecryptContent" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="position">6</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="id_show_sec">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="tooltip_text" translatable="yes">Encrypt the current active content (selection or note)</property>
+                        <property name="image">img_show_sec</property>
+                        <signal name="pressed" handler="EncryptContent" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">7</property>
                       </packing>
                     </child>
                   </object>
@@ -363,13 +385,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="id_show_sec">
+                  <object class="GtkButton">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="tooltip_text" translatable="yes">Encrypt the current active content (selection or note)</property>
-                    <property name="image">img_show_sec</property>
-                    <signal name="pressed" handler="EncryptContent" swapped="no"/>
+                    <property name="tooltip_text" translatable="yes">Clear flags</property>
+                    <property name="image">img_clear_flag1</property>
+                    <signal name="clicked" handler="ClearURL" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -488,5 +510,25 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkImage" id="img_redo">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">../icons/redo.png</property>
+  </object>
+  <object class="GtkImage" id="img_show_main">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">../icons/cookie.png</property>
+  </object>
+  <object class="GtkImage" id="img_show_sec">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">../icons/kgpg.png</property>
+  </object>
+  <object class="GtkImage" id="img_undo">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">../icons/undo.png</property>
   </object>
 </interface>
