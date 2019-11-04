@@ -199,10 +199,14 @@ func (np *NotePad) ClearURL() {
 func (np *NotePad) DecryptContent() {
 	key := InputDialog("title", "Password required", "label", "Enter passphrase to encrypt: ", "password-mask", '*')
 	eCt, startI, endI := np.GetSelection()
-	ct, _ := Decrypt(eCt, key)
-	np.buff.SelectRange(startI, endI)
-	np.buff.DeleteSelection(true, true)
-	np.buff.InsertAtCursor(ct)
+	ct, e := Decrypt(eCt, key)
+	if e != nil {
+		MessageBox("Decrypt error. Please check password")
+	} else{
+		np.buff.SelectRange(startI, endI)
+		np.buff.DeleteSelection(true, true)
+		np.buff.InsertAtCursor(ct)
+	}
 }
 
 func (np *NotePad) EncryptContent() {
