@@ -32,6 +32,26 @@
     <property name="can_focus">False</property>
     <property name="pixbuf">../icons/kcoloredit.png</property>
   </object>
+  <object class="GtkImage" id="img_redo">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">../icons/redo.png</property>
+  </object>
+  <object class="GtkImage" id="img_show_main">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">../icons/cookie.png</property>
+  </object>
+  <object class="GtkImage" id="img_show_sec">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">../icons/kgpg.png</property>
+  </object>
+  <object class="GtkImage" id="img_undo">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">../icons/undo.png</property>
+  </object>
   <object class="GtkWindow" id="notepad">
     <property name="can_focus">False</property>
     <property name="icon">../icons/cookie.png</property>
@@ -152,7 +172,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="clearflags">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
@@ -510,25 +530,5 @@
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkImage" id="img_redo">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">../icons/redo.png</property>
-  </object>
-  <object class="GtkImage" id="img_show_main">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">../icons/cookie.png</property>
-  </object>
-  <object class="GtkImage" id="img_show_sec">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">../icons/kgpg.png</property>
-  </object>
-  <object class="GtkImage" id="img_undo">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">../icons/undo.png</property>
   </object>
 </interface>

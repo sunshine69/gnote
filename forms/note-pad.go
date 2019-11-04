@@ -132,6 +132,7 @@ func NewNotePad(id int) *NotePad {
 		"DecryptContent":           np.DecryptContent,
 		"NoteSearchText": 			np.NoteSearchText,
 		"ClearURL":					np.ClearURL,
+		"ClearFlagsBtnClick":		np.ClearFlagsBtnClick,
 	}
 
 	builder.ConnectSignals(signals)
@@ -187,6 +188,12 @@ func NewNotePad(id int) *NotePad {
 	np.w.ShowAll()
 	return np
 }
+
+func (np *NotePad) ClearFlagsBtnClick() {
+	wFlag := GetEntry(np.builder, "flags")
+	wFlag.SetText("")
+	wFlag.GrabFocus()
+ }
 
 func (np *NotePad) NoteSearchText() { np.NoteSearch() }
 
