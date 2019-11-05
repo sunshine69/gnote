@@ -23,7 +23,7 @@ Extract and run the `gnote-linux-amd64` executable.
 ## Windows binary build
 
 I did test build on windows and here is the bundle. Download
-[this](https://xvt-public-repo.s3-ap-southeast-2.amazonaws.com/pub/devops/gnote-bundle-window-amd64.7z)
+[this](https://xvt-public-repo.s3-ap-southeast-2.amazonaws.com/pub/devops/gnote-bundle-windows-amd64.7z)
 and extract them. Run the `gnote.exe` inside the bin directory. You can create a
 shortcut in the desktop manually to point to the binary path.
 
