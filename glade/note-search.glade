@@ -58,6 +58,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
+                <property name="tooltip_text" translatable="yes">enable command filter. Type in the system command it will run against the note text content or selection (as a file input) and capture output to replace the text. If you type a regex and type some text in the `replace with` box it will do regex search and replace.</property>
                 <property name="draw_indicator">True</property>
                 <signal name="toggled" handler="CommandFilter" swapped="no"/>
               </object>

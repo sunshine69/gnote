@@ -1,6 +1,7 @@
 package forms
 
 import (
+	"regexp"
 	"os"
 	"io/ioutil"
 	"os/exec"
@@ -23,15 +24,26 @@ type NoteSearch struct {
 	curIter *gtk.TextIter
 }
 
-func (ns *NoteSearch) NoteFindIcase(o *gtk.CheckButton) {	ns.isIcase = o.GetActive() }
+func (ns *NoteSearch) NoteFindIcase(o *gtk.CheckButton) {
+	ns.isIcase = o.GetActive()
+	ns.searchBox.GrabFocus()
+}
 
 func (ns *NoteSearch) CommandFilter(o *gtk.CheckButton) {
 	ns.isCmdFilter = o.GetActive()
-	lastCmd, _ := GetConfig("last_cmd_filter", "perl -pe 's///'")
-	ns.searchBox.SetText(lastCmd)
+	if ns.isCmdFilter {
+		lastCmd, _ := GetConfig("last_cmd_filter", "perl -pe 's///'")
+		ns.searchBox.SetText(lastCmd)
+	} else {
+		ns.searchBox.SetText("")
+	}
+	ns.searchBox.GrabFocus()
 }
 
-func (ns *NoteSearch) NoteFindBackward(o *gtk.CheckButton) {	ns.isBackward = o.GetActive()}
+func (ns *NoteSearch) NoteFindBackward(o *gtk.CheckButton) {
+	ns.isBackward = o.GetActive()
+	ns.searchBox.GrabFocus()
+}
 
 func (ns *NoteSearch) FindText() bool {
 	buf := ns.np.buff
@@ -43,26 +55,35 @@ func (ns *NoteSearch) FindText() bool {
 
 	if ns.isCmdFilter {//run external command and replace the note/selection with output
 		text, startI, endI := ns.np.GetSelection()
-		fmt.Printf("SELECTION %v\n", text)
-		_tmpF, _ := ioutil.TempFile("", "browser")
-		_tmpF.Write([]byte(text))
-		cmdText := fmt.Sprintf("%s %s", keyword ,_tmpF.Name())
-		fmt.Printf("Command: %v\n", cmdText)
-		cmd := exec.Command("sh", "-c", cmdText)
-		stdoutStderr, err := cmd.CombinedOutput()
-		if err != nil {
-			fmt.Printf("DEBUG E %v\n", err)
-		} else{
-			fmt.Printf("DEBUG 1 %s\n", stdoutStderr)
-			buf := ns.np.buff
-			buf.SelectRange(startI, endI)
-			buf.DeleteSelection(true, true)
-			buf.InsertAtCursor(string(stdoutStderr))
+		replaceWith, _ := ns.replaceBox.GetText()
+		outStr := ""
+		if replaceWith == "" {
+			_tmpF, _ := ioutil.TempFile("", "browser")
+			_tmpF.Write([]byte(text))
+			cmdText := fmt.Sprintf("%s %s", keyword ,_tmpF.Name())
+			cmd := exec.Command("sh", "-c", cmdText)
+			stdoutStderr, err := cmd.CombinedOutput()
+			if err != nil {
+				fmt.Printf("DEBUG E %v\n", err)
+			} else{
+				fmt.Printf("DEBUG 1 %s\n", stdoutStderr)
+			}
+			outStr = string(stdoutStderr)
+			os.Remove(_tmpF.Name())
+			SetConfig("last_cmd_filter", cmdText)
+		} else {
+			if ptn, e := regexp.Compile(keyword); e == nil {
+				outStr = ptn.ReplaceAllString(text, replaceWith)
+			} else {
+				fmt.Printf("ERROR %v\n", e)
+			}
 		}
-		os.Remove(_tmpF.Name())
+		buf := ns.np.buff
+		buf.SelectRange(startI, endI)
+		buf.DeleteSelection(true, true)
+		buf.InsertAtCursor(outStr)
 		//Not sure why the curIter is invalid after running. Need to get back otherwise crash
 		ns.curIter =  buf.GetIterAtMark(buf.GetInsert())
-		SetConfig("last_cmd_filter", cmdText)
 		return false //stop other actions
 	} else {
 		if ns.isIcase {
