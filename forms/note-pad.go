@@ -132,6 +132,7 @@ func NewNotePad(id int) *NotePad {
 		"NoteSearchText": 			np.NoteSearchText,
 		"ClearURL":					np.ClearURL,
 		"ClearFlagsBtnClick":		np.ClearFlagsBtnClick,
+		"NewLinkNote":				np.NewLinkNote,
 	}
 
 	builder.ConnectSignals(signals)
@@ -186,6 +187,10 @@ func NewNotePad(id int) *NotePad {
 	})
 	np.w.ShowAll()
 	return np
+}
+
+func (np *NotePad) NewLinkNote() {
+	np.app.newNote()
 }
 
 func (np *NotePad) ClearFlagsBtnClick() {

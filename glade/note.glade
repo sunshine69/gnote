@@ -12,6 +12,11 @@
     <property name="can_focus">False</property>
     <property name="pixbuf">../icons/decrypted.png</property>
   </object>
+  <object class="GtkImage" id="image3">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="pixbuf">../icons/document-new.png</property>
+  </object>
   <object class="GtkImage" id="img_append_mark">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -360,6 +365,20 @@
                         <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="position">7</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="image">image3</property>
+                        <signal name="clicked" handler="NewLinkNote" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">8</property>
                       </packing>
                     </child>
                   </object>
