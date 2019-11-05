@@ -12,11 +12,20 @@ And a generic encryption/decyption text as well.
 
 This uses gotk3 GUI and stole many code snippets from the examples there.
 
+## Linux binary
+
+- Requires gtk3 which is probably already install on standard ubuntu system.
+
+[linux-amd64](https://xvt-public-repo.s3-ap-southeast-2.amazonaws.com/pub/devops/gnote-linux-amd64.tar.xz)
+
+Extract and run the `gnote-linux-amd64` executable.
+
 ## Windows binary build
 
 I did test build on windows and here is the bundle. Download
 [this](https://xvt-public-repo.s3-ap-southeast-2.amazonaws.com/pub/devops/gnote-bundle-window-amd64.7z)
-and extract them. Run the `gnote.exe` inside the bin directory.
+and extract them. Run the `gnote.exe` inside the bin directory. You can create a
+shortcut in the desktop manually to point to the binary path.
 
 For later update you just need to download the [gnote.exe
 alone](https://xvt-public-repo.s3-ap-southeast-2.amazonaws.com/pub/devops/gnote-windows-amd64.exe)
