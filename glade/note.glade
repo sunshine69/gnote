@@ -327,6 +327,7 @@
                         <property name="can_focus">True</property>
                         <property name="focus_on_click">False</property>
                         <property name="receives_default">True</property>
+                        <property name="tooltip_text" translatable="yes">Show search text in this note dialog</property>
                         <property name="image">image1</property>
                         <property name="always_show_image">True</property>
                         <signal name="clicked" handler="NoteSearchText" swapped="no"/>
