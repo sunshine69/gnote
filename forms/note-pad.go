@@ -317,8 +317,8 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 			md := []byte(_t)
 			output := markdown.ToHTML(md, nil, nil)
 			browser.OpenReader(strings.NewReader(string(output)))
-		case gdk.KeyvalFromName("F"): // Filter content using external command
-			fmt.Printf("TODO - Filter content using external command\n")
+		case gdk.KeyvalFromName("q"):
+			np.w.Close()
 		}
 	}
 	switch keyEvent.KeyVal() {

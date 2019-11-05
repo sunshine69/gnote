@@ -15,6 +15,7 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
+        <signal name="key-press-event" handler="KeyPressed" swapped="no"/>
         <child>
           <object class="GtkBox">
             <property name="visible">True</property>
@@ -40,7 +41,8 @@
               <object class="GtkCheckButton" id="btn_icase">
                 <property name="label" translatable="yes">icase</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can_focus">False</property>
+                <property name="focus_on_click">False</property>
                 <property name="receives_default">False</property>
                 <property name="active">True</property>
                 <property name="draw_indicator">True</property>
@@ -56,7 +58,8 @@
               <object class="GtkCheckButton" id="btn_regexp">
                 <property name="label" translatable="yes">cmd</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can_focus">False</property>
+                <property name="focus_on_click">False</property>
                 <property name="receives_default">False</property>
                 <property name="tooltip_text" translatable="yes">enable command filter. Type in the system command it will run against the note text content or selection (as a file input) and capture output to replace the text. If you type a regex and type some text in the `replace with` box it will do regex search and replace.</property>
                 <property name="draw_indicator">True</property>
@@ -72,7 +75,8 @@
               <object class="GtkCheckButton">
                 <property name="label" translatable="yes">back</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can_focus">False</property>
+                <property name="focus_on_click">False</property>
                 <property name="receives_default">False</property>
                 <property name="draw_indicator">True</property>
                 <signal name="toggled" handler="NoteFindBackward" swapped="no"/>
@@ -99,6 +103,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="placeholder_text" translatable="yes">replace with</property>
+                <signal name="activate" handler="NoteFindText" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -111,6 +116,7 @@
                 <property name="label">gtk-find</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="focus_on_click">False</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
                 <signal name="clicked" handler="NoteFindText" swapped="no"/>
@@ -126,6 +132,7 @@
                 <property name="label" translatable="yes">Repl</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="focus_on_click">False</property>
                 <property name="receives_default">True</property>
                 <signal name="clicked" handler="NoteReplaceText" swapped="no"/>
               </object>
@@ -140,6 +147,7 @@
                 <property name="label" translatable="yes">Repl all</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="focus_on_click">False</property>
                 <property name="receives_default">True</property>
                 <signal name="clicked" handler="NoteReplaceAll" swapped="no"/>
               </object>

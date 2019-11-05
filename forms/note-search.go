@@ -1,6 +1,7 @@
 package forms
 
 import (
+	"github.com/gotk3/gotk3/gdk"
 	"regexp"
 	"os"
 	"io/ioutil"
@@ -150,6 +151,16 @@ func (ns *NoteSearch) NoteReplaceAll(o *gtk.Button) {
 	}
 }
 
+func (ns *NoteSearch) KeyPressed(o interface{}, ev *gdk.Event) {
+	keyEvent := &gdk.EventKey{ev}
+	if keyEvent.State()&gdk.GDK_CONTROL_MASK > 0 { //Control key pressed
+		switch keyEvent.KeyVal() {
+		case gdk.KeyvalFromName("q"):
+			ns.w.Close()
+		}
+	}
+}
+
 //NewNoteSearch - Create new  NotePad
 func NewNoteSearch(np *NotePad) *NoteSearch {
 	ns := &NoteSearch{np: np}
@@ -165,6 +176,7 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 		"NoteReplaceText": ns.NoteReplaceText,
 		"NoteReplaceAll": ns.NoteReplaceAll,
 		"NoteFindBackward": ns.NoteFindBackward,
+		"KeyPressed":		ns.KeyPressed,
 	}
 	builder.ConnectSignals(signals)
 
