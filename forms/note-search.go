@@ -25,7 +25,11 @@ type NoteSearch struct {
 
 func (ns *NoteSearch) NoteFindIcase(o *gtk.CheckButton) {	ns.isIcase = o.GetActive() }
 
-func (ns *NoteSearch) CommandFilter(o *gtk.CheckButton) {	ns.isCmdFilter = o.GetActive()}
+func (ns *NoteSearch) CommandFilter(o *gtk.CheckButton) {
+	ns.isCmdFilter = o.GetActive()
+	lastCmd, _ := GetConfig("last_cmd_filter", "perl -pe 's///'")
+	ns.searchBox.SetText(lastCmd)
+}
 
 func (ns *NoteSearch) NoteFindBackward(o *gtk.CheckButton) {	ns.isBackward = o.GetActive()}
 
@@ -58,6 +62,7 @@ func (ns *NoteSearch) FindText() bool {
 		os.Remove(_tmpF.Name())
 		//Not sure why the curIter is invalid after running. Need to get back otherwise crash
 		ns.curIter =  buf.GetIterAtMark(buf.GetInsert())
+		SetConfig("last_cmd_filter", cmdText)
 		return false //stop other actions
 	} else {
 		if ns.isIcase {
@@ -150,14 +155,6 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 
 	//Crash the following code if textview does not have pointer
 	if ! np.textView.HasGrab() { np.textView.GrabFocus() }
-
-	// if np.buff.GetHasSelection(){
-	// 	text, startI, endI := np.GetSelection()
-	// 	if text != "" && len(text) < 64 {
-	// 		ns.searchBox.SetText(text)
-	// 	}
-	// 	np.buff.SelectRange(startI, endI) // restore selection for next action
-	// }
 
 	buf := np.buff
 	fmt.Println("Init curIter")
