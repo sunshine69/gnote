@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	gtk.Init(&os.Args)
 	dbPath := flag.String("db","","Path to the database file")
 	doMigrate := flag.Bool("mig",false,"Migrate")
 	flag.Parse()
@@ -42,8 +43,11 @@ func main() {
 	if _, e := forms.GetConfig("config_created"); e != nil {
 		fmt.Println("Setup default config ....")
 		forms.SetupDefaultConfig()
+		forms.MessageBox("Initial setup db compelted. The program will exit now. You can start it again.")
+		os.Exit(0)
 	}
-	gtk.Init(&os.Args)
+
+
 	builder, err := gtk.BuilderNewFromFile("glade/gnote.glade")
 	if err != nil {
 		panic(err)

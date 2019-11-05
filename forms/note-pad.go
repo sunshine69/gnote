@@ -1,6 +1,7 @@
 package forms
 
 import (
+	"regexp"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -414,32 +415,53 @@ func (np *NotePad) FetchDataFromGUI() {
 func (np *NotePad) SaveToWebnote() {
 	// SetupDefaultConfig()
 	np.SaveNote()
+	if WebNoteUser == "" {
+		msg := `
+		This feature allow user to save the note into a webnote.
+		You need to have a webnote user account.
+		Contact the author if you are interested.`
+		MessageBox(msg)
+		WebNoteUser = InputDialog("title", "Input required", "label", "Enter webnote username: ")
+	}
 	if WebNotePassword == "" {
 		WebNotePassword = InputDialog(
-			"title", "Password requried", "password-mask", '*', "label", "Enter webnote password")
+			"title", "Password requried", "password-mask", '*', "label", "Enter webnote password. If you need OTP token, enter it at the end of the password separated with ':'")
 	}
 	cookieJar, _ := cookiejar.New(nil)
 	client := &http.Client{
 		Jar: cookieJar,
 	}
+	otpCode := ""
+	otpPtn, _ := regexp.Compile(`\:([\d]+)$`)
+	_otpCode := otpPtn.FindStringSubmatch(WebNotePassword)
+	if len(_otpCode) > 0 {
+		otpCode = _otpCode[1]
+	}
 
+	if WebNoteUser == "" || WebNotePassword == "" {
+		MessageBox("No username or password. Aborting ...")
+		return
+	}
 	data := url.Values{
 		"action":      {"do_login"},
 		"path":        {"action=show_frontpage"},
 		"username":    {WebNoteUser},
 		"password":    {WebNotePassword},
-		"totp_number": {""},
+		"totp_number": {otpCode},
 		"login":       {"Login"},
 	}
 	resp, err := client.PostForm("https://note.inxuanthuy.com", data)
 	if err != nil {
 		fmt.Printf("ERROR - CRITICAL login to webnote %v", err)
 		WebNotePassword = ""
+		WebNoteUser = ""
 	}
 	defer resp.Body.Close()
 	respText, _ := ioutil.ReadAll(resp.Body)
 	if strings.HasPrefix(string(respText), "ERROR - Response is None") {
 		MessageBox("Error login to webnote. Check your password")
+		WebNotePassword = ""
+		WebNoteUser = ""
 		return
 	}
 
@@ -465,6 +487,7 @@ func (np *NotePad) SaveToWebnote() {
 	defer resp.Body.Close()
 	respText, _ = ioutil.ReadAll(resp.Body)
 	if string(respText) != "OK note saved" {
+		SetConfig("webnote_user", WebNoteUser)
 		browser.OpenReader(strings.NewReader(string(respText)))
 	}
 }
