@@ -1,6 +1,7 @@
 package main
 
 import (
+	"path/filepath"
 	"flag"
 	"fmt"
 	"os"
@@ -15,6 +16,17 @@ func main() {
 	if *doMigrate {
 		forms.DoMigration()
 		os.Exit(0)
+	}
+
+	workdir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+    if err != nil {
+			fmt.Printf("%v\n",err)
+			os.Exit(1)
+	}
+
+	if _, e := os.Stat(fmt.Sprintf("%s/glade", workdir) ); e == nil {
+		os.Chdir(workdir)
+
 	}
 
 	homeDir, e := os.UserHomeDir()

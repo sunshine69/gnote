@@ -39,26 +39,6 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem">
-                        <property name="label">gtk-open</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <signal name="activate" handler="OpenDbfile" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem">
-                        <property name="label">gtk-preferences</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <signal name="activate" handler="OpenPref" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem">
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -117,21 +97,6 @@
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-new</property>
                 <signal name="clicked" handler="NewNote" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="pref">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">open preferences editor</property>
-                <property name="label" translatable="yes">pref</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-preferences</property>
-                <signal name="clicked" handler="OpenPref" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
