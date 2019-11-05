@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"github.com/gotk3/gotk3/gtk"
-	"./forms"
+	"github.com/sunshine69/gnote/forms"
 )
 
 func main() {
