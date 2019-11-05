@@ -319,6 +319,16 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 			browser.OpenReader(strings.NewReader(string(output)))
 		case gdk.KeyvalFromName("q"):
 			np.w.Close()
+		case gdk.KeyvalFromName("h"):
+			helpTxt := `Keyboard shortcut of the notepad
+Ctrl + s - Save note (not closing after save)
+Ctrl + T - Clear all tabs count. When you rpess tab key it wil auto indent the level. Press this key to clear it
+Ctrl + t - Reduce one tab level.
+Ctrl + f - Show search and reaplce text. Finding text pattern and many useful features.
+Ctrl + b - Show the content in a web browser. This will convert the markdown text into html if your note content is a markdown format text.
+Ctrl + q - Close this note window.
+			`
+			MessageBox(helpTxt)
 		}
 	}
 	switch keyEvent.KeyVal() {

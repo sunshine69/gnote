@@ -35,8 +35,12 @@ func (ns *NoteSearch) CommandFilter(o *gtk.CheckButton) {
 	if ns.isCmdFilter {
 		lastCmd, _ := GetConfig("last_cmd_filter", "perl -pe 's///'")
 		ns.searchBox.SetText(lastCmd)
+		btnFind := GetButton(ns.builder, "find_btn")
+		btnFind.SetLabel("Cmd")
 	} else {
 		ns.searchBox.SetText("")
+		btnFind := GetButton(ns.builder, "find_btn")
+		btnFind.SetLabel("Find")
 	}
 	ns.searchBox.GrabFocus()
 }
