@@ -61,29 +61,30 @@
                 <property name="can_focus">False</property>
                 <property name="focus_on_click">False</property>
                 <property name="receives_default">False</property>
-                <property name="tooltip_text" translatable="yes">enable command filter. Type in the system command it will run against the note text content or selection (as a file input) and capture output to replace the text. If you type a regex and type some text in the `replace with` box it will do regex search and replace.</property>
+                <property name="tooltip_text" translatable="yes">enable command filter. Type in the system command it will run against the note text content or selection (as a temp file input) and capture output to replace the text. If you type a regex and type some text in the `replace with` box it will do regex search and replace.</property>
                 <property name="draw_indicator">True</property>
                 <signal name="toggled" handler="CommandFilter" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
+                <property name="fill">False</property>
                 <property name="position">2</property>
               </packing>
             </child>
             <child>
               <object class="GtkCheckButton">
-                <property name="label" translatable="yes">back</property>
+                <property name="label" translatable="yes">fct</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="focus_on_click">False</property>
                 <property name="receives_default">False</property>
+                <property name="tooltip_text" translatable="yes">check it if you want command filter to modify the tempfile and return the file content. If not check the output is the stdout and stderr of the command filter</property>
                 <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="NoteFindBackward" swapped="no"/>
+                <signal name="toggled" handler="GetTempFileContent" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
+                <property name="fill">False</property>
                 <property name="position">3</property>
               </packing>
             </child>

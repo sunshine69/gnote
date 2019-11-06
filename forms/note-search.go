@@ -17,7 +17,7 @@ type NoteSearch struct {
 	np *NotePad
 	isIcase bool
 	isCmdFilter bool
-	isBackward bool
+	isGetTempFileContent bool
 	searchBox *gtk.SearchEntry
 	replaceBox *gtk.Entry
 	m1 *gtk.TextMark
@@ -45,8 +45,8 @@ func (ns *NoteSearch) CommandFilter(o *gtk.CheckButton) {
 	ns.searchBox.GrabFocus()
 }
 
-func (ns *NoteSearch) NoteFindBackward(o *gtk.CheckButton) {
-	ns.isBackward = o.GetActive()
+func (ns *NoteSearch) GetTempFileContent(o *gtk.CheckButton) {
+	ns.isGetTempFileContent = o.GetActive()
 	ns.searchBox.GrabFocus()
 }
 
@@ -73,7 +73,16 @@ func (ns *NoteSearch) FindText() bool {
 			} else{
 				fmt.Printf("DEBUG 1 %s\n", stdoutStderr)
 			}
-			outStr = string(stdoutStderr)
+			if ns.isGetTempFileContent {
+				_outStr, e := ioutil.ReadFile(_tmpF.Name())
+				if e != nil {
+					MessageBox(fmt.Sprintf("ERROR %v\n", e))
+					return false
+				}
+				outStr = string(_outStr)
+			} else{
+				outStr = string(stdoutStderr)
+			}
 			os.Remove(_tmpF.Name())
 			SetConfig("last_cmd_filter", cmdText)
 		} else {
@@ -94,19 +103,13 @@ func (ns *NoteSearch) FindText() bool {
 		if ns.isIcase {
 			searchFlag = gtk.TEXT_SEARCH_CASE_INSENSITIVE
 		}
-		if ns.isBackward {
-			if ns.m1 != nil {
-				buf.PlaceCursor(buf.GetIterAtMark(ns.m1))
-				ns.curIter = buf.GetIterAtMark(buf.GetInsert())
-			}
-			foundIter1, foundIter2, ok = ns.curIter.BackwardSearch(keyword, searchFlag, nil)
-		} else {
-			if ns.m2 != nil {
-				buf.PlaceCursor(buf.GetIterAtMark(ns.m2))
-				ns.curIter = buf.GetIterAtMark(buf.GetInsert())
-			}
-			foundIter1, foundIter2, ok = ns.curIter.ForwardSearch(keyword, searchFlag, nil)
+
+		if ns.m2 != nil {
+			buf.PlaceCursor(buf.GetIterAtMark(ns.m2))
+			ns.curIter = buf.GetIterAtMark(buf.GetInsert())
 		}
+		foundIter1, foundIter2, ok = ns.curIter.ForwardSearch(keyword, searchFlag, nil)
+
 		if ok {
 			ns.np.textView.ScrollToIter(foundIter1, 0, true, 0, 0)
 			buf.SelectRange(foundIter1, foundIter2)
@@ -115,13 +118,8 @@ func (ns *NoteSearch) FindText() bool {
 		} else {
 			if !ok {
 				MessageBox("Search text not found. Will reset iter")
-				if ns.isBackward {
-					ns.curIter = buf.GetEndIter()
-					ns.m1, ns.m2 = nil, nil
-				} else {
-					ns.curIter = buf.GetStartIter()
-					ns.m1, ns.m2 = nil, nil
-				}
+				ns.curIter = buf.GetStartIter()
+				ns.m1, ns.m2 = nil, nil
 			}
 		}
 	}
@@ -179,7 +177,7 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 		"NoteFindText": ns.NoteFindText,
 		"NoteReplaceText": ns.NoteReplaceText,
 		"NoteReplaceAll": ns.NoteReplaceAll,
-		"NoteFindBackward": ns.NoteFindBackward,
+		"GetTempFileContent": ns.GetTempFileContent,
 		"KeyPressed":		ns.KeyPressed,
 	}
 	builder.ConnectSignals(signals)
