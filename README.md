@@ -27,5 +27,5 @@ I did test build on windows and here is the bundle. Download
 and extract them. Run the `gnote-windows-amd64.exe` inside the bin directory. You can create a
 shortcut in the desktop manually to point to the binary path.
 
-For later update you just need to download the [gnote-windows-amd64.exe alone](https://xvt-public-repo.s3-ap-southeast-2.amazonaws.com/pub/devops/gnote-windows-amd64.exe)
-and save to the same location.
+For later update you just need to download the [gnote-windows-amd64.exe alone](https://xvt-public-repo.s3-ap-southeast-2.amazonaws.com/pub/devops/gnote-windows-amd64.7z)
+and extract, save to the same location.
