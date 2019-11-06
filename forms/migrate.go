@@ -75,7 +75,7 @@ func DoMigration() {
 		note := Note{}
 		note.NewNote(map[string]interface{} {
 			"title": title,
-			"datelog": d,
+			"datelog": d.UnixNano(),
 			"content": content,
 			"flags": flags,
 			"URL": url,

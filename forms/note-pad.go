@@ -40,10 +40,10 @@ func (np *NotePad) ShowMainWindowBtnClick(o *gtk.Button) {
 
 //Load - Load note data and set the widget with data
 func (np *NotePad) Load(id int) {
-	if id < 0 {
-		np.Datelog = time.Now()
-		np.wDateLog.SetText(np.Datelog.Format(DateLayout))
-		np.StartUpdateTime = np.Datelog
+	if id < 0 {//Datelog only constructed in here and never be updated for teh life of the note.
+		np.Datelog = time.Now().UnixNano()
+		np.wDateLog.SetText(nsToTime(np.Datelog).Format(DateLayout))
+		np.StartUpdateTime = time.Now()
 		return
 	}
 
@@ -66,7 +66,7 @@ func (np *NotePad) Load(id int) {
 			return
 		}
 		w = _w.(*gtk.Entry)
-		w.SetText(np.Datelog.Format(DateLayout))
+		w.SetText(nsToTime(np.Datelog).Format(DateLayout))
 
 		_w, e = b.GetObject("flags")
 		if e != nil {
@@ -376,18 +376,6 @@ func (np *NotePad) FetchDataFromGUI() {
 		fmt.Printf("ERROR get title entry text\n")
 	}
 
-	widget = GetEntry(b, "datelog")
-	_datelogStr, e := widget.GetText()
-	if e != nil {
-		fmt.Printf("ERROR get entry datelog\n")
-	} else {
-		np.Datelog, e = time.Parse(DateLayout, _datelogStr)
-		if e != nil {
-			fmt.Printf("ERROR can not parse datelog. Use Now\n")
-			np.Datelog = time.Now()
-		}
-	}
-
 	widget = GetEntry(b, "flags")
 	np.Flags, e = widget.GetText()
 	if e != nil {
@@ -413,7 +401,7 @@ func (np *NotePad) FetchDataFromGUI() {
 		}
 	}
 
-	np.Timestamp = time.Now()
+	np.Timestamp = time.Now().UnixNano()
 	if np.Title == "" {
 		np.Title = ChunkString(np.Content, 64)[0]
 	}
@@ -476,8 +464,9 @@ func (np *NotePad) SaveToWebnote() {
 	data = url.Values{
 		"action":     {"save_newnote"},
 		"title":      {np.Title},
-		"datelog":    {np.Datelog.Format(DateLayout)},
-		"timestamp":  {fmt.Sprintf("%d", np.Timestamp.Unix())},
+		"id":         {"0"},
+		"datelog":    {nsToTime(np.Datelog).Format(DateLayout)} ,
+		"timestamp":  {fmt.Sprintf("%d", np.Timestamp)},
 		"flags":      {np.Flags},
 		"content":    {np.Content},
 		"url":        {np.URL},

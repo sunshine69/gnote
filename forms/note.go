@@ -4,19 +4,18 @@ import (
 	"fmt"
 	"time"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/araddon/dateparse"
 )
 
 //Note - data structure
 type Note struct {
 	ID int `gorm:"primary_key"`
 	Title string `gorm:"type:varchar(512);not null;unique_index"`
-	Datelog time.Time
+	Datelog int64
 	Content string `gorm:"type:text"`
 	URL string
 	Flags string
 	ReminderTicks int64
-	Timestamp time.Time
+	Timestamp int64
 	Readonly int8 `gorm:"default 0"`
 	FormatTag []byte
 	AlertCount int8 `gorm:"type:int;default 0"`
@@ -49,30 +48,23 @@ func (n *Note) NewNote(in map[string]interface{}) {
 	n.Title = titleText
 
 	if dateData, ok := in["datelog"]; ok {
-		var e error
-		var ok bool
-		n.Datelog, ok = dateData.(time.Time)
-		if !ok {
-			dateObj, ok := dateData.(string)
-			if ok {
-				n.Datelog, e = dateparse.ParseLocal(dateObj)
-				if e != nil {
-					fmt.Printf("ERROR Parse date string. Set to now - %v\n", e)
-					n.Datelog = time.Now()
-				}
+		switch v := dateData.(type) {
+		case string:
+			dateLog, e := time.Parse(DateLayout, v)
+			if e != nil {
+				fmt.Printf("ERROR can not parse date\n")
+				n.Datelog = time.Now().UnixNano()
 			} else {
-				n.Datelog = time.Now()
+				n.Datelog = dateLog.UnixNano()
 			}
+		case int64:
+			n.Datelog = v
 		}
 	} else {
-		n.Datelog = time.Now()
+		n.Datelog = time.Now().UnixNano()
 	}
 
-	if timestamp, ok := in["timestamp"]; ok {
-		n.Timestamp = time.Unix(timestamp.(int64), 0)
-	} else {
-		n.Timestamp = time.Now()
-	}
+	n.Timestamp = time.Now().UnixNano()
 
 	if flags, ok := in["flags"]; ok {
 		n.Flags = flags.(string)

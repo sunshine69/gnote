@@ -18,9 +18,22 @@ import (
 	"bytes"
 	"log"
 	// "strconv"
-	// "time"
+	"time"
 	"github.com/gotk3/gotk3/gtk"
 )
+
+//Time handling
+const (
+	millisPerSecond     = int64(time.Second / time.Millisecond)
+	nanosPerMillisecond = int64(time.Millisecond / time.Nanosecond)
+	nanosPerSecond      = int64(time.Second / time.Nanosecond)
+)
+
+func nsToTime(ns int64) time.Time  {
+	secs := ns/nanosPerSecond
+	nanos := ns - secs * nanosPerSecond
+	return time.Unix(secs, nanos)
+}
 
 //MessageBox - display a message
 func MessageBox(msg string) {

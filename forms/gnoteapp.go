@@ -241,14 +241,17 @@ func (app *GnoteApp) doSearch() {
 	app.model.Clear()
 
 	id, count := 0, 0
-	var title, datelog, lastUpdate string
+	var title string
+	var datelog, lastUpdate int64
 	for rows.Next() {
 		rows.Scan(&id, &title, &datelog, &lastUpdate)
 		// fmt.Printf("row: %v - %v %v\n", id, title, datelog)
+		_dateLogStr := nsToTime(datelog).Format(DateLayout)
+		_lastUpdateStr := nsToTime(lastUpdate).Format(DateLayout)
 		iter := app.model.Append()
 		if e := app.model.Set(iter,
 			[]int{0, 1, 2, 3},
-			[]interface{}{id, title, datelog, lastUpdate}); e != nil {
+			[]interface{}{id, title, _dateLogStr, _lastUpdateStr}); e != nil {
 				fmt.Printf("ERROR appending data to model %v\n", e)
 			}
 		count = count + 1
