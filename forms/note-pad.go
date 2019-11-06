@@ -192,7 +192,11 @@ func NewNotePad(id int) *NotePad {
 }
 
 func (np *NotePad) NewLinkNote() {
-	np.app.newNote()
+	newNp := np.app.newNote()
+	if np.buff.GetHasSelection(){
+		text, _, _ := np.GetSelection()
+		newNp.buff.SetText(text)
+	}
 }
 
 func (np *NotePad) ClearFlagsBtnClick() {

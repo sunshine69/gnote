@@ -169,9 +169,10 @@ func (app *GnoteApp) openDBFile() {
 	fmt.Println("Open DB File")
 }
 
-func (app *GnoteApp) newNote() {
+func (app *GnoteApp) newNote() *NotePad {
 	np := NewNotePad(-1)
 	np.app = app
+	return np
 }
 
 func (app *GnoteApp) doExit() {
