@@ -43,6 +43,7 @@ func (np *NotePad) Load(id int) {
 	if id < 0 {
 		np.Datelog = time.Now()
 		np.wDateLog.SetText(np.Datelog.Format(DateLayout))
+		np.StartUpdateTime = np.Datelog
 		return
 	}
 
@@ -231,9 +232,12 @@ func (np *NotePad) EncryptContent() {
 }
 
 func (np *NotePad) EndUpdateMarkBtnClick() {
+	np.SaveNote()
 	durationInsec := time.Now().Unix() - np.StartUpdateTime.Unix()
+	np.TimeSpent = np.TimeSpent + int(durationInsec)
 	dur, _ := time.ParseDuration(fmt.Sprintf("%ds", durationInsec))
-	text := fmt.Sprintf("---\nEnd Update %s. Time Spent: %s\n", time.Now().Format(DateLayout), dur.String())
+	total, _ := time.ParseDuration(fmt.Sprintf("%ds", np.TimeSpent))
+	text := fmt.Sprintf("\n---\nEnd Update %s. Time Spent: %s\nTotal time spent: %s\n", time.Now().Format(DateLayout), dur.String(), total.String())
 
 	endI := np.buff.GetEndIter()
 	np.buff.PlaceCursor(endI)
@@ -323,9 +327,9 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 		case gdk.KeyvalFromName("h"):
 			helpTxt := `Keyboard shortcut of the notepad
 Ctrl + s - Save note (not closing after save)
-Ctrl + T - Clear all tabs count. When you rpess tab key it wil auto indent the level. Press this key to clear it
+Ctrl + T - Clear all tabs count. When you press tab key it wil auto indent the level. Press this key to clear it
 Ctrl + t - Reduce one tab level.
-Ctrl + f - Show search and reaplce text. Finding text pattern and many useful features.
+Ctrl + f - Show search and replace text. Finding text pattern and many useful features.
 Ctrl + b - Show the content in a web browser. This will convert the markdown text into html if your note content is a markdown format text.
 Ctrl + q - Close this note window.
 			`
