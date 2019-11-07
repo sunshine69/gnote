@@ -7,6 +7,7 @@ import (
 	"strings"
 	"fmt"
 	"github.com/gotk3/gotk3/gtk"
+	"os"
 )
 
 
@@ -84,6 +85,28 @@ func (app *GnoteApp) NewNoteFromFile(o *gtk.FileChooserButton) {
 	np.app = app
 }
 
+func (app *GnoteApp) DoVacuum() {
+	if e:= DbConn.Exec("VACUUM").Error; e != nil {
+		MessageBox(fmt.Sprintf("ERROR VACUUM %v", e))
+	}
+}
+
+func (app *GnoteApp) DoResetDB() {
+	dbPath := os.Getenv("DBPATH")
+	dbNewPath := fmt.Sprintf("%v.backup", dbPath)
+	msg := `WARNING
+This will rename your current database to the file %s.
+It will exit the application to allow you to start it again to initialise the DB.
+Are you sure to do that? Type 'yes'. otherwise type 'no' or hit enter.
+	`
+	confirm := InputDialog("title", "Confirmation required", "label", fmt.Sprintf(msg, dbNewPath))
+	if confirm == "yes" {
+		os.Rename(dbPath, dbNewPath)
+		MessageBox("Completed. You can click OK to shuttdown the app")
+		os.Exit(0)
+	}
+}
+
 //InitApp -
 func (app *GnoteApp) InitApp() {
 	Builder := app.Builder
@@ -100,6 +123,8 @@ func (app *GnoteApp) InitApp() {
 		"ResultListKeyPress": app.ResultListKeyPress,
 		"TreeSelectionChanged": app.TreeSelectionChanged,
 		"NewNoteFromFile": app.NewNoteFromFile,
+		"DoResetDB": app.DoResetDB,
+		"DoVacuum": app.DoVacuum,
 	}
 
 	Builder.ConnectSignals(signals)

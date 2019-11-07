@@ -39,6 +39,24 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem">
+                        <property name="label">Refresh DB</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_stock">False</property>
+                        <signal name="activate" handler="DoResetDB" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Vacuum DB</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="DoVacuum" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem">
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
