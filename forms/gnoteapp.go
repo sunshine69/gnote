@@ -101,9 +101,13 @@ Are you sure to do that? Type 'yes'. otherwise type 'no' or hit enter.
 	`
 	confirm := InputDialog("title", "Confirmation required", "label", fmt.Sprintf(msg, dbNewPath))
 	if confirm == "yes" {
-		os.Rename(dbPath, dbNewPath)
-		MessageBox("Completed. You can click OK to shuttdown the app")
-		os.Exit(0)
+		e := os.Rename(dbPath, dbNewPath)
+		if e != nil {
+			MessageBox(fmt.Sprintf("Error renaming db file. You may need to do it manualy. The file path is '%s'", dbPath))
+		} else {
+			MessageBox("Completed. You can click OK to shuttdown the app")
+			os.Exit(0)
+		}
 	}
 }
 
@@ -211,7 +215,7 @@ func (app *GnoteApp) doExit() {
 }
 
 func (app *GnoteApp) showAbout() {
-	fmt.Println("show about")
+	MessageBox("Gnote - A note and text processing system by stevek")
 }
 
 func (app *GnoteApp) doClearSearchbox() {

@@ -47,7 +47,6 @@ func main() {
 		os.Exit(0)
 	}
 
-
 	builder, err := gtk.BuilderNewFromFile("glade/gnote.glade")
 	if err != nil {
 		panic(err)
