@@ -28,19 +28,19 @@ type Note struct {
 func (n *Note) NewNote(in map[string]interface{}) {
 	ct, ok := in["content"].(string)
 	if !ok {
-		fmt.Printf("INFO. content is empty\n")
+		// fmt.Printf("INFO. content is empty\n")
 		ct = ""
 	}
 	titleText, ok := in["title"].(string)
 	if !ok {
-		fmt.Printf("INFO No title provided, parse from content\n")
+		// fmt.Printf("INFO No title provided, parse from content\n")
 		if ct != ""{
 			_l := len(ct)
 			if _l >= 64 {_l = 64}
 			titleText = ct[0:_l]
 			n.Content = ct
 		} else {
-			fmt.Printf("INFO No content and title provided. Not creating note\n")
+			// fmt.Printf("INFO No content and title provided. Not creating note\n")
 			return
 		}
 	}

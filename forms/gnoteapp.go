@@ -231,7 +231,7 @@ func (app *GnoteApp) doSearch() {
 		}
 		q = fmt.Sprintf("SELECT id, title, datelog, timestamp from notes WHERE %v", q)
 	}
-	fmt.Println(q)
+	// fmt.Println(q)
 	rows, e := DbConn.Raw(q).Rows()
 	if e != nil {
 		fmt.Printf("ERROR - exec sql\n")

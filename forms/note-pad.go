@@ -114,7 +114,7 @@ func NewNotePad(id int) *NotePad {
 	}
 	np.w = _obj.(*gtk.Window)
 	np.NewNote(map[string]interface{}{})
-	fmt.Printf("Empty note created %v\n", np.Title)
+	// fmt.Printf("Empty note created %v\n", np.Title)
 
 	signals := map[string]interface{}{
 		"SaveBtnClick":             np.saveBtnClick,
