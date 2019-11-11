@@ -152,7 +152,7 @@
               <object class="GtkSearchEntry" id="searchBox">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="tooltip_text" translatable="yes">type key word to search</property>
+                <property name="tooltip_text" translatable="yes">type key word to search. Default using full text search based on predefined column title and content (sqlite fts5). startswith 'f:', or 'flags:' to search for flags field only. startswith 'fts:' it will take the whole full text sql as is. The fts table name is note_fts. startswith space it falls back to normal search.</property>
                 <property name="primary_icon_name">edit-find-symbolic</property>
                 <property name="primary_icon_activatable">False</property>
                 <property name="primary_icon_sensitive">False</property>

@@ -122,7 +122,7 @@ func (app *GnoteApp) InitApp() {
 		"OpenDbfile": app.openDBFile,
 		"DoExit": app.doExit,
 		"DoClearSearchbox": app.doClearSearchbox,
-		"DoSearch": app.doSearch,
+		"DoSearch": app.doFullTextSearch,
 		"RowActivated": app.RowActivated,
 		"ResultListKeyPress": app.ResultListKeyPress,
 		"TreeSelectionChanged": app.TreeSelectionChanged,
@@ -222,6 +222,56 @@ func (app *GnoteApp) doClearSearchbox() {
 	fmt.Println("doClearSearchbox")
 }
 
+func (app *GnoteApp) doFullTextSearch() {
+	fmt.Println("doFullTextSearch")
+	b := app.Builder
+	w := GetSearchEntry(b, "searchBox")
+	keyword, _ := w.GetText()
+	var sql string
+	fmt.Printf("keyword: '%s'\n", keyword)
+	if strings.HasPrefix(keyword, "fts:") {
+		sql = keyword
+	} else if keyword == "" || strings.HasPrefix(keyword, "f:") || strings.HasPrefix(keyword, "flags:") || strings.HasPrefix(keyword, "F:") || strings.HasPrefix(keyword, "FLAGS:") || strings.HasPrefix(keyword, " ") {
+		app.doSearch()
+		return
+	} else {
+		sql = fmt.Sprintf("SELECT rowid FROM note_fts WHERE title MATCH '%s' OR content MATCH '%s' ORDER BY datelog DESC LIMIT 200;",keyword ,keyword)
+	}
+
+	rows, e := DbConn.Raw(sql).Rows()
+	if e != nil {
+		fmt.Printf("ERROR - exec sql\n")
+	}
+	defer rows.Close()
+	app.model.Clear()
+
+	rowid, id, count := 0, 0, 0
+	var title string
+	var datelog, lastUpdate int64
+	for rows.Next() {
+		rows.Scan(&rowid)
+		_note := Note{}
+		if e = DbConn.First(&_note, rowid).Error; e != nil {
+			fmt.Printf("Failt to get note id %d\n", rowid)
+			break
+		}
+		id, title, datelog, lastUpdate = _note.ID, _note.Title, _note.Datelog, _note.Timestamp
+		// fmt.Printf("row: %v - %v %v\n", id, title, datelog)
+		_dateLogStr := nsToTime(datelog).Format(DateLayout)
+		_lastUpdateStr := nsToTime(lastUpdate).Format(DateLayout)
+		iter := app.model.Append()
+		if e := app.model.Set(iter,
+			[]int{0, 1, 2, 3},
+			[]interface{}{id, title, _dateLogStr, _lastUpdateStr}); e != nil {
+				fmt.Printf("ERROR appending data to model %v\n", e)
+			}
+		count = count + 1
+	}
+	s := GetStatusBar(app.Builder, "status_bar")
+	s.Pop(1)
+	s.Push(1, fmt.Sprintf( "Found %d notes", count))
+}
+
 func (app *GnoteApp) doSearch() {
 	fmt.Println("doSearch")
 	b := app.Builder
@@ -229,11 +279,12 @@ func (app *GnoteApp) doSearch() {
 	searchFlags := false
 	keyword, _ := w.GetText()
 	q := ""
+	keyword = strings.TrimSpace(keyword)
 	tokens := []string{}
-	if strings.HasPrefix(keyword, "F:") {
+	if strings.HasPrefix(keyword, "F:") || strings.HasPrefix(keyword, "f:") {
 		tokens = strings.Split(keyword[2:], ":")
 		searchFlags = true
-	} else if strings.HasPrefix(keyword, "FLAGS:"){
+	} else if strings.HasPrefix(keyword, "FLAGS:") || strings.HasPrefix(keyword, "flags:") {
 		tokens = strings.Split(keyword[6:], ":")
 		searchFlags = true
 	}
@@ -260,7 +311,7 @@ func (app *GnoteApp) doSearch() {
 		}
 		q = fmt.Sprintf("SELECT id, title, datelog, timestamp from notes WHERE %v", q)
 	}
-	// fmt.Println(q)
+	fmt.Println(q)
 	rows, e := DbConn.Raw(q).Rows()
 	if e != nil {
 		fmt.Printf("ERROR - exec sql\n")

@@ -38,7 +38,24 @@ func SetupConfigDB() {
 	}
 	DbConn.AutoMigrate(&AppConfig{})
 	DbConn.AutoMigrate(&Note{})
-	DbConn.Exec("CREATE INDEX IF NOT EXISTS iTextContent ON notes(content COLLATE NOCASE);")
+	setupSQL :=  `
+CREATE VIRTUAL TABLE IF NOT EXISTS note_fts USING fts5(title, datelog, content, content='notes', content_rowid='id');
+
+CREATE TRIGGER IF NOT EXISTS notes_ai AFTER INSERT ON notes BEGIN
+  INSERT INTO note_fts(rowid, title, datelog, content) VALUES (new.id, new.title, new.datelog, new.content);
+END;
+
+CREATE TRIGGER IF NOT EXISTS notes_ad AFTER DELETE ON notes BEGIN
+  INSERT INTO note_fts(note_fts, rowid, title, datelog, content) VALUES('delete', old.id, old.title, old.datelog, old.content);
+END;
+
+CREATE TRIGGER IF NOT EXISTS notes_au AFTER UPDATE ON notes BEGIN
+  INSERT INTO note_fts(note_fts, rowid, title, datelog, content) VALUES('delete', old.id, old.title, old.datelog, old.content);
+ INSERT INTO note_fts(rowid, title, datelog, content) VALUES (new.id, new.title, new.datelog, new.content);
+END;
+`
+	DbConn.Exec(setupSQL)
+	// DbConn.Exec("CREATE INDEX IF NOT EXISTS iTextContent ON notes(content COLLATE NOCASE);")
 
 	// Example of loading a key dbpath
 	// if err = DbConn.Find(&Config, AppConfig{Key: "dbpath"}).Error; err != nil {
