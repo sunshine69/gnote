@@ -29,3 +29,21 @@ shortcut in the desktop manually to point to the binary path.
 
 For later update you just need to download the [gnote-windows-amd64.exe alone](https://xvt-public-repo.s3-ap-southeast-2.amazonaws.com/pub/devops/gnote-windows-amd64.7z)
 and extract, save to the same location.
+
+## Build
+
+Checkout git repo and execute:
+
+- Linux
+
+```
+go build --tags "icu json1 fts5 secure_delete" -ldflags='-s -w'
+```
+
+- Windows
+
+```
+go build -ldflags="-s -w -H=windowsgui" --tags "icu json1 fts5 secure_delete"  -o gnote-windows-amd64.exe gnote.go
+
+```
+
