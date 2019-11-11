@@ -216,6 +216,8 @@ func (np *NotePad) ClearURL() {
 func (np *NotePad) DecryptContent() {
 	key := InputDialog("title", "Password required", "label", "Enter passphrase to encrypt: ", "password-mask", '*')
 	eCt, startI, endI := np.GetSelection()
+	eCt = strings.TrimPrefix(eCt, "ENC:")
+	eCt = strings.TrimSuffix(eCt, ":ENC")
 	ct, e := Decrypt(eCt, key)
 	if e != nil {
 		MessageBox("Decrypt error. Please check password")
@@ -230,6 +232,7 @@ func (np *NotePad) EncryptContent() {
 	key := InputDialog("title", "Password required", "label", "Enter passphrase to encrypt: ", "password-mask", '*')
 	ct, startI, endI := np.GetSelection()
 	eCt := Encrypt(ct, key)
+	eCt = fmt.Sprintf("ENC:%s:ENC", eCt)
 	np.buff.SelectRange(startI, endI)
 	np.buff.DeleteSelection(true, true)
 	np.buff.InsertAtCursor(eCt)
@@ -261,7 +264,7 @@ func (np *NotePad) SearchNoteFromPad() {
 		text, _, _ := np.GetSelection()
 		if len(text) < 64 {
 			np.app.searchBox.SetText(text)
-			np.app.doSearch()
+			np.app.doFullTextSearch()
 			np.app.MainWindow.Present()
 		}
 	}

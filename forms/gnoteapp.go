@@ -235,7 +235,7 @@ func (app *GnoteApp) doFullTextSearch() {
 		app.doSearch()
 		return
 	} else {
-		sql = fmt.Sprintf("SELECT rowid FROM note_fts WHERE title MATCH '%s' OR content MATCH '%s' ORDER BY datelog DESC LIMIT 200;",keyword ,keyword)
+		sql = fmt.Sprintf("SELECT rowid FROM note_fts WHERE note_fts MATCH '%s' ORDER BY datelog DESC LIMIT 200;",keyword)
 	}
 
 	rows, e := DbConn.Raw(sql).Rows()
