@@ -40,9 +40,11 @@ func main() {
 	}
 	os.Setenv("DBPATH", *dbPath)
 	forms.SetupConfigDB()
+
 	if _, e := forms.GetConfig("config_created"); e != nil {
 		fmt.Println("Setup default config ....")
 		forms.SetupDefaultConfig()
+		forms.RestoreAssetsAll(workdir)
 		forms.MessageBox("Initial setup db compelted. The program will exit now. You can start it again.")
 		os.Exit(0)
 	}

@@ -111,6 +111,12 @@ Are you sure to do that? Type 'yes'. otherwise type 'no' or hit enter.
 	}
 }
 
+//DoUpdateResource -
+func (app *GnoteApp) DoUpdateResource() {
+	RestoreAssetsAll("./")
+	MessageBox("Resource is updated. You need to restart the program to take effect")
+}
+
 //InitApp -
 func (app *GnoteApp) InitApp() {
 	Builder := app.Builder
@@ -129,6 +135,7 @@ func (app *GnoteApp) InitApp() {
 		"NewNoteFromFile": app.NewNoteFromFile,
 		"DoResetDB": app.DoResetDB,
 		"DoVacuum": app.DoVacuum,
+		"DoUpdateResource": app.DoUpdateResource,
 	}
 
 	Builder.ConnectSignals(signals)

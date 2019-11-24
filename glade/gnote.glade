@@ -56,6 +56,16 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Only do when upgrade to new version but no harm if you still do</property>
+                        <property name="label" translatable="yes">Update resource files</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="DoUpdateResource" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkImageMenuItem">
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>

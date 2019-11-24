@@ -51,6 +51,14 @@ func MessageBox(msg string) {
 // 	return tm
 // }
 
+//RestoreAssetsAll -
+func RestoreAssetsAll(extractDir string) {
+	for _, as := range AssetNames() {
+		fmt.Printf("Restore %s\n", as)
+		RestoreAssets(extractDir, as)
+	}
+}
+
 //ChunkString -
 func ChunkString(s string, chunkSize int) []string {
 	var chunks []string
