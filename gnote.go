@@ -27,7 +27,6 @@ func main() {
 
 	if _, e := os.Stat(fmt.Sprintf("%s/glade", workdir) ); e == nil {
 		os.Chdir(workdir)
-
 	}
 
 	homeDir, e := os.UserHomeDir()

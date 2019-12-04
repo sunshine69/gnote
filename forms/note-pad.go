@@ -406,7 +406,7 @@ func (np *NotePad) FetchDataFromGUI() {
 
 	np.Timestamp = time.Now().UnixNano()
 	if np.Title == "" {
-		np.Title = ChunkString(np.Content, 64)[0]
+		np.Title = strings.ReplaceAll(ChunkString(np.Content, 64)[0],"\n", " ")
 	}
 }
 
