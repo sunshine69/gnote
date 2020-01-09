@@ -412,7 +412,6 @@ func (np *NotePad) FetchDataFromGUI() {
 
 //SaveToWebnote - save to webnote store
 func (np *NotePad) SaveToWebnote() {
-	// SetupDefaultConfig()
 	np.SaveNote()
 	if WebNoteUser == "" {
 		msg := `
@@ -426,6 +425,7 @@ func (np *NotePad) SaveToWebnote() {
 		WebNotePassword = InputDialog(
 			"title", "Password requried", "password-mask", '*', "label", "Enter webnote password. If you need OTP token, enter it at the end of the password separated with ':'")
 	}
+	webnoteUrl, _ := GetConfig("webnote_url", "https://note.inxuanthuy.com:6919")
 	cookieJar, _ := cookiejar.New(nil)
 	client := &http.Client{
 		Jar: cookieJar,
@@ -436,28 +436,45 @@ func (np *NotePad) SaveToWebnote() {
 	if len(_otpCode) > 0 {
 		otpCode = _otpCode[1]
 	}
-
 	if WebNoteUser == "" || WebNotePassword == "" {
 		MessageBox("No username or password. Aborting ...")
 		return
 	}
+	//Getfirst to get the csrf token
+	resp, err := client.Get(webnoteUrl + "/login")
+	if err != nil {
+		fmt.Printf("ERROR sync webnote %v", err)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		fmt.Printf("ERROR sync webnote code %v", resp.StatusCode)
+		return
+	}
+	csrfPtn := regexp.MustCompile(`name="gorilla.csrf.Token" value="([^"]+)"`)
+	respText, _ := ioutil.ReadAll(resp.Body)
+	matches := csrfPtn.FindSubmatch(respText)
+	if len(matches) == 0 {
+		fmt.Printf("ERROR sync webnote Can not find csrf token in response\n")
+		return
+	}
+	csrfToken := string(matches[1])
 	data := url.Values{
-		"action":      {"do_login"},
-		"path":        {"action=show_frontpage"},
 		"username":    {WebNoteUser},
 		"password":    {WebNotePassword},
 		"totp_number": {otpCode},
 		"login":       {"Login"},
+		"gorilla.csrf.Token": { csrfToken },
 	}
-	resp, err := client.PostForm("https://note.inxuanthuy.com", data)
+	resp, err = client.PostForm(webnoteUrl + "/login", data)
 	if err != nil {
 		fmt.Printf("ERROR - CRITICAL login to webnote %v", err)
 		WebNotePassword = ""
 		WebNoteUser = ""
 	}
-	defer resp.Body.Close()
-	respText, _ := ioutil.ReadAll(resp.Body)
-	if strings.HasPrefix(string(respText), "ERROR - Response is None") {
+	respText, _ = ioutil.ReadAll(resp.Body)
+
+	if strings.HasPrefix(string(respText), "Failed login") {
 		MessageBox("Error login to webnote. Check your password")
 		WebNotePassword = ""
 		WebNoteUser = ""
@@ -478,13 +495,13 @@ func (np *NotePad) SaveToWebnote() {
 		"is_ajax":    {"1"},
 		"raw_editor": {"1"},
 		"savenote":   {"Save"},
+		"gorilla.csrf.Token": { csrfToken },
 	}
-	resp, err = client.PostForm("https://note.inxuanthuy.com", data)
+	resp, err = client.PostForm(webnoteUrl + "/savenote", data)
 	if err != nil {
 		fmt.Printf("ERROR - CRITICAL save to webnote %v", err)
 		panic(2)
 	}
-	defer resp.Body.Close()
 	respText, _ = ioutil.ReadAll(resp.Body)
 	if string(respText) != "OK note saved" {
 		SetConfig("webnote_user", WebNoteUser)

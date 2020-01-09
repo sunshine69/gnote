@@ -256,7 +256,6 @@ func Encrypt(text, key string) string {
     }
 	encData := gcm.Seal(nonce, nonce, text1, nil)
 	return base64.StdEncoding.EncodeToString(encData)
-
 }
 
 func Decrypt(ciphertextBase64 string, key string) (string, error) {
@@ -435,7 +434,7 @@ func pangoFormatter(w io.Writer, style *chroma.Style, it chroma.Iterator) error 
 	return nil
 }
 
-var pangoEscapeChar = [][]string{{"<", "&lt;", "lOwErThAnTmPrEpLaCeMeNt"}, {"&", "&amp;", "aMpErSaNdTmPrEpLaCeMeNt"}}
+var pangoEscapeChar = [][]string{{"<", "&lt;", "lOwErThAnTmPrEpLaCeMeNt"}, {"&", "&amp;","aMpErSaNdTmPrEpLaCeMeNt"}}
 
 // prepare: sanitize input string to safely use with pango
 func pangoPrepare(inString string) string {

@@ -80,6 +80,7 @@ func SetupDefaultConfig() {
 		"window_size" : "429x503",
 		"main_window_size" : "300x291",
 		"date_layout": "02-01-2006 15:04:05 MST",
+		"webnote_url": "https://note.inxuanthuy.com:6919",
 	}
 	for key, val := range(configSet) {
 		fmt.Printf("Inserting %s - %s\n", key, val)
