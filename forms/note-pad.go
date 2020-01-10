@@ -463,7 +463,6 @@ func (np *NotePad) SaveToWebnote() {
 		"username":    {WebNoteUser},
 		"password":    {WebNotePassword},
 		"totp_number": {otpCode},
-		"login":       {"Login"},
 		"gorilla.csrf.Token": { csrfToken },
 	}
 	resp, err = client.PostForm(webnoteUrl + "/login", data)
@@ -482,10 +481,8 @@ func (np *NotePad) SaveToWebnote() {
 	}
 
 	data = url.Values{
-		"action":     {"save_newnote"},
 		"title":      {np.Title},
-		"id":         {"0"},
-		"datelog":    {nsToTime(np.Datelog).Format(DateLayout)} ,
+		"datelog":    {fmt.Sprintf("%d", np.Datelog)},
 		"timestamp":  {fmt.Sprintf("%d", np.Timestamp)},
 		"flags":      {np.Flags},
 		"content":    {np.Content},
@@ -494,7 +491,6 @@ func (np *NotePad) SaveToWebnote() {
 		"permission": {"0"},
 		"is_ajax":    {"1"},
 		"raw_editor": {"1"},
-		"savenote":   {"Save"},
 		"gorilla.csrf.Token": { csrfToken },
 	}
 	resp, err = client.PostForm(webnoteUrl + "/savenote", data)
@@ -504,8 +500,9 @@ func (np *NotePad) SaveToWebnote() {
 	}
 	respText, _ = ioutil.ReadAll(resp.Body)
 	if string(respText) != "OK note saved" {
-		SetConfig("webnote_user", WebNoteUser)
 		browser.OpenReader(strings.NewReader(string(respText)))
+	} else {
+		SetConfig("webnote_user", WebNoteUser)
 	}
 }
 
