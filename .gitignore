@@ -23,4 +23,5 @@
 *.db
 gnote
 .vscode
-gnote-linux-amd64
+gnote-*-amd64
+gnote-*-x86_64
