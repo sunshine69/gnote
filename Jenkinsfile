@@ -59,10 +59,10 @@ EOF
                     sh "./build-windows.sh"
                     utils.run_build_script([
                     //Make sure you build this image ready - having user jenkins and cache go mod for that user.
-                        'docker_image': 'golang-ubuntu1804-build:latest',
+                        'docker_image': 'golang-ubuntu-build:latest',
                         'docker_net_opt': '',
 //define the name here so we can save a image cache in the script save-docker-image-cache.sh
-                        'docker_extra_opt': '--name golang-ubuntu1804-build-jenkins',
+                        'docker_extra_opt': '--name golang-ubuntu-build-jenkins',
 //Uncomment these when you build with the golang-alpine from scratch. After we
 //can commented out as the image is saved
                         'outside_scripts': ['save-docker-image-cache.sh'],
