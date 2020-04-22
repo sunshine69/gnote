@@ -25,6 +25,7 @@
     - name: Create the windows bundle
       win_shell: |
         cd {{ ansible_install_dir }}\gnote
+        $Env:BUILD_VERSION = "{{ lookup('env', 'BUILD_VERSION') }}"
         c:\tools\msys64\usr\bin\python create-win-gotk3-bundle.py
 
     - set_fact:

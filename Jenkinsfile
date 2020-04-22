@@ -34,7 +34,7 @@ pipeline {
                   withCredentials([usernamePassword(credentialsId: 'github-personal-jenkins', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
                   withCredentials([usernamePassword(credentialsId: 'window-build-credential', passwordVariable: 'ADMIN_PASSWORD', usernameVariable: 'ADMIN_USER')]) {
                   sh '''cat <<EOF > build-windows.sh
-ansible-playbook ansible/build-windows.yaml -i ansible/inventory -e "admin_user=$ADMIN_USER git_user=${GIT_USER} git_token=${GIT_TOKEN} admin_password=${ADMIN_PASSWORD}"
+ansible-playbook ansible/build-windows.yaml -i ansible/inventory -e "admin_user=$ADMIN_USER git_user=${GIT_USER} git_token=${GIT_TOKEN} admin_password=${ADMIN_PASSWORD} "
 EOF
 '''
                     sh 'chmod +x build-windows.sh'
