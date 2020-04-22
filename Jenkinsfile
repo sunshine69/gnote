@@ -41,11 +41,11 @@ EOF
                   }//withCred
                   }//withCred
                   sh '''cat <<EOF > build.sh
-ARCH=\$(uname -m)
-/usr/local/go/bin/go build --tags "json1 fts5 secure_delete" -ldflags='-s -w' -o gnote-ubuntu1804-\${ARCH}
+ARCH=\\$(uname -m)
+/usr/local/go/bin/go build --tags "json1 fts5 secure_delete" -ldflags='-s -w' -o gnote-ubuntu1804-\\${ARCH}
 mkdir -p gnote-ubuntu1804/
-cp -a glade icons gnote-ubuntu1804-\${ARCH} gnote-ubuntu1804/
-tar czf gnote-ubuntu1804-\${ARCH}.tgz gnote-ubuntu1804
+cp -a glade icons gnote-ubuntu1804-\\${ARCH} gnote-ubuntu1804/
+tar czf gnote-ubuntu1804-\\${ARCH}.tgz gnote-ubuntu1804
 rm -rf gnote-ubuntu1804
 EOF
 '''
@@ -65,7 +65,7 @@ EOF
                         'docker_extra_opt': '--name golang-ubuntu-build-jenkins',
 //Uncomment these when you build with the golang-alpine from scratch. After we
 //can commented out as the image is saved
-                        'outside_scripts': ['save-docker-image-cache.sh'],
+                        //'outside_scripts': ['save-docker-image-cache.sh'],
                         //'extra_build_scripts': ['fix-godir-ownership.sh'],
                         //'run_as_user': ['fix-godir-ownership.sh': 'root'],
                     ])
@@ -80,12 +80,13 @@ EOF
 
                     if (DO_GATHER_ARTIFACT_BRANCH) {
                       archiveArtifacts allowEmptyArchive: true, artifacts: 'gnote-ubuntu1804*.tgz,gnote-windows-bundle*.zip,gnote.exe', fingerprint: true, onlyIfSuccessful: true
+                      sh "find . -type f -name '*.tgz' -or -name 'gnote*.zip'"
                       if (GIT_BRANCH ==~ /master/ ) {
                         echo "Create a release as this is a master merge ..."
                         withCredentials([usernamePassword(credentialsId: 'github-personal-jenkins', passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GITHUB_USER')]) {
                             env.REPOSITORY = "gnote"
                             sh """
-                            ARTIFACT_FILES=\$(ls *.tgz gnote.exe .tgz gnote-windows-bundle*.zip)
+                            ARTIFACT_FILES=\$(ls gnote-ubuntu1804*.tgz gnote.exe gnote-windows-bundle*.zip)
                             git tag v${BUILD_VERSION}; git push http://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${REPOSITORY} --tags
                             GITHUB_USER=$GITHUB_USER REPOSITORY=${REPOSITORY} GITHUB_TOKEN=$GITHUB_TOKEN ARTIFACT_FILES=\${ARTIFACT_FILES} ./create-github-release.sh"""
     // some block

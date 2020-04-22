@@ -34,12 +34,19 @@
     - name: Fetch the build artifacts
       fetch:
         src: '{{ ansible_install_dir }}/{{ archive_name }}'
-        dest: "{{ archive_name }}"
+        dest: "../{{ archive_name }}"
         flat: yes
 
     - name: Fetch the gnote binary only
       fetch:
         src: '{{ ansible_install_dir }}/gnote/gnote.exe'
-        dest: "gnote.exe"
+        dest: "../gnote.exe"
         flat: yes
 
+    - name: Cleanup remote files
+      win_file:
+        path: '{{ item }}'
+        state: absent
+      with_items:
+        - '{{ ansible_install_dir }}/gnote/gnote.exe'
+        - '{{ ansible_install_dir }}/{{ archive_name }}'
