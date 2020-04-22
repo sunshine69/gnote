@@ -43,7 +43,7 @@ go build --tags "icu json1 fts5 secure_delete" -ldflags='-s -w'
 - Windows
 
 ```
-go build -ldflags="-s -w -H=windowsgui" --tags "icu json1 fts5 secure_delete"  -o gnote-windows-amd64.exe gnote.go
+go build -ldflags="-s -w -H=windowsgui" --tags "json1 fts5 secure_delete"  -o gnote-windows-amd64.exe gnote.go
 
 ```
 
