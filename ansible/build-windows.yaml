@@ -2,10 +2,10 @@
 # vm. thus I use ansible to automate the build here and started it in Jenkins
 # by playing the ansible playbook.
 - hosts: build_gotk3_window
-  vars_prompt:
-    - name: git_token
-      prompt: git token to check out
-      private: no
+  #vars_prompt:
+  #  - name: git_token
+  #    prompt: git token to check out
+  #    private: no
 
   tasks:
     - name: Checkout repo and build
@@ -34,9 +34,11 @@
       fetch:
         src: '{{ ansible_install_dir }}/{{ archive_name }}'
         dest: "{{ archive_name }}"
+        flat: yes
 
     - name: Fetch the gnote binary only
       fetch:
         src: '{{ ansible_install_dir }}/gnote/gnote.exe'
         dest: "gnote.exe"
+        flat: yes
 
