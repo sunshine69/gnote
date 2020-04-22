@@ -39,7 +39,9 @@ for f in data:
 
 os.chdir("/c/ansible_install")
 archive_name = "gnote-windows-bundle-{VER}".format(VER=os.getenv("BUILD_VERSION", "v0.1"))
-os.remove(archive_name + ".zip")
+
+if os.path.exists(archive_name + ".zip"):
+    os.remove(archive_name + ".zip")
 
 shutil.make_archive(archive_name,
     "zip",
