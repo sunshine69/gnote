@@ -1,0 +1,80 @@
+# I just dont want to run jenkins agent to comsume my precious memory on the
+# vm. thus I use ansible to automate the build here and started it in Jenkins
+# by playing the ansible playbook.
+- hosts: build_gotk3_window
+  #vars_prompt:
+  #  - name: git_token
+  #    prompt: git token to check out
+  #    private: no
+
+  tasks:
+    - name: Checkout repo and build
+      win_shell: |
+        $ErrorActionPreference = 'SilentlyContinue'
+        If ( -not (Test-Path '{{ ansible_install_dir }}\gnote' -PathType Container)) {
+          git clone 'https://{{ git_user }}:{{ git_token }}@github.com/{{ git_user }}/gnote.git' {{ ansible_install_dir }}\gnote
+        }
+        cd {{ ansible_install_dir }}\gnote
+        git reset --hard
+        git checkout master
+        git branch -D jenkins
+        git fetch origin
+        git checkout -b jenkins origin/jenkins
+        git pull
+        go build -ldflags="-s -w -H=windowsgui" --tags "json1 fts5 secure_delete"  -o gnote.exe gnote.go
+    - name: Create the windows bundle
+      win_shell: |
+        cd {{ ansible_install_dir }}\gnote
+        $Env:BUILD_VERSION = "{{ lookup('env', 'BUILD_VERSION') }}"
+        c:\tools\msys64\usr\bin\python create-win-gotk3-bundle.py
+
+    - set_fact:
+        archive_name: "gnote-windows-bundle-{{ lookup('env', 'BUILD_VERSION') }}.zip"
+
+# Fetch - actually Powershell file xfer is slow - tooooooooo slow. I started a
+# python web server and get it back in a flip of secs but fetch takes a huge
+# magnitude time (20 t0 30 minutes) to get it.
+
+# It might be better to use Start-Process and get the PID, registered output
+# for use to kill later on
+    - name: Start python web server
+      win_shell: |
+        cd {{ ansible_install_dir }}
+        python -m http.server 8000
+      async: 45
+      poll: 0
+      ignore_errors: yes
+
+    - name: Download the build
+      block:
+       - get_url:
+           url: 'http://{{ ansible_host }}:8000/{{ archive_name }}'
+           dest: "../{{ archive_name }}"
+       - get_url:
+           url: 'http://{{ ansible_host }}:8000/gnote/gnote.exe'
+           dest: "../gnote.exe"
+      delegate_to: localhost
+
+    - name: Kill the python web server
+      win_shell: Stop-Process -Name python
+      ignore_errors: yes
+
+    #- name: Fetch the build artifacts
+    #  fetch:
+    #    src: '{{ ansible_install_dir }}/{{ archive_name }}'
+    #    dest: "../{{ archive_name }}"
+    #    flat: yes
+
+    #- name: Fetch the gnote binary only
+    #  fetch:
+    #    src: '{{ ansible_install_dir }}/gnote/gnote.exe'
+    #    dest: "../gnote.exe"
+    #    flat: yes
+
+    - name: Cleanup remote files
+      win_file:
+        path: '{{ item }}'
+        state: absent
+      with_items:
+        - '{{ ansible_install_dir }}/gnote/gnote.exe'
+        - '{{ ansible_install_dir }}/{{ archive_name }}'

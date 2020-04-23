@@ -1,0 +1,18 @@
+winrm_port: 5986
+ansible_install_dir: 'c:\ansible_install'
+
+admin_user: "stevek"
+# admin_password: "{{ is_window|ternary(credentials['launch-'+role_type+'-'+env].admin_password, '') }}"
+# Ansible related vars for ansible to work.
+
+ansible_user: "{{ admin_user }}"
+ansible_password: "{{ initial_password if initial_password|default(false) else admin_password }}"
+ansible_port: "{{ winrm_port }}"
+ansible_connection: winrm
+# The following is necessary for Python 2.7.9+ (or any older Python that has backported SSLContext, eg, Python 2.7.5 on RHEL7) when using default WinRM self-signed certificates:
+ansible_winrm_server_cert_validation: ignore
+
+git_user:
+git_token:
+
+
