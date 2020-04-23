@@ -39,11 +39,12 @@
 # for use to kill later on
     - name: Start python web server
       win_shell: |
-        cd {{ ansible_install_dir }}
-        python -m http.server 8000
+        $pythonProc = Start-Process python.exe -WorkingDirectory {{ ansible_install_dir }} -ArgumentList ("-m", "http.server", "8000") -PassThru  -NoNewWindow
+        Write-Output $pythonProc.ID | Out-File -FilePath '{{ ansible_install_dir }}\pythonProc_ID.txt'
       async: 45
       poll: 0
       ignore_errors: yes
+      register: async_task
 
     - name: Download the build
       block:
@@ -55,8 +56,16 @@
            dest: "../gnote.exe"
       delegate_to: localhost
 
+    - pause:
+        seconds: 1
+
     - name: Kill the python web server
-      win_shell: Stop-Process -Name python
+      win_shell: |
+        $procID = Get-Content -Path '{{ ansible_install_dir }}\pythonProc_ID.txt'
+        Write-Output $procID
+        Stop-Process -ID $procID
+        Remove-Item -Path '{{ ansible_install_dir }}\pythonProc_ID.txt'
+        Remove-Item -Path '{{ async_task.results_file }}'
       ignore_errors: yes
 
     #- name: Fetch the build artifacts
