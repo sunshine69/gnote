@@ -1,2 +1,2 @@
 [windows]
-build_gotk3_window ansible_host=192.168.0.107 ansible_user=stevek
+build_gotk3_window ansible_host=192.168.56.68 ansible_user=stevek
