@@ -28,7 +28,7 @@ cp -a /c/ansible_install/gnote/icons bin/
 data = open("/c/ansible_install/gnote/dll_files.lst", "r").read().splitlines()
 
 # Now copy dlls into the bin dir
-ptn = re.compile(r"^([^\d]+)[^\s]+$")
+ptn = re.compile(r"^([^\-]+)\-[^\s]+$")
 
 for f in data:
     m = ptn.search(f)
