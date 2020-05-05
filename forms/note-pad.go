@@ -431,10 +431,11 @@ func (np *NotePad) SaveToWebnote() {
 		Jar: cookieJar,
 	}
 	otpCode := ""
-	otpPtn, _ := regexp.Compile(`\:([\d]+)$`)
+	otpPtn, _ := regexp.Compile(`([^\:]+)\:([\d]+)$`)
 	_otpCode := otpPtn.FindStringSubmatch(WebNotePassword)
-	if len(_otpCode) > 0 {
-		otpCode = _otpCode[1]
+	if len(_otpCode) == 3 {
+		otpCode = _otpCode[2]
+        WebNotePassword = _otpCode[1]
 	}
 	if WebNoteUser == "" || WebNotePassword == "" {
 		MessageBox("No username or password. Aborting ...")
