@@ -1,15 +1,16 @@
 package forms
 
 import (
-	"regexp"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
 	"github.com/alecthomas/chroma/lexers"
 	"github.com/gomarkdown/markdown"
 	"github.com/gotk3/gotk3/gdk"
@@ -40,7 +41,7 @@ func (np *NotePad) ShowMainWindowBtnClick(o *gtk.Button) {
 
 //Load - Load note data and set the widget with data
 func (np *NotePad) Load(id int) {
-	if id < 0 {//Datelog only constructed in here and never be updated for teh life of the note.
+	if id < 0 { //Datelog only constructed in here and never be updated for teh life of the note.
 		np.Datelog = time.Now().UnixNano()
 		np.wDateLog.SetText(nsToTime(np.Datelog).Format(DateLayout))
 		np.StartUpdateTime = time.Now()
@@ -95,6 +96,7 @@ func (np *NotePad) Load(id int) {
 		}
 		wTB := _w.(*gtk.ToggleButton)
 		wTB.SetActive((np.Readonly == 1))
+		np.w.SetTitle(np.Title)
 		np.StartUpdateTime = time.Now()
 	}
 
@@ -131,10 +133,10 @@ func NewNotePad(id int) *NotePad {
 		"InsertFileToNote":         np.InsertFileToNote,
 		"EncryptContent":           np.EncryptContent,
 		"DecryptContent":           np.DecryptContent,
-		"NoteSearchText": 			np.NoteSearchText,
-		"ClearURL":					np.ClearURL,
-		"ClearFlagsBtnClick":		np.ClearFlagsBtnClick,
-		"NewLinkNote":				np.NewLinkNote,
+		"NoteSearchText":           np.NoteSearchText,
+		"ClearURL":                 np.ClearURL,
+		"ClearFlagsBtnClick":       np.ClearFlagsBtnClick,
+		"NewLinkNote":              np.NewLinkNote,
 	}
 
 	builder.ConnectSignals(signals)
@@ -193,7 +195,7 @@ func NewNotePad(id int) *NotePad {
 
 func (np *NotePad) NewLinkNote() {
 	newNp := np.app.newNote()
-	if np.buff.GetHasSelection(){
+	if np.buff.GetHasSelection() {
 		text, _, _ := np.GetSelection()
 		newNp.buff.SetText(text)
 	}
@@ -203,7 +205,7 @@ func (np *NotePad) ClearFlagsBtnClick() {
 	wFlag := GetEntry(np.builder, "flags")
 	wFlag.SetText("")
 	wFlag.GrabFocus()
- }
+}
 
 func (np *NotePad) NoteSearchText() { np.NoteSearch() }
 
@@ -211,7 +213,7 @@ func (np *NotePad) ClearURL() {
 	wURL := GetEntry(np.builder, "url")
 	wURL.SetText("")
 	wURL.GrabFocus()
- }
+}
 
 func (np *NotePad) DecryptContent() {
 	key := InputDialog("title", "Password required", "label", "Enter passphrase to encrypt: ", "password-mask", '*')
@@ -221,7 +223,7 @@ func (np *NotePad) DecryptContent() {
 	ct, e := Decrypt(eCt, key)
 	if e != nil {
 		MessageBox("Decrypt error. Please check password")
-	} else{
+	} else {
 		np.buff.SelectRange(startI, endI)
 		np.buff.DeleteSelection(true, true)
 		np.buff.InsertAtCursor(ct)
@@ -406,7 +408,7 @@ func (np *NotePad) FetchDataFromGUI() {
 
 	np.Timestamp = time.Now().UnixNano()
 	if np.Title == "" {
-		np.Title = strings.ReplaceAll(ChunkString(np.Content, 64)[0],"\n", " ")
+		np.Title = strings.ReplaceAll(ChunkString(np.Content, 64)[0], "\n", " ")
 	}
 }
 
@@ -431,10 +433,11 @@ func (np *NotePad) SaveToWebnote() {
 		Jar: cookieJar,
 	}
 	otpCode := ""
-	otpPtn, _ := regexp.Compile(`\:([\d]+)$`)
+	otpPtn, _ := regexp.Compile(`([^\:]+)\:([\d]+)$`)
 	_otpCode := otpPtn.FindStringSubmatch(WebNotePassword)
-	if len(_otpCode) > 0 {
-		otpCode = _otpCode[1]
+	if len(_otpCode) == 3 {
+		otpCode = _otpCode[2]
+        WebNotePassword = _otpCode[1]
 	}
 	if WebNoteUser == "" || WebNotePassword == "" {
 		MessageBox("No username or password. Aborting ...")
@@ -460,12 +463,12 @@ func (np *NotePad) SaveToWebnote() {
 	}
 	csrfToken := string(matches[1])
 	data := url.Values{
-		"username":    {WebNoteUser},
-		"password":    {WebNotePassword},
-		"totp_number": {otpCode},
-		"gorilla.csrf.Token": { csrfToken },
+		"username":           {WebNoteUser},
+		"password":           {WebNotePassword},
+		"totp_number":        {otpCode},
+		"gorilla.csrf.Token": {csrfToken},
 	}
-	resp, err = client.PostForm(webnoteUrl + "/login", data)
+	resp, err = client.PostForm(webnoteUrl+"/login", data)
 	if err != nil {
 		fmt.Printf("ERROR - CRITICAL login to webnote %v", err)
 		WebNotePassword = ""
@@ -481,19 +484,19 @@ func (np *NotePad) SaveToWebnote() {
 	}
 
 	data = url.Values{
-		"title":      {np.Title},
-		"datelog":    {fmt.Sprintf("%d", np.Datelog)},
-		"timestamp":  {fmt.Sprintf("%d", np.Timestamp)},
-		"flags":      {np.Flags},
-		"content":    {np.Content},
-		"url":        {np.URL},
-		"ngroup":     {"default"},
-		"permission": {"0"},
-		"is_ajax":    {"1"},
-		"raw_editor": {"1"},
-		"gorilla.csrf.Token": { csrfToken },
+		"title":              {np.Title},
+		"datelog":            {fmt.Sprintf("%d", np.Datelog)},
+		"timestamp":          {fmt.Sprintf("%d", np.Timestamp)},
+		"flags":              {np.Flags},
+		"content":            {np.Content},
+		"url":                {np.URL},
+		"ngroup":             {"default"},
+		"permission":         {"0"},
+		"is_ajax":            {"1"},
+		"raw_editor":         {"1"},
+		"gorilla.csrf.Token": {csrfToken},
 	}
-	resp, err = client.PostForm(webnoteUrl + "/savenote", data)
+	resp, err = client.PostForm(webnoteUrl+"/savenote", data)
 	if err != nil {
 		fmt.Printf("ERROR - CRITICAL save to webnote %v", err)
 		panic(2)
@@ -517,6 +520,7 @@ func (np *NotePad) SaveNote() {
 		b.SetLabel("Close")
 		np.app.curNoteWindowID[np.ID] = 1
 	}
+	np.w.SetTitle(np.Title)
 }
 
 func (np *NotePad) saveBtnClick() {

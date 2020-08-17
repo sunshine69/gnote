@@ -16,19 +16,19 @@ This uses gotk3 GUI and stole many code snippets from the examples there.
 
 - Requires gtk3 which is probably already install on standard ubuntu system.
 
-[linux-amd64](https://xvt-public-repo.s3-ap-southeast-2.amazonaws.com/pub/devops/gnote-linux-amd64.tar.xz)
+Download the tar ball from the github [release page](https://github.com/sunshine69/gnote/releases)
 
 Extract and run the `gnote-linux-amd64` executable.
 
 ## Windows binary build
 
-I did test build on windows and here is the bundle. Download
-[this](https://xvt-public-repo.s3-ap-southeast-2.amazonaws.com/pub/devops/gnote-bundle-windows-amd64.7z)
-and extract them. Run the `gnote-windows-amd64.exe` inside the bin directory. You can create a
+Download the bundle in the git hub [release page](https://github.com/sunshine69/gnote/releases)
+and extract them. Run the `gnote-windows-amd64.exe` or gnote.exe if exists inside the bin directory. You can create a
 shortcut in the desktop manually to point to the binary path.
 
-For later update you just need to download the [gnote-windows-amd64.exe alone](https://xvt-public-repo.s3-ap-southeast-2.amazonaws.com/pub/devops/gnote-windows-amd64.7z)
-and extract, save to the same location.
+For upgrading you can only download the gnote.exe in the realease and copy it to the bin dir of the bundle folder.
+
+Double click the exe to run the program.
 
 ## Build
 
@@ -65,5 +65,3 @@ $ source ~/.bashrc
 $ sed -i -e 's/-Wl,-luuid/-luuid/g' /mingw64/lib/pkgconfig/gdk-3.0.pc # This fixes a bug in pkgconfig
 $ go get github.com/gotk3/gotk3/gtk
 ```
-
-
