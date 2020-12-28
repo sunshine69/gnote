@@ -1,24 +1,28 @@
 package forms
 
 import (
-	"os/exec"
-	"encoding/hex"
-	"crypto/md5"
-	"encoding/base64"
-	"crypto/rand"
-	"crypto/cipher"
-	"crypto/aes"
-	"strings"
-	"fmt"
-	"io"
-	"github.com/alecthomas/chroma"
-	"github.com/alecthomas/chroma/quick"
-	"github.com/alecthomas/chroma/formatters"
 	"bufio"
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/md5"
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/hex"
+	"fmt"
+	"io"
 	"log"
+	"os/exec"
+	"strings"
+
+	"github.com/alecthomas/chroma"
+	"github.com/alecthomas/chroma/formatters"
+	"github.com/alecthomas/chroma/quick"
+	sourceview "github.com/linuxerwang/sourceview3"
+
 	// "strconv"
 	"time"
+
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -29,9 +33,9 @@ const (
 	nanosPerSecond      = int64(time.Second / time.Nanosecond)
 )
 
-func nsToTime(ns int64) time.Time  {
-	secs := ns/nanosPerSecond
-	nanos := ns - secs * nanosPerSecond
+func nsToTime(ns int64) time.Time {
+	secs := ns / nanosPerSecond
+	nanos := ns - secs*nanosPerSecond
 	return time.Unix(secs, nanos)
 }
 
@@ -131,8 +135,6 @@ func GetListStore(b *gtk.Builder, id string) (listStore *gtk.ListStore) {
 	return
 }
 
-
-
 func GetTreeView(b *gtk.Builder, id string) (treeView *gtk.TreeView) {
 	obj, e := b.GetObject(id)
 	if e != nil {
@@ -153,6 +155,17 @@ func GetTextView(b *gtk.Builder, id string) (treeView *gtk.TextView) {
 
 	treeView, _ = obj.(*gtk.TextView)
 	return
+}
+
+func GetSourceView(b *gtk.Builder, id string) *sourceview.SourceView {
+	obj, e := b.GetObject(id)
+	if e != nil {
+		log.Printf("Tree view error: %s", e)
+		return nil
+	}
+
+	view, _ := obj.(*sourceview.SourceView)
+	return view
 }
 
 func GetLabel(b *gtk.Builder, id string) (treeView *gtk.Label) {
@@ -241,19 +254,19 @@ func CreateHash(key string) string {
 func Encrypt(text, key string) string {
 	text1 := []byte(text)
 	// generate a new aes cipher using our 32 byte long key
-    c, err := aes.NewCipher( []byte(CreateHash(key)) )
+	c, err := aes.NewCipher([]byte(CreateHash(key)))
 
-    if err != nil {
-        fmt.Println(err)
-    }
-    gcm, err := cipher.NewGCM(c)
-    if err != nil {
-        fmt.Println(err)
-    }
-    nonce := make([]byte, gcm.NonceSize())
-    if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-        fmt.Println(err)
-    }
+	if err != nil {
+		fmt.Println(err)
+	}
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		fmt.Println(err)
+	}
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		fmt.Println(err)
+	}
 	encData := gcm.Seal(nonce, nonce, text1, nil)
 	return base64.StdEncoding.EncodeToString(encData)
 }
@@ -265,27 +278,27 @@ func Decrypt(ciphertextBase64 string, key string) (string, error) {
 	if err != nil {
 		return "Decode error", err
 	}
-    c, err := aes.NewCipher(key1)
-    if err != nil {
+	c, err := aes.NewCipher(key1)
+	if err != nil {
 		return "NewCipher error", err
-    }
+	}
 
-    gcm, err := cipher.NewGCM(c)
-    if err != nil {
-        return "NewGCM error", err
-    }
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return "NewGCM error", err
+	}
 
-    nonceSize := gcm.NonceSize()
-    if len(ciphertext) < nonceSize {
-        return "Unexpected size with nonce data", err
-    }
+	nonceSize := gcm.NonceSize()
+	if len(ciphertext) < nonceSize {
+		return "Unexpected size with nonce data", err
+	}
 
-    nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
-    plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
-    if err != nil {
-        return "Decrypt error", err
-    }
-    return string(plaintext), nil
+	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "Decrypt error", err
+	}
+	return string(plaintext), nil
 }
 
 // func GetFileChooserButton(b *gtk.Builder, id string) (btn *gtk.FileChooserButton) {
@@ -331,7 +344,6 @@ func Decrypt(ciphertextBase64 string, key string) (string, error) {
 // 	el, _ = obj.(*gtk.Image)
 // 	return
 // }
-
 
 // func GetToggleButton(b *gtk.Builder, id string) (btn *gtk.ToggleButton) {
 // 	obj, e := b.GetObject(id)
@@ -434,7 +446,7 @@ func pangoFormatter(w io.Writer, style *chroma.Style, it chroma.Iterator) error 
 	return nil
 }
 
-var pangoEscapeChar = [][]string{{"<", "&lt;", "lOwErThAnTmPrEpLaCeMeNt"}, {"&", "&amp;","aMpErSaNdTmPrEpLaCeMeNt"}}
+var pangoEscapeChar = [][]string{{"<", "&lt;", "lOwErThAnTmPrEpLaCeMeNt"}, {"&", "&amp;", "aMpErSaNdTmPrEpLaCeMeNt"}}
 
 // prepare: sanitize input string to safely use with pango
 func pangoPrepare(inString string) string {
