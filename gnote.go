@@ -1,18 +1,19 @@
 package main
 
 import (
-	"path/filepath"
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
+
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/sunshine69/gnote/forms"
 )
 
 func main() {
 	gtk.Init(&os.Args)
-	dbPath := flag.String("db","","Path to the database file")
-	doMigrate := flag.Bool("mig",false,"Migrate")
+	dbPath := flag.String("db", "", "Path to the database file")
+	doMigrate := flag.Bool("mig", false, "Migrate")
 	flag.Parse()
 	if *doMigrate {
 		forms.DoMigration()
@@ -20,12 +21,12 @@ func main() {
 	}
 
 	workdir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-    if err != nil {
-			fmt.Printf("%v\n",err)
-			os.Exit(1)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
 	}
 
-	if _, e := os.Stat(fmt.Sprintf("%s/glade", workdir) ); e == nil {
+	if _, e := os.Stat(fmt.Sprintf("%s/glade", workdir)); e == nil {
 		os.Chdir(workdir)
 	}
 
@@ -34,7 +35,7 @@ func main() {
 		fmt.Printf("ERROR %v\n", e)
 	}
 	if *dbPath == "" {
-		*dbPath =  fmt.Sprintf("%s%s%s", homeDir, string(os.PathSeparator), ".gnote.db")
+		*dbPath = fmt.Sprintf("%s%s%s", homeDir, string(os.PathSeparator), ".gnote.db")
 		fmt.Printf("Use the database file %s\n", *dbPath)
 	}
 	os.Setenv("DBPATH", *dbPath)
@@ -44,7 +45,7 @@ func main() {
 		fmt.Println("Setup default config ....")
 		forms.SetupDefaultConfig()
 		forms.RestoreAssetsAll(workdir)
-		forms.MessageBox("Initial setup db compelted. The program will exit now. You can start it again.")
+		forms.MessageBox("Initial setup db completed. The program will exit now. You can start it again.")
 		os.Exit(0)
 	}
 
@@ -52,7 +53,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	gnoteApp := forms.GnoteApp {
+	gnoteApp := forms.GnoteApp{
 		Builder: builder,
 	}
 
