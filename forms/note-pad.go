@@ -15,6 +15,7 @@ import (
 	"github.com/gomarkdown/markdown"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
+	sourceview "github.com/linuxerwang/sourceview3"
 	"github.com/pkg/browser"
 )
 
@@ -23,8 +24,8 @@ type NotePad struct {
 	app             *GnoteApp
 	w               *gtk.Window
 	builder         *gtk.Builder
-	textView        *gtk.TextView
-	buff            *gtk.TextBuffer
+	textView        *sourceview.SourceView
+	buff            *sourceview.SourceBuffer
 	wTitle          *gtk.Entry
 	wFlags          *gtk.Entry
 	wDateLog        *gtk.Entry
@@ -144,10 +145,14 @@ func NewNotePad(id int) *NotePad {
 	if e != nil {
 		fmt.Printf("ERROR get content\n")
 	}
-	vWidget := _widget.(*gtk.TextView)
+	vWidget := _widget.(*sourceview.SourceView)
 	vWidget.SetWrapMode(gtk.WRAP_WORD)
 	np.textView = vWidget
 	np.buff, _ = vWidget.GetBuffer()
+
+	lm, _ := sourceview.SourceLanguageManagerGetDefault()
+	l, _ := lm.GetLanguage("markdown")
+	np.buff.SetLanguage(l)
 
 	_w, e := builder.GetObject("title")
 	if e != nil {
@@ -393,7 +398,7 @@ func (np *NotePad) FetchDataFromGUI() {
 		fmt.Printf("ERROR get entry url\n")
 	}
 
-	vWidget := GetTextView(b, "content")
+	vWidget := GetSourceView(b, "content")
 	textBuffer, e := vWidget.GetBuffer()
 	if e != nil {
 		fmt.Printf("ERROR get text buffer content\n")
@@ -437,7 +442,7 @@ func (np *NotePad) SaveToWebnote() {
 	_otpCode := otpPtn.FindStringSubmatch(WebNotePassword)
 	if len(_otpCode) == 3 {
 		otpCode = _otpCode[2]
-        WebNotePassword = _otpCode[1]
+		WebNotePassword = _otpCode[1]
 	}
 	if WebNoteUser == "" || WebNotePassword == "" {
 		MessageBox("No username or password. Aborting ...")
