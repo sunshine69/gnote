@@ -1,28 +1,30 @@
 package forms
 
 import (
-	"github.com/gotk3/gotk3/gdk"
-	"regexp"
-	"os"
-	"io/ioutil"
-	"os/exec"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"regexp"
+	"strings"
+
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 )
 
 //NoteSearch - GUI related
 type NoteSearch struct {
-	w *gtk.Window
-	builder *gtk.Builder
-	np *NotePad
-	isIcase bool
-	isCmdFilter bool
+	w                    *gtk.Window
+	builder              *gtk.Builder
+	np                   *NotePad
+	isIcase              bool
+	isCmdFilter          bool
 	isGetTempFileContent bool
-	searchBox *gtk.SearchEntry
-	replaceBox *gtk.Entry
-	m1 *gtk.TextMark
-	m2 *gtk.TextMark
-	curIter *gtk.TextIter
+	searchBox            *gtk.SearchEntry
+	replaceBox           *gtk.Entry
+	m1                   *gtk.TextMark
+	m2                   *gtk.TextMark
+	curIter              *gtk.TextIter
 }
 
 func (ns *NoteSearch) NoteFindIcase(o *gtk.CheckButton) {
@@ -58,19 +60,19 @@ func (ns *NoteSearch) FindText() bool {
 	var ok bool = true
 	var output = false
 
-	if ns.isCmdFilter {//run external command and replace the note/selection with output
+	if ns.isCmdFilter { //run external command and replace the note/selection with output
 		text, startI, endI := ns.np.GetSelection()
 		replaceWith, _ := ns.replaceBox.GetText()
 		outStr := ""
 		if replaceWith == "" {
 			_tmpF, _ := ioutil.TempFile("", "browser")
 			_tmpF.Write([]byte(text))
-			cmdText := fmt.Sprintf("%s %s", keyword ,_tmpF.Name())
+			cmdText := fmt.Sprintf("%s %s", keyword, _tmpF.Name())
 			cmd := exec.Command("sh", "-c", cmdText)
 			stdoutStderr, err := cmd.CombinedOutput()
 			if err != nil {
 				fmt.Printf("DEBUG E %v\n", err)
-			} else{
+			} else {
 				fmt.Printf("DEBUG 1 %s\n", stdoutStderr)
 			}
 			if ns.isGetTempFileContent {
@@ -80,14 +82,18 @@ func (ns *NoteSearch) FindText() bool {
 					return false
 				}
 				outStr = string(_outStr)
-			} else{
+			} else {
 				outStr = string(stdoutStderr)
 			}
 			os.Remove(_tmpF.Name())
 			SetConfig("last_cmd_filter", cmdText)
 		} else {
 			if ptn, e := regexp.Compile(keyword); e == nil {
-				outStr = ptn.ReplaceAllString(text, replaceWith)
+				var newTxt []string
+				for _, lineTxt := range strings.Split(text, "\n") {
+					newTxt = append(newTxt, ptn.ReplaceAllString(lineTxt, replaceWith))
+				}
+				outStr = strings.Join(newTxt, "\n")
 			} else {
 				fmt.Printf("ERROR %v\n", e)
 			}
@@ -97,7 +103,7 @@ func (ns *NoteSearch) FindText() bool {
 		buf.DeleteSelection(true, true)
 		buf.InsertAtCursor(outStr)
 		//Not sure why the curIter is invalid after running. Need to get back otherwise crash
-		ns.curIter =  buf.GetIterAtMark(buf.GetInsert())
+		ns.curIter = buf.GetIterAtMark(buf.GetInsert())
 		return false //stop other actions
 	} else {
 		if ns.isIcase {
@@ -113,7 +119,7 @@ func (ns *NoteSearch) FindText() bool {
 		if ok {
 			ns.np.textView.ScrollToIter(foundIter1, 0, true, 0, 0)
 			buf.SelectRange(foundIter1, foundIter2)
-			ns.m1 , ns.m2 = buf.CreateMark("s1", foundIter1, false), buf.CreateMark("s2", foundIter2, false)
+			ns.m1, ns.m2 = buf.CreateMark("s1", foundIter1, false), buf.CreateMark("s2", foundIter2, false)
 			output = true
 		} else {
 			if !ok {
@@ -125,10 +131,12 @@ func (ns *NoteSearch) FindText() bool {
 	}
 	return output
 }
+
 //NoteFindText -
 func (ns *NoteSearch) NoteFindText() {
 	ns.FindText()
 }
+
 //NoteReplaceText -
 func (ns *NoteSearch) NoteReplaceText(o *gtk.Button) {
 	buf := ns.np.buff
@@ -141,6 +149,7 @@ func (ns *NoteSearch) NoteReplaceText(o *gtk.Button) {
 	}
 
 }
+
 //NoteReplaceAll -
 func (ns *NoteSearch) NoteReplaceAll(o *gtk.Button) {
 	buf := ns.np.buff
@@ -171,14 +180,14 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 		panic(err)
 	}
 	ns.builder = builder
-	signals := map[string]interface{} {
-		"NoteFindIcase": ns.NoteFindIcase,
-		"CommandFilter": ns.CommandFilter,
-		"NoteFindText": ns.NoteFindText,
-		"NoteReplaceText": ns.NoteReplaceText,
-		"NoteReplaceAll": ns.NoteReplaceAll,
+	signals := map[string]interface{}{
+		"NoteFindIcase":      ns.NoteFindIcase,
+		"CommandFilter":      ns.CommandFilter,
+		"NoteFindText":       ns.NoteFindText,
+		"NoteReplaceText":    ns.NoteReplaceText,
+		"NoteReplaceAll":     ns.NoteReplaceAll,
 		"GetTempFileContent": ns.GetTempFileContent,
-		"KeyPressed":		ns.KeyPressed,
+		"KeyPressed":         ns.KeyPressed,
 	}
 	builder.ConnectSignals(signals)
 
@@ -189,12 +198,14 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 	ns.replaceBox = GetEntry(builder, "replace_text")
 
 	//Crash the following code if textview does not have pointer
-	if ! np.textView.HasGrab() { np.textView.GrabFocus() }
+	if !np.textView.HasGrab() {
+		np.textView.GrabFocus()
+	}
 
 	buf := np.buff
 	fmt.Println("Init curIter")
-	ns.curIter =  buf.GetIterAtMark(buf.GetInsert())
-	ns.m1 , ns.m2 = nil, nil
+	ns.curIter = buf.GetIterAtMark(buf.GetInsert())
+	ns.m1, ns.m2 = nil, nil
 
 	return ns
 }

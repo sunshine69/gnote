@@ -28,4 +28,3 @@ id=$(echo "$release" | sed -n -e 's/"id":\ \([0-9]\+\),/\1/p' | head -n 1 | sed 
 for ARTIFACT_FILE in $ARTIFACT_FILES; do
     curl -XPOST -H "Authorization:token $token" -H "Content-Type:application/octet-stream" --data-binary @${ARTIFACT_FILE} https://uploads.github.com/repos/${GITHUB_USER}/${REPOSITORY}/releases/$id/assets?name=${ARTIFACT_FILE}
 done
-
