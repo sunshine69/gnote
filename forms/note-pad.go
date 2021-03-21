@@ -42,7 +42,7 @@ func (np *NotePad) ShowMainWindowBtnClick(o *gtk.Button) {
 
 //Load - Load note data and set the widget with data
 func (np *NotePad) Load(id int) {
-	if id < 0 { //Datelog only constructed in here and never be updated for teh life of the note.
+	if id < 0 { //Datelog only constructed in here and never be updated for the life of the note.
 		np.Datelog = time.Now().UnixNano()
 		np.wDateLog.SetText(nsToTime(np.Datelog).Format(DateLayout))
 		np.StartUpdateTime = time.Now()
@@ -355,7 +355,7 @@ Ctrl + q - Close this note window.
 		if np.tabCount > 0 {
 			_str := ""
 			for i := 1; i <= np.tabCount; i++ {
-				_str = fmt.Sprintf("%s\t", _str)
+				_str = fmt.Sprintf("%s    ", _str)
 			}
 			_str = fmt.Sprintf("\n%s", _str)
 			np.buff.InsertAtCursor(_str)
@@ -432,7 +432,7 @@ func (np *NotePad) SaveToWebnote() {
 		WebNotePassword = InputDialog(
 			"title", "Password requried", "password-mask", '*', "label", "Enter webnote password. If you need OTP token, enter it at the end of the password separated with ':'")
 	}
-	webnoteUrl, _ := GetConfig("webnote_url", "https://note.inxuanthuy.com:6919")
+	webnoteUrl, _ := GetConfig("webnote_url", "https://note20.duckdns.org:6919")
 	cookieJar, _ := cookiejar.New(nil)
 	client := &http.Client{
 		Jar: cookieJar,
@@ -591,16 +591,19 @@ func (np *NotePad) HighlightBtnClick() {
 	lexerStr := ""
 	if lexer != nil {
 		c := lexer.Config()
-		fmt.Printf("Lexer detected type: %v\n", c.Name)
+		fmt.Printf("Lexer detected type: %s\n", c.Name)
 		lexerStr = c.Name
 	} else {
 		lexerStr = InputDialog("title", "Input required", "label", "Enter the language string for highlighter:", "default", "python")
 	}
-	formattedSource, err := ChromaHighlight(someSourceCode, lexerStr)
-	if err == nil {
-		buf.Delete(startI, endI)
-		buf.InsertMarkup(startI, formattedSource)
-	} else {
-		fmt.Printf("%v\n", err)
-	}
+	lm, _ := sourceview.SourceLanguageManagerGetDefault()
+	l, _ := lm.GetLanguage(strings.ToLower(lexerStr))
+	np.buff.SetLanguage(l)
+	// formattedSource, err := ChromaHighlight(someSourceCode, lexerStr)
+	// if err == nil {
+	// 	buf.Delete(startI, endI)
+	// 	buf.InsertMarkup(startI, formattedSource)
+	// } else {
+	// 	fmt.Printf("%v\n", err)
+	// }
 }
