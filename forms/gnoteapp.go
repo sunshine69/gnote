@@ -1,25 +1,25 @@
 package forms
 
 import (
+	"fmt"
+	"os"
 	"strconv"
+	"strings"
+
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
-	"strings"
-	"fmt"
 	"github.com/gotk3/gotk3/gtk"
-	"os"
 )
-
 
 //GnoteApp - struct
 type GnoteApp struct {
-	Builder *gtk.Builder
-	MainWindow *gtk.Window
-	model *gtk.ListStore
-	treeView *gtk.TreeView
-	selectedID *[]int
+	Builder         *gtk.Builder
+	MainWindow      *gtk.Window
+	model           *gtk.ListStore
+	treeView        *gtk.TreeView
+	selectedID      *[]int
 	curNoteWindowID map[int]int8
-	searchBox *gtk.SearchEntry
+	searchBox       *gtk.SearchEntry
 }
 
 //ShowMain - show main window to do something. Meant to be called from NotePad
@@ -34,7 +34,7 @@ func (app *GnoteApp) RowActivated(treeView *gtk.TreeView,
 	// note_id = model.get_value(model.get_iter(path), 0)
 	model, _ := treeView.GetModel()
 	iter, _ := model.GetIter(path)
-	_v, _ := model.GetValue( iter, 0 )
+	_v, _ := model.GetValue(iter, 0)
 	v, _ := _v.GoValue()
 	nID := v.(int)
 	if _, ok := app.curNoteWindowID[nID]; !ok {
@@ -48,12 +48,12 @@ func (app *GnoteApp) RowActivated(treeView *gtk.TreeView,
 func (app *GnoteApp) ResultListKeyPress(w *gtk.TreeView, ev *gdk.Event) {
 	keyEvent := &gdk.EventKey{ev}
 	// fmt.Printf("DEBUG KEY %v\n", keyEvent.KeyVal() )
-	if keyEvent.KeyVal() == 65535 {//Delete key
-		for _, id := range(*app.selectedID) {
-			fmt.Printf("ID %v\n",id)
+	if keyEvent.KeyVal() == 65535 { //Delete key
+		for _, id := range *app.selectedID {
+			fmt.Printf("ID %v\n", id)
 			sql := fmt.Sprintf("DELETE FROM notes WHERE ID = '%d';", id)
 			if e := DbConn.Unscoped().Exec(sql).Error; e != nil {
-				fmt.Printf("ERROR %v\n",e)
+				fmt.Printf("ERROR %v\n", e)
 			}
 		}
 		app.doSearch()
@@ -86,7 +86,7 @@ func (app *GnoteApp) NewNoteFromFile(o *gtk.FileChooserButton) {
 }
 
 func (app *GnoteApp) DoVacuum() {
-	if e:= DbConn.Exec("VACUUM").Error; e != nil {
+	if e := DbConn.Exec("VACUUM").Error; e != nil {
 		MessageBox(fmt.Sprintf("ERROR VACUUM %v", e))
 	}
 }
@@ -121,27 +121,27 @@ func (app *GnoteApp) DoUpdateResource() {
 func (app *GnoteApp) InitApp() {
 	Builder := app.Builder
 
-	signals := map[string]interface{} {
-		"ShowAbout": app.showAbout,
-		"OpenPref": app.openPref,
-		"NewNote": app.newNote,
-		"OpenDbfile": app.openDBFile,
-		"DoExit": app.doExit,
-		"DoClearSearchbox": app.doClearSearchbox,
-		"DoSearch": app.doFullTextSearch,
-		"RowActivated": app.RowActivated,
-		"ResultListKeyPress": app.ResultListKeyPress,
+	signals := map[string]interface{}{
+		"ShowAbout":            app.showAbout,
+		"OpenPref":             app.openPref,
+		"NewNote":              app.newNote,
+		"OpenDbfile":           app.openDBFile,
+		"DoExit":               app.doExit,
+		"DoClearSearchbox":     app.doClearSearchbox,
+		"DoSearch":             app.doFullTextSearch,
+		"RowActivated":         app.RowActivated,
+		"ResultListKeyPress":   app.ResultListKeyPress,
 		"TreeSelectionChanged": app.TreeSelectionChanged,
-		"NewNoteFromFile": app.NewNoteFromFile,
-		"DoResetDB": app.DoResetDB,
-		"DoVacuum": app.DoVacuum,
-		"DoUpdateResource": app.DoUpdateResource,
+		"NewNoteFromFile":      app.NewNoteFromFile,
+		"DoResetDB":            app.DoResetDB,
+		"DoVacuum":             app.DoVacuum,
+		"DoUpdateResource":     app.DoUpdateResource,
 	}
 
 	Builder.ConnectSignals(signals)
 
 	window := GetWindow(Builder, "window")
-	window.Connect("delete-event", app.doExit )
+	window.Connect("delete-event", app.doExit)
 
 	window.SetTitle("gnote")
 	_, err := window.Connect("destroy", app.doExit)
@@ -160,19 +160,19 @@ func (app *GnoteApp) InitApp() {
 	wT.SetModel(app.model)
 	wT.SetHeadersVisible(true)
 	renderer, _ := gtk.CellRendererTextNew()
-    col1, _ := gtk.TreeViewColumnNewWithAttribute("Title", renderer, "text", 1)
-	col2, _ := gtk.TreeViewColumnNewWithAttribute("Date Log", renderer,"text", 2)
-	col3, _ := gtk.TreeViewColumnNewWithAttribute("Last update", renderer,"text", 3)
-    col1.SetResizable(true)
+	col1, _ := gtk.TreeViewColumnNewWithAttribute("Title", renderer, "text", 1)
+	col2, _ := gtk.TreeViewColumnNewWithAttribute("Date Log", renderer, "text", 2)
+	col3, _ := gtk.TreeViewColumnNewWithAttribute("Last update", renderer, "text", 3)
+	col1.SetResizable(true)
 	col2.SetResizable(true)
 	col3.SetResizable(true)
-    col1.SetMaxWidth(200)
-    col1.SetMinWidth(20)
-    col2.SetMinWidth(20)
+	col1.SetMaxWidth(200)
+	col1.SetMinWidth(20)
+	col2.SetMinWidth(20)
 	wT.AppendColumn(col1)
 	wT.AppendColumn(col2)
 	wT.AppendColumn(col3)
-    selection, _ := wT.GetSelection()
+	selection, _ := wT.GetSelection()
 	selection.SetMode(gtk.SELECTION_MULTIPLE)
 	// wT.SetSearchColumn(0)
 	// window.SetPosition(gtk.WIN_POS_CENTER)
@@ -187,7 +187,7 @@ func (app *GnoteApp) InitApp() {
 	h, _ := strconv.Atoi(_size[1])
 	window.SetDefaultSize(w, h)
 
-	window.Move(3000,0)
+	window.Move(3000, 0)
 	window.ShowAll()
 }
 
@@ -242,7 +242,7 @@ func (app *GnoteApp) doFullTextSearch() {
 		app.doSearch()
 		return
 	} else {
-		sql = fmt.Sprintf("SELECT rowid FROM note_fts WHERE note_fts MATCH '%s' ORDER BY datelog DESC LIMIT 200;",keyword)
+		sql = fmt.Sprintf("SELECT rowid FROM note_fts WHERE note_fts MATCH '%s' ORDER BY datelog DESC LIMIT 200;", keyword)
 	}
 
 	rows, e := DbConn.Raw(sql).Rows()
@@ -270,13 +270,13 @@ func (app *GnoteApp) doFullTextSearch() {
 		if e := app.model.Set(iter,
 			[]int{0, 1, 2, 3},
 			[]interface{}{id, title, _dateLogStr, _lastUpdateStr}); e != nil {
-				fmt.Printf("ERROR appending data to model %v\n", e)
-			}
+			fmt.Printf("ERROR appending data to model %v\n", e)
+		}
 		count = count + 1
 	}
 	s := GetStatusBar(app.Builder, "status_bar")
 	s.Pop(1)
-	s.Push(1, fmt.Sprintf( "Found %d notes", count))
+	s.Push(1, fmt.Sprintf("Found %d notes", count))
 }
 
 func (app *GnoteApp) doSearch() {
@@ -297,8 +297,8 @@ func (app *GnoteApp) doSearch() {
 	}
 	if searchFlags {
 		_l := len(tokens)
-		for i, t := range(tokens) {
-			if i == _l - 1 {
+		for i, t := range tokens {
+			if i == _l-1 {
 				q = fmt.Sprintf("%v (flags LIKE '%%%v%%') ORDER BY datelog DESC LIMIT 200;", q, t)
 			} else {
 				q = fmt.Sprintf("%v (flags LIKE '%%%v%%') AND ", q, t)
@@ -309,8 +309,8 @@ func (app *GnoteApp) doSearch() {
 		tokens := strings.Split(keyword, " & ")
 		_l := len(tokens)
 
-		for i, t := range(tokens) {
-			if i == _l - 1 {
+		for i, t := range tokens {
+			if i == _l-1 {
 				q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') ORDER BY datelog DESC LIMIT 200;", q, t, t)
 			} else {
 				q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') AND ", q, t, t)
@@ -339,11 +339,11 @@ func (app *GnoteApp) doSearch() {
 		if e := app.model.Set(iter,
 			[]int{0, 1, 2, 3},
 			[]interface{}{id, title, _dateLogStr, _lastUpdateStr}); e != nil {
-				fmt.Printf("ERROR appending data to model %v\n", e)
-			}
+			fmt.Printf("ERROR appending data to model %v\n", e)
+		}
 		count = count + 1
 	}
 	s := GetStatusBar(app.Builder, "status_bar")
 	s.Pop(1)
-	s.Push(1, fmt.Sprintf( "Found %d notes", count))
+	s.Push(1, fmt.Sprintf("Found %d notes", count))
 }
