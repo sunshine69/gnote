@@ -164,7 +164,7 @@ func (ns *NoteSearch) NoteReplaceAll(o *gtk.Button) {
 
 func (ns *NoteSearch) KeyPressed(o interface{}, ev *gdk.Event) {
 	keyEvent := &gdk.EventKey{ev}
-	if keyEvent.State()&gdk.GDK_CONTROL_MASK > 0 { //Control key pressed
+	if keyEvent.State()&gdk.CONTROL_MASK > 0 { //Control key pressed
 		switch keyEvent.KeyVal() {
 		case gdk.KeyvalFromName("q"):
 			ns.w.Close()
