@@ -319,7 +319,7 @@ func (np *NotePad) NoteSearch() {
 func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 	keyEvent := &gdk.EventKey{ev}
 	// fmt.Printf("Key val: %v\n", keyEvent.KeyVal())
-	if keyEvent.State()&gdk.GDK_CONTROL_MASK > 0 { //Control key pressed
+	if keyEvent.State()&gdk.CONTROL_MASK > 0 { //Control key pressed
 		switch keyEvent.KeyVal() {
 		case gdk.KeyvalFromName("T"): //All tab clear
 			np.tabCount = 0
@@ -365,6 +365,10 @@ Ctrl + q - Close this note window.
 		return true
 	case gdk.KEY_Tab:
 		np.tabCount = np.tabCount + 1
+	case gdk.KEY_BackSpace:
+		if np.tabCount > 0 {
+			np.tabCount = np.tabCount - 1
+		}
 	}
 	return false
 }

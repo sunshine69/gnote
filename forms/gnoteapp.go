@@ -33,8 +33,8 @@ func (app *GnoteApp) RowActivated(treeView *gtk.TreeView,
 	column *gtk.TreeViewColumn) {
 	// note_id = model.get_value(model.get_iter(path), 0)
 	model, _ := treeView.GetModel()
-	iter, _ := model.GetIter(path)
-	_v, _ := model.GetValue(iter, 0)
+	iter, _ := model.ToTreeModel().GetIter(path)
+	_v, _ := model.ToTreeModel().GetValue(iter, 0)
 	v, _ := _v.GoValue()
 	nID := v.(int)
 	if _, ok := app.curNoteWindowID[nID]; !ok {

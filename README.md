@@ -34,6 +34,12 @@ Double click the exe to run the program.
 
 Checkout git repo and execute:
 
+If you change glade files recently then update the bindata before build
+
+```
+go-bindata -pkg forms -o forms/bindata.go -nomemcopy glade icons
+```
+
 - Linux
 
 ```
@@ -48,7 +54,6 @@ My build is using a docker image to build and save cached. Basically at build ho
 
 ```
 go build -ldflags="-s -w -H=windowsgui" --tags "json1 fts5 secure_delete"  -o gnote-windows-amd64.exe gnote.go
-
 ```
 
 There is a simple ansible playbook to build it on a windows build agent. To setup the windows box see [https://github.com/gotk3/gotk3/wiki/Installing-on-Windows](https://github.com/gotk3/gotk3/wiki/Installing-on-Windows) basically:
