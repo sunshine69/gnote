@@ -14,17 +14,17 @@ import (
 
 //NoteSearch - GUI related
 type NoteSearch struct {
-	w                    *gtk.Window
-	builder              *gtk.Builder
-	np                   *NotePad
-	isIcase              bool
-	isCmdFilter          bool
-	isGetTempFileContent bool
-	searchBox            *gtk.SearchEntry
-	replaceBox           *gtk.Entry
-	m1                   *gtk.TextMark
-	m2                   *gtk.TextMark
-	curIter              *gtk.TextIter
+	w                 *gtk.Window
+	builder           *gtk.Builder
+	np                *NotePad
+	isIcase           bool
+	isCmdFilter       bool
+	isOutputToNewNote bool
+	searchBox         *gtk.SearchEntry
+	replaceBox        *gtk.Entry
+	m1                *gtk.TextMark
+	m2                *gtk.TextMark
+	curIter           *gtk.TextIter
 }
 
 func (ns *NoteSearch) NoteFindIcase(o *gtk.CheckButton) {
@@ -47,8 +47,8 @@ func (ns *NoteSearch) CommandFilter(o *gtk.CheckButton) {
 	ns.searchBox.GrabFocus()
 }
 
-func (ns *NoteSearch) GetTempFileContent(o *gtk.CheckButton) {
-	ns.isGetTempFileContent = o.GetActive()
+func (ns *NoteSearch) OutputToNewNote(o *gtk.CheckButton) {
+	ns.isOutputToNewNote = o.GetActive()
 	ns.searchBox.GrabFocus()
 }
 
@@ -62,7 +62,11 @@ func (ns *NoteSearch) FindText() bool {
 
 	if ns.isCmdFilter { //run external command and replace the note/selection with output
 		text, startI, endI := ns.np.GetSelection()
-		replaceWith, _ := ns.replaceBox.GetText()
+		replaceWith, e := ns.replaceBox.GetText()
+		if e != nil {
+			MessageBox(fmt.Sprintf("ERROR %v\n", e))
+			return false
+		}
 		outStr := ""
 		if replaceWith == "" {
 			_tmpF, _ := ioutil.TempFile("", "browser")
@@ -72,21 +76,17 @@ func (ns *NoteSearch) FindText() bool {
 			stdoutStderr, err := cmd.CombinedOutput()
 			if err != nil {
 				fmt.Printf("DEBUG E %v\n", err)
-			} else {
-				fmt.Printf("DEBUG 1 %s\n", stdoutStderr)
-			}
-			if ns.isGetTempFileContent {
-				_outStr, e := ioutil.ReadFile(_tmpF.Name())
-				if e != nil {
-					MessageBox(fmt.Sprintf("ERROR %v\n", e))
-					return false
-				}
-				outStr = string(_outStr)
-			} else {
-				outStr = string(stdoutStderr)
 			}
 			os.Remove(_tmpF.Name())
-			SetConfig("last_cmd_filter", cmdText)
+			SetConfig("last_cmd_filter", keyword)
+			outStr = string(stdoutStderr)
+			if ns.isOutputToNewNote {
+				_np := NewNotePad(-1)
+				_np.app = ns.np.app
+				_np.buff.SetText(outStr)
+				_np.wTitle.SetText(fmt.Sprintf("Filter result of cmd %s", keyword))
+				return false //stop other actions
+			}
 		} else {
 			if ptn, e := regexp.Compile(keyword); e == nil {
 				var newTxt []string
@@ -98,13 +98,15 @@ func (ns *NoteSearch) FindText() bool {
 				fmt.Printf("ERROR %v\n", e)
 			}
 		}
-		buf := ns.np.buff
-		buf.SelectRange(startI, endI)
-		buf.DeleteSelection(true, true)
-		buf.InsertAtCursor(outStr)
-		//Not sure why the curIter is invalid after running. Need to get back otherwise crash
-		ns.curIter = buf.GetIterAtMark(buf.GetInsert())
-		return false //stop other actions
+		if !ns.isOutputToNewNote {
+			buf := ns.np.buff
+			buf.SelectRange(startI, endI)
+			buf.DeleteSelection(true, true)
+			buf.InsertAtCursor(outStr)
+			//Not sure why the curIter is invalid after running. Need to get back otherwise crash
+			ns.curIter = buf.GetIterAtMark(buf.GetInsert())
+			return false //stop other actions
+		}
 	} else {
 		if ns.isIcase {
 			searchFlag = gtk.TEXT_SEARCH_CASE_INSENSITIVE
@@ -181,13 +183,13 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 	}
 	ns.builder = builder
 	signals := map[string]interface{}{
-		"NoteFindIcase":      ns.NoteFindIcase,
-		"CommandFilter":      ns.CommandFilter,
-		"NoteFindText":       ns.NoteFindText,
-		"NoteReplaceText":    ns.NoteReplaceText,
-		"NoteReplaceAll":     ns.NoteReplaceAll,
-		"GetTempFileContent": ns.GetTempFileContent,
-		"KeyPressed":         ns.KeyPressed,
+		"NoteFindIcase":   ns.NoteFindIcase,
+		"CommandFilter":   ns.CommandFilter,
+		"NoteFindText":    ns.NoteFindText,
+		"NoteReplaceText": ns.NoteReplaceText,
+		"NoteReplaceAll":  ns.NoteReplaceAll,
+		"OutputToNewNote": ns.OutputToNewNote,
+		"KeyPressed":      ns.KeyPressed,
 	}
 	builder.ConnectSignals(signals)
 
