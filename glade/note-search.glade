@@ -1,34 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.1 -->
+<!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkWindow" id="note_search">
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="title" translatable="yes">search/replace or filter text using external cmd</property>
     <property name="resizable">False</property>
-    <property name="type_hint">dialog</property>
-    <child>
-      <placeholder/>
-    </child>
+    <property name="type-hint">dialog</property>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
         <signal name="key-press-event" handler="KeyPressed" swapped="no"/>
         <child>
           <object class="GtkBox">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkSearchEntry" id="text_ptn">
-                <property name="width_request">250</property>
+                <property name="width-request">250</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="primary_icon_name">edit-find-symbolic</property>
-                <property name="primary_icon_activatable">False</property>
-                <property name="primary_icon_sensitive">False</property>
-                <property name="placeholder_text" translatable="yes">search text</property>
+                <property name="can-focus">True</property>
+                <property name="primary-icon-name">edit-find-symbolic</property>
+                <property name="primary-icon-activatable">False</property>
+                <property name="primary-icon-sensitive">False</property>
+                <property name="placeholder-text" translatable="yes">search text</property>
                 <signal name="activate" handler="NoteFindText" swapped="no"/>
               </object>
               <packing>
@@ -41,11 +38,11 @@
               <object class="GtkCheckButton" id="btn_icase">
                 <property name="label" translatable="yes">icase</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="focus_on_click">False</property>
-                <property name="receives_default">False</property>
+                <property name="can-focus">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
                 <property name="active">True</property>
-                <property name="draw_indicator">True</property>
+                <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="NoteFindIcase" swapped="no"/>
               </object>
               <packing>
@@ -58,11 +55,11 @@
               <object class="GtkCheckButton" id="btn_regexp">
                 <property name="label" translatable="yes">cmd</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="focus_on_click">False</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip_text" translatable="yes">enable command filter. Type in the system command it will run against the note text content or selection (as a temp file input) and capture output to replace the text. If you type a regex and type some text in the `replace with` box it will do regex search and replace.</property>
-                <property name="draw_indicator">True</property>
+                <property name="can-focus">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
+                <property name="tooltip-text" translatable="yes">enable command filter. Type in the system command it will run against the note text content or selection (as a temp file input) and capture output to replace the text. If you type a regex and type some text in the `replace with` box it will do regex search and replace.</property>
+                <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="CommandFilter" swapped="no"/>
               </object>
               <packing>
@@ -73,14 +70,14 @@
             </child>
             <child>
               <object class="GtkCheckButton">
-                <property name="label" translatable="yes">fct</property>
+                <property name="label" translatable="yes">new</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="focus_on_click">False</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip_text" translatable="yes">check it if you want command filter to modify the tempfile and return the file content. If not check the output is the stdout and stderr of the command filter</property>
-                <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="GetTempFileContent" swapped="no"/>
+                <property name="can-focus">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
+                <property name="tooltip-text" translatable="yes">output to a new note rather than replace</property>
+                <property name="draw-indicator">True</property>
+                <signal name="toggled" handler="OutputToNewNote" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -98,12 +95,12 @@
         <child>
           <object class="GtkBox">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkEntry" id="replace_text">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="placeholder_text" translatable="yes">replace with</property>
+                <property name="can-focus">True</property>
+                <property name="placeholder-text" translatable="yes">replace with</property>
                 <signal name="activate" handler="NoteFindText" swapped="no"/>
               </object>
               <packing>
@@ -116,10 +113,10 @@
               <object class="GtkButton" id="find_btn">
                 <property name="label">gtk-find</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="focus_on_click">False</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <property name="can-focus">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">True</property>
+                <property name="use-stock">True</property>
                 <signal name="clicked" handler="NoteFindText" swapped="no"/>
               </object>
               <packing>
@@ -132,9 +129,9 @@
               <object class="GtkButton">
                 <property name="label" translatable="yes">Repl</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="focus_on_click">False</property>
-                <property name="receives_default">False</property>
+                <property name="can-focus">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
                 <signal name="clicked" handler="NoteReplaceText" swapped="no"/>
               </object>
               <packing>
@@ -147,9 +144,9 @@
               <object class="GtkButton">
                 <property name="label" translatable="yes">Repl all</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="focus_on_click">False</property>
-                <property name="receives_default">False</property>
+                <property name="can-focus">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="receives-default">False</property>
                 <signal name="clicked" handler="NoteReplaceAll" swapped="no"/>
               </object>
               <packing>

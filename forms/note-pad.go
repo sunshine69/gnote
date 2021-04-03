@@ -341,6 +341,7 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 		case gdk.KeyvalFromName("h"):
 			helpTxt := `Keyboard shortcut of the notepad
 Ctrl + s - Save note (not closing after save)
+Ctrl + S - Save note or selection to a file
 Ctrl + T - Clear all tabs count. When you press tab key it wil auto indent the level. Press this key to clear it
 Ctrl + t - Reduce one tab level.
 Ctrl + f - Show search and replace text. Finding text pattern and many useful features.
