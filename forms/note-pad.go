@@ -340,6 +340,12 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 	// fmt.Printf("Key val: %v\n", keyEvent.KeyVal())
 	if keyEvent.State()&gdk.CONTROL_MASK > 0 { //Control key pressed
 		switch keyEvent.KeyVal() {
+		case gdk.KeyvalFromName("T"): //All tab clear
+			np.tabCount = 0
+		case gdk.KeyvalFromName("t"): //reduce one tab level
+			if np.tabCount > 0 {
+				np.tabCount = np.tabCount - 1
+			}
 		case gdk.KeyvalFromName("s"):
 			np.SaveNote()
 		case gdk.KeyvalFromName("S"):
@@ -357,6 +363,8 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 			helpTxt := `Keyboard shortcut of the notepad
 Ctrl + s - Save note (not closing after save)
 Ctrl + S - Save note or selection to a file
+Ctrl + T - Clear all tabs count. When you press tab key it wil auto indent the level. Press this key to clear it
+Ctrl + t - Reduce one tab level.
 Ctrl + f - Show search and replace text. Finding text pattern and many useful features.
 Ctrl + b - Show the content in a web browser. This will convert the markdown text into html if your note content is a markdown format text.
 Ctrl + q - Close this note window.
@@ -364,31 +372,26 @@ Ctrl + q - Close this note window.
 			MessageBox(helpTxt)
 		}
 	}
-	// fmt.Println(keyEvent.KeyVal())
-	// switch keyEvent.KeyVal() {
-	// case 65293: // Enter key not sure what name is
-	// 	if np.tabCount > 0 {
-	// 		_str := ""
-	// 		_tabchar := strings.Repeat(" ", np.tabSize)
-	// 		for i := 1; i <= np.tabCount; i++ {
-	// 			_str = fmt.Sprintf("%s%s", _str, _tabchar)
-	// 		}
-	// 		_str = fmt.Sprintf("\n%s", _str)
-	// 		np.buff.InsertAtCursor(_str)
-	// 	} else {
-	// 		np.buff.InsertAtCursor("\n")
-	// 	}
-	// 	return true
-	// case gdk.KEY_Tab:
-	// 	np.tabCount = np.tabCount + 1
-	// 	_tabchar := strings.Repeat(" ", np.tabSize)
-	// 	np.buff.InsertAtCursor(_tabchar)
-	// 	return false
-	// case gdk.KEY_BackSpace:
-	// 	if np.tabCount > 0 {
-	// 		np.tabCount = np.tabCount - 1
-	// 	}
-	// }
+	switch keyEvent.KeyVal() {
+	case 65293: // Enter key not sure what name is
+		if np.tabCount > 0 {
+			_str := ""
+			for i := 1; i <= np.tabCount; i++ {
+				_str = fmt.Sprintf("%s\t", _str)
+			}
+			_str = fmt.Sprintf("\n%s", _str)
+			np.buff.InsertAtCursor(_str)
+		} else {
+			np.buff.InsertAtCursor("\n")
+		}
+		return true
+	case gdk.KEY_Tab:
+		np.tabCount = np.tabCount + 1
+	case gdk.KEY_BackSpace:
+		if np.tabCount > 0 {
+			np.tabCount = np.tabCount - 1
+		}
+	}
 	return false
 }
 
