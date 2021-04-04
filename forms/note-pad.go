@@ -310,6 +310,29 @@ func (np *NotePad) NoteSearch() {
 	ns := NewNoteSearch(np)
 	ns.w.Show()
 }
+func (np *NotePad) SaveNoteToFile() {
+	dlg, _ := gtk.FileChooserDialogNewWith2Buttons(
+		"choose file", nil, gtk.FILE_CHOOSER_ACTION_SAVE,
+		"Open", gtk.RESPONSE_OK, "Cancel", gtk.RESPONSE_CANCEL,
+	)
+	dlg.SetDefaultResponse(gtk.RESPONSE_OK)
+	filter, _ := gtk.FileFilterNew()
+	filter.SetName("txt")
+	// filter.AddMimeType("text/text")
+	// filter.AddMimeType("image/jpeg")
+	// filter.AddPattern("*.png")
+	// filter.AddPattern("*.jpg")
+	filter.AddPattern("*.*")
+	dlg.SetFilter(filter)
+	response := dlg.Run()
+	if response == gtk.RESPONSE_OK {
+		filename := dlg.GetFilename()
+		// imgview.SetFromFile(filename)
+		text, _, _ := np.GetSelection()
+		ioutil.WriteFile(filename, []byte(text), 0644)
+	}
+	dlg.Destroy()
+}
 
 //KeyPressed - handle key board
 func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
