@@ -283,7 +283,7 @@
                         <property name="receives_default">True</property>
                         <property name="tooltip_text" translatable="yes">insert end update mark</property>
                         <property name="image">img_undo</property>
-                        <signal name="clicked" handler="EndUpdateMarkBtnClick" swapped="no"/>
+                        <signal name="pressed" handler="EndUpdateMarkBtnClick" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -330,7 +330,7 @@
                         <property name="tooltip_text" translatable="yes">Show search text in this note dialog</property>
                         <property name="image">image1</property>
                         <property name="always_show_image">True</property>
-                        <signal name="clicked" handler="NoteSearchText" swapped="no"/>
+                        <signal name="pressed" handler="NoteSearchText" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -374,7 +374,7 @@
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="image">image3</property>
-                        <signal name="clicked" handler="NewLinkNote" swapped="no"/>
+                        <signal name="pressed" handler="NewLinkNote" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -431,7 +431,7 @@
                     <property name="receives_default">True</property>
                     <property name="tooltip_text" translatable="yes">Clear flags</property>
                     <property name="image">img_clear_flag1</property>
-                    <signal name="clicked" handler="ClearURL" swapped="no"/>
+                    <signal name="pressed" handler="ClearURL" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>

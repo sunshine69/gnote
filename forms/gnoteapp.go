@@ -18,7 +18,7 @@ type GnoteApp struct {
 	model           *gtk.ListStore
 	treeView        *gtk.TreeView
 	selectedID      *[]int
-	curNoteWindowID map[int]int8
+	curNoteWindowID map[int]*NotePad
 	searchBox       *gtk.SearchEntry
 }
 
@@ -28,19 +28,21 @@ func (app *GnoteApp) ShowMain() {
 }
 
 //RowActivated - Process when a treeview list row activated. Pop up a note window with the id
-func (app *GnoteApp) RowActivated(treeView *gtk.TreeView,
-	path *gtk.TreePath,
-	column *gtk.TreeViewColumn) {
+func (app *GnoteApp) RowActivated(treeView *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) {
 	// note_id = model.get_value(model.get_iter(path), 0)
 	model, _ := treeView.GetModel()
 	iter, _ := model.ToTreeModel().GetIter(path)
 	_v, _ := model.ToTreeModel().GetValue(iter, 0)
 	v, _ := _v.GoValue()
 	nID := v.(int)
-	if _, ok := app.curNoteWindowID[nID]; !ok {
-		app.curNoteWindowID[nID] = 1
-		np := NewNotePad(nID)
-		np.app = app
+	var _np *NotePad
+	var ok bool
+	if _np, ok = app.curNoteWindowID[nID]; !ok {
+		_np := NewNotePad(nID)
+		_np.app = app
+		app.curNoteWindowID[nID] = _np
+	} else {
+		_np.w.Present()
 	}
 }
 
@@ -81,7 +83,7 @@ func (app *GnoteApp) TreeSelectionChanged(s *gtk.TreeSelection) {
 //NewNoteFromFile -
 func (app *GnoteApp) NewNoteFromFile(o *gtk.FileChooserButton) {
 	np := NewNoteFromFile(o.GetFilename())
-	app.curNoteWindowID[np.ID] = 1
+	app.curNoteWindowID[np.ID] = np
 	np.app = app
 }
 
@@ -178,7 +180,7 @@ func (app *GnoteApp) InitApp() {
 	// window.SetPosition(gtk.WIN_POS_CENTER)
 	// window.SetGravity(gdk.GDK_GRAVITY_NORTH_EAST)
 
-	app.curNoteWindowID = make(map[int]int8)
+	app.curNoteWindowID = make(map[int]*NotePad)
 	app.searchBox = GetSearchEntry(Builder, "searchBox")
 
 	wSize, _ := GetConfig("main_window_size", "300x291")

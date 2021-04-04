@@ -39,6 +39,7 @@ func (ns *NoteSearch) CommandFilter(o *gtk.CheckButton) {
 		ns.searchBox.SetText(lastCmd)
 		btnFind := GetButton(ns.builder, "find_btn")
 		btnFind.SetLabel("Cmd")
+
 	} else {
 		ns.searchBox.SetText("")
 		btnFind := GetButton(ns.builder, "find_btn")
@@ -69,10 +70,11 @@ func (ns *NoteSearch) FindText() bool {
 		}
 		outStr := ""
 		if replaceWith == "" {
-			_tmpF, _ := ioutil.TempFile("", "browser")
+			_tmpF, _ := ioutil.TempFile("", fmt.Sprintf("browser*.%s", ns.np.lang))
 			_tmpF.Write([]byte(text))
 			cmdText := fmt.Sprintf("%s %s", keyword, _tmpF.Name())
 			cmd := exec.Command("sh", "-c", cmdText)
+			cmd.Env = append(os.Environ())
 			stdoutStderr, err := cmd.CombinedOutput()
 			if err != nil {
 				fmt.Printf("DEBUG E %v\n", err)
@@ -84,7 +86,7 @@ func (ns *NoteSearch) FindText() bool {
 				_np := NewNotePad(-1)
 				_np.app = ns.np.app
 				_np.buff.SetText(outStr)
-				_np.wTitle.SetText(fmt.Sprintf("Filter result of cmd %s", keyword))
+				_np.wTitle.SetText(fmt.Sprintf("note: %s result of cmd: %s ", ns.np.Title, keyword))
 				return false //stop other actions
 			}
 		} else {
