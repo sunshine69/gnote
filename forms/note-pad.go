@@ -30,8 +30,8 @@ type NotePad struct {
 	wFlags          *gtk.Entry
 	wDateLog        *gtk.Entry
 	wURL            *gtk.Entry
-	tabCount        int
 	StartUpdateTime time.Time
+	lang            string
 	Note
 }
 
@@ -314,6 +314,29 @@ func (np *NotePad) NoteSearch() {
 	ns := NewNoteSearch(np)
 	ns.w.Show()
 }
+func (np *NotePad) SaveNoteToFile() {
+	dlg, _ := gtk.FileChooserDialogNewWith2Buttons(
+		"choose file", nil, gtk.FILE_CHOOSER_ACTION_SAVE,
+		"Open", gtk.RESPONSE_OK, "Cancel", gtk.RESPONSE_CANCEL,
+	)
+	dlg.SetDefaultResponse(gtk.RESPONSE_OK)
+	filter, _ := gtk.FileFilterNew()
+	filter.SetName("txt")
+	// filter.AddMimeType("text/text")
+	// filter.AddMimeType("image/jpeg")
+	// filter.AddPattern("*.png")
+	// filter.AddPattern("*.jpg")
+	filter.AddPattern("*.*")
+	dlg.SetFilter(filter)
+	response := dlg.Run()
+	if response == gtk.RESPONSE_OK {
+		filename := dlg.GetFilename()
+		// imgview.SetFromFile(filename)
+		text, _, _ := np.GetSelection()
+		ioutil.WriteFile(filename, []byte(text), 0644)
+	}
+	dlg.Destroy()
+}
 
 //KeyPressed - handle key board
 func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
@@ -321,14 +344,10 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 	// fmt.Printf("Key val: %v\n", keyEvent.KeyVal())
 	if keyEvent.State()&gdk.CONTROL_MASK > 0 { //Control key pressed
 		switch keyEvent.KeyVal() {
-		case gdk.KeyvalFromName("T"): //All tab clear
-			np.tabCount = 0
-		case gdk.KeyvalFromName("t"): //reduce one tab level
-			if np.tabCount > 0 {
-				np.tabCount = np.tabCount - 1
-			}
 		case gdk.KeyvalFromName("s"):
 			np.SaveNote()
+		case gdk.KeyvalFromName("S"):
+			np.SaveNoteToFile()
 		case gdk.KeyvalFromName("f"): //Find & Replace
 			np.NoteSearch()
 		case gdk.KeyvalFromName("b"): //Open in browser
@@ -342,8 +361,6 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 			helpTxt := `Keyboard shortcut of the notepad
 Ctrl + s - Save note (not closing after save)
 Ctrl + S - Save note or selection to a file
-Ctrl + T - Clear all tabs count. When you press tab key it wil auto indent the level. Press this key to clear it
-Ctrl + t - Reduce one tab level.
 Ctrl + f - Show search and replace text. Finding text pattern and many useful features.
 Ctrl + b - Show the content in a web browser. This will convert the markdown text into html if your note content is a markdown format text.
 Ctrl + q - Close this note window.
@@ -351,26 +368,31 @@ Ctrl + q - Close this note window.
 			MessageBox(helpTxt)
 		}
 	}
-	switch keyEvent.KeyVal() {
-	case 65293: // Enter key not sure what name is
-		if np.tabCount > 0 {
-			_str := ""
-			for i := 1; i <= np.tabCount; i++ {
-				_str = fmt.Sprintf("%s    ", _str)
-			}
-			_str = fmt.Sprintf("\n%s", _str)
-			np.buff.InsertAtCursor(_str)
-		} else {
-			np.buff.InsertAtCursor("\n")
-		}
-		return true
-	case gdk.KEY_Tab:
-		np.tabCount = np.tabCount + 1
-	case gdk.KEY_BackSpace:
-		if np.tabCount > 0 {
-			np.tabCount = np.tabCount - 1
-		}
-	}
+	// fmt.Println(keyEvent.KeyVal())
+	// switch keyEvent.KeyVal() {
+	// case 65293: // Enter key not sure what name is
+	// 	if np.tabCount > 0 {
+	// 		_str := ""
+	// 		_tabchar := strings.Repeat(" ", np.tabSize)
+	// 		for i := 1; i <= np.tabCount; i++ {
+	// 			_str = fmt.Sprintf("%s%s", _str, _tabchar)
+	// 		}
+	// 		_str = fmt.Sprintf("\n%s", _str)
+	// 		np.buff.InsertAtCursor(_str)
+	// 	} else {
+	// 		np.buff.InsertAtCursor("\n")
+	// 	}
+	// 	return true
+	// case gdk.KEY_Tab:
+	// 	np.tabCount = np.tabCount + 1
+	// 	_tabchar := strings.Repeat(" ", np.tabSize)
+	// 	np.buff.InsertAtCursor(_tabchar)
+	// 	return false
+	// case gdk.KEY_BackSpace:
+	// 	if np.tabCount > 0 {
+	// 		np.tabCount = np.tabCount - 1
+	// 	}
+	// }
 	return false
 }
 
@@ -528,7 +550,7 @@ func (np *NotePad) SaveNote() {
 		fmt.Printf("INFO Note saved\n")
 		b := GetButton(np.builder, "bt_close")
 		b.SetLabel("Close")
-		np.app.curNoteWindowID[np.ID] = 1
+		np.app.curNoteWindowID[np.ID] = np
 	}
 	np.w.SetTitle(np.Title)
 }
@@ -601,8 +623,10 @@ func (np *NotePad) HighlightBtnClick() {
 	} else {
 		lexerStr = InputDialog("title", "Input required", "label", "Enter the language string for highlighter:", "default", "python")
 	}
+	lexerStr = strings.ToLower(lexerStr)
+	np.lang = lexerStr
 	lm, _ := sourceview.SourceLanguageManagerGetDefault()
-	l, _ := lm.GetLanguage(strings.ToLower(lexerStr))
+	l, _ := lm.GetLanguage(lexerStr)
 	np.buff.SetLanguage(l)
 	// formattedSource, err := ChromaHighlight(someSourceCode, lexerStr)
 	// if err == nil {
