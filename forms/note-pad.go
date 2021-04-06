@@ -626,6 +626,7 @@ func (np *NotePad) HighlightBtnClick() {
 		lexerStr = InputDialog("title", "Input required", "label", "Enter the language string for highlighter:", "default", "python")
 	}
 	formattedSource, err := ChromaHighlight(someSourceCode, lexerStr)
+	np.lang = strings.ToLower(lexerStr)
 	if err == nil {
 		buf.Delete(startI, endI)
 		buf.InsertMarkup(startI, formattedSource)
