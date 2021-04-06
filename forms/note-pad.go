@@ -32,6 +32,7 @@ type NotePad struct {
 	tabCount        int
 	StartUpdateTime time.Time
 	lang            string
+	noteSearch      *NoteSearch
 	Note
 }
 
@@ -307,8 +308,10 @@ func (np *NotePad) SaveWindowSize() {
 
 //NoteSearch - Search text in the note
 func (np *NotePad) NoteSearch() {
-	ns := NewNoteSearch(np)
-	ns.w.Show()
+	if np.noteSearch == nil {
+		np.noteSearch = NewNoteSearch(np)
+	}
+	np.noteSearch.w.Show()
 }
 func (np *NotePad) SaveNoteToFile() {
 	dlg, _ := gtk.FileChooserDialogNewWith2Buttons(

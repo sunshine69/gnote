@@ -23,8 +23,8 @@
 *.db
 gnote
 .vscode
-gnote-*-amd64
-gnote-*-x86_64
+gnote*amd64
+gnote*x86_64
 ansible/test*.yaml
 *.orig
 \#*\#

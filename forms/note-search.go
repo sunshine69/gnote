@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"strings"
 
 	"github.com/gotk3/gotk3/gdk"
@@ -73,7 +74,13 @@ func (ns *NoteSearch) FindText() bool {
 			_tmpF, _ := ioutil.TempFile("", fmt.Sprintf("browser*.%s", ns.np.lang))
 			_tmpF.Write([]byte(text))
 			cmdText := fmt.Sprintf("%s %s", keyword, _tmpF.Name())
-			cmd := exec.Command("sh", "-c", cmdText)
+			var cmd *exec.Cmd
+			if runtime.GOOS == "windows" {
+				commandList := strings.Fields(cmdText)
+				cmd = exec.Command(commandList[0], commandList[1:]...)
+			} else {
+				cmd = exec.Command("sh", "-c", cmdText)
+			}
 			cmd.Env = append(os.Environ())
 			stdoutStderr, err := cmd.CombinedOutput()
 			if err != nil {
@@ -210,6 +217,11 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 	fmt.Println("Init curIter")
 	ns.curIter = buf.GetIterAtMark(buf.GetInsert())
 	ns.m1, ns.m2 = nil, nil
+
+	ns.w.Connect("delete-event", func() bool {
+		ns.np.noteSearch = nil
+		return false
+	})
 
 	return ns
 }
