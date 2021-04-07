@@ -220,6 +220,9 @@ func (app *GnoteApp) doExit() {
 	if e := SetConfig("main_window_size", windowSize); e != nil {
 		fmt.Printf("ERROR save side - %v\n", e)
 	}
+	for _, np := range app.curNoteWindowID {
+		np.saveBtnClick()
+	}
 	gtk.MainQuit()
 }
 
