@@ -26,9 +26,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	if _, e := os.Stat(fmt.Sprintf("%s/glade", workdir)); e == nil {
-		os.Chdir(workdir)
-	}
+	if _, e := os.Stat(fmt.Sprintf("%s/glade", workdir)); e != nil {
+        forms.RestoreAssetsAll(workdir)
+    }
+    os.Chdir(workdir)
 
 	homeDir, e := os.UserHomeDir()
 	if e != nil {
@@ -44,7 +45,6 @@ func main() {
 	if _, e := forms.GetConfig("config_created"); e != nil {
 		fmt.Println("Setup default config ....")
 		forms.SetupDefaultConfig()
-		forms.RestoreAssetsAll(workdir)
 		forms.MessageBox("Initial setup db completed. The program will exit now. You can start it again.")
 		os.Exit(0)
 	}
