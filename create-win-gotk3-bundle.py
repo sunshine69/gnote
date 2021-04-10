@@ -20,7 +20,7 @@ mkdir bin lib share
 cp -a /mingw64/lib/gdk-pixbuf-2.0 lib/
 cp -a /usr/share/glib-2.0 share/
 cp -a /mingw64/share/icons share/
-cp /c/ansible_install/gnote/gnote.exe bin/
+cp /c/ansible_install/gnote/gnote*.exe bin/
 cp -a /c/ansible_install/gnote/glade bin/
 cp -a /c/ansible_install/gnote/icons bin/
 """)
