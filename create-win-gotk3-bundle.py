@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # shell in windows yuk, when reading the dll_files.lst and convert into the cp
 # command it just add some $ char and thus file not found.
 # python shutil works and I dont bother hacking bash to work
