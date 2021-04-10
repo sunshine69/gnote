@@ -190,7 +190,7 @@ func gladeNoteGlade() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "glade/note.glade", size: 27576, mode: os.FileMode(420), modTime: time.Unix(1617603722, 0)}
+	info := bindataFileInfo{name: "glade/note.glade", size: 27576, mode: os.FileMode(420), modTime: time.Unix(1618049565, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
