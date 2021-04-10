@@ -25,8 +25,6 @@ cp -a /mingw64/share/glib-2.0/schemas/* share/glib-2.0/schemas/
 cp -a /mingw64/share/gtksourceview-3.0 share/
 cp -a /mingw64/share/icons share/
 cp /c/ansible_install/gnote/gnote*.exe bin/
-cp -a /c/ansible_install/gnote/glade bin/
-cp -a /c/ansible_install/gnote/icons bin/
 """)
 
 data = open("/c/ansible_install/gnote/dll_files.lst", "r").read().splitlines()
