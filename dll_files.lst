@@ -5,7 +5,7 @@ libcairo-gobject-2.dll
 libdatrie-1.dll
 libepoxy-0.dll
 libexpat-1.dll
-libffi-6.dll
+libffi-7.dll
 libfontconfig-1.dll
 libfreetype-6.dll
 libfribidi-0.dll
@@ -35,7 +35,8 @@ libstdc++-6.dll
 libthai-0.dll
 libwinpthread-1.dll
 zlib1.dll
-# sourceview depends
-libgtksourceview-3.0-1.dll 
-libxml2-2.dll 
+libbrotlidec.dll
+libbrotlicommon.dll
+libgtksourceview-3.0-1.dll
+libxml2-2.dll
 liblzma-5.dll
