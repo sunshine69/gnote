@@ -70,3 +70,88 @@ $ source ~/.bashrc
 $ sed -i -e 's/-Wl,-luuid/-luuid/g' /mingw64/lib/pkgconfig/gdk-3.0.pc # This fixes a bug in pkgconfig
 $ go get github.com/gotk3/gotk3/gtk
 ```
+
+## Text processing feature
+
+gnote is a smaller source editor and runner. The note itself is using gtksourceview with all syntax highlighting
+as you type. Just create a note, type some code snipper and click the button `source code highlight`. If it can
+not detect the code it will prompt you to type the language in.
+
+In case it detects wrongly, you can force it to prompt by select some text (that is can not be detected) and
+click the highlight button, it will prompt.
+
+All external text processing is done using the `Search & Replace` feature. Within the note click the search button or `Ctrl + f`, the window will popup.
+
+The normal operation is search a raw text and replace with a text.
+
+If you type in the `search text` a regex then it will search and replace using the regex (golang regex which is
+also PCRE compatible.
+
+Click the `cmd` button to turn it into run a external command on the sections/or the whole content. In here you
+can run `sed` or `perl` etc. You do not need to quote - example like type `sed s/^/#/g` to add `#` at the
+begging of the line.
+
+It works by taking the note content or selection, write it to a temporary file with the extention detected by
+the highlight button and run the command you type using the file path as the last argument.
+
+The output will be replace to the note content, or the selection.
+
+If you click the `new` button`, it will output to a new note instead.
+
+So using this you can run a code snippet, such as python or go. An example note below is to process text using
+go (assume you have go installed)
+
+Create a note with the content below
+
+```
+package main
+
+import (
+	"fmt"
+	"regexp"
+)
+
+func main() {
+	content := data()
+	// Regex pattern captures "key: value" pair from the content.
+	pattern := regexp.MustCompile(`(?m)(?P<key>\w+):\s+(?P<value>\w+)`)
+	// Template to convert "key: value" to "key=value" by
+	// referencing the values captured by the regex pattern.
+	template := "$key,$value\n"
+
+	result := []byte{}
+
+	// For each match of the regex in the content.
+	for _, submatches := range pattern.FindAllStringSubmatchIndex(content, -1) {
+		// Apply the captured submatches to the template and append the output
+		// to the result.
+		result = pattern.ExpandString(result, template, content, submatches)
+	}
+	fmt.Println(string(result))
+}
+
+
+func data() string {
+return `
+this is a pattern kety1: value1 then parse and make it as a map k2: thisIs value2
+
+# comment line
+	this option1: value1
+	option2: value2
+	# another comment line
+	option3: value3
+
+`
+}
+```
+
+Save and click the hightlight button, it should detect the go language type.
+
+Press `Ctrl + f` , in the window pop up click `cmd` and `new` radio button.
+
+Type in the search text `go run`. It will run the note content as a go prog.
+
+See the output in the new note.
+
+Now you have the idea how to utilize this feature.
+
