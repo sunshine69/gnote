@@ -89,16 +89,16 @@ also PCRE compatible.
 
 Click the `cmd` button to turn it into run a external command on the sections/or the whole content. In here you
 can run `sed` or `perl` etc. You do not need to quote - example like type `sed s/^/#/g` to add `#` at the
-begging of the line.
+begining of the line.
 
 It works by taking the note content or selection, write it to a temporary file with the extention detected by
 the highlight button and run the command you type using the file path as the last argument.
 
 The output will be replace to the note content, or the selection.
 
-If you click the `new` button`, it will output to a new note instead.
+If you click the `new` button, it will output to a new note instead.
 
-So using this you can run a code snippet, such as python or go. An example note below is to process text using
+So using this you can run a code snippet, such as python or go (anything really). An example note below is to process text using
 go (assume you have go installed)
 
 Create a note with the content below
