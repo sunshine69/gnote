@@ -189,6 +189,9 @@ func NewNotePad(id int) *NotePad {
 	}
 	np.w.Connect("delete-event", func() bool {
 		delete(np.app.curNoteWindowID, np.ID)
+		if np.noteSearch != nil {
+			np.noteSearch.w.Destroy()
+		}
 		return false
 	})
 	np.w.ShowAll()
