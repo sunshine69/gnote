@@ -18,6 +18,7 @@
 *.~
 *.zip
 *.gz
+*.tgz
 *.bz2
 *.xz
 *.db
