@@ -359,9 +359,16 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 		case gdk.KeyvalFromName("f"): //Find & Replace
 			np.NoteSearch()
 		case gdk.KeyvalFromName("b"): //Open in browser
+			fmt.Printf("languge %s\n", np.lang)
 			_t, _ := np.buff.GetText(np.buff.GetStartIter(), np.buff.GetEndIter(), true)
 			md := []byte(_t)
-			output := markdown.ToHTML(md, nil, nil)
+			var output []byte
+			if ((np.lang == "") || (np.lang == "md") || (np.lang == "markdown")) {
+				output = markdown.ToHTML(md, nil, nil)
+			} else {
+				fmt.Println("render as raw text to browser")
+				output = md
+			}
 			browser.OpenReader(strings.NewReader(string(output)))
 		case gdk.KeyvalFromName("q"):
 			np.w.Close()
