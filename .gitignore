@@ -26,6 +26,7 @@ gnote
 .vscode
 gnote*amd64
 gnote*x86_64
+gnote-macos*
 ansible/test*.yaml
 *.orig
 \#*\#

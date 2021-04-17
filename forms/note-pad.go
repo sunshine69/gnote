@@ -314,6 +314,7 @@ func (np *NotePad) NoteSearch() {
 	if np.noteSearch == nil {
 		np.noteSearch = NewNoteSearch(np)
 	}
+	np.noteSearch.w.SetPosition(gtk.WIN_POS_CENTER_ON_PARENT)
 	np.noteSearch.w.Show()
 }
 func (np *NotePad) SaveNoteToFile() {
@@ -363,7 +364,7 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 			_t, _ := np.buff.GetText(np.buff.GetStartIter(), np.buff.GetEndIter(), true)
 			md := []byte(_t)
 			var output []byte
-			if ((np.lang == "") || (np.lang == "md") || (np.lang == "markdown")) {
+			if (np.lang == "") || (np.lang == "md") || (np.lang == "markdown") {
 				output = markdown.ToHTML(md, nil, nil)
 			} else {
 				fmt.Println("render as raw text to browser")
@@ -413,6 +414,9 @@ func (np *NotePad) TextChanged() {
 	_o, _ := np.builder.GetObject("bt_close")
 	b := _o.(*gtk.Button)
 	b.SetLabel("Cancel")
+	if np.noteSearch != nil {
+		np.noteSearch.ResetIter()
+	}
 }
 
 //FetchDataFromGUI - populate the Note data from GUI widget. Prepare to save to db or anything else
