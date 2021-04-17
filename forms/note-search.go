@@ -61,6 +61,7 @@ func (ns *NoteSearch) FindText() bool {
 	var foundIter1, foundIter2 *gtk.TextIter
 	var ok bool = true
 	var output = false
+	ns.curIter = buf.GetIterAtMark(buf.GetInsert())
 
 	if ns.isCmdFilter { //run external command and replace the note/selection with output
 		text, startI, endI := ns.np.GetSelection()
@@ -113,14 +114,13 @@ func (ns *NoteSearch) FindText() bool {
 			buf.DeleteSelection(true, true)
 			buf.InsertAtCursor(outStr)
 			//Not sure why the curIter is invalid after running. Need to get back otherwise crash
-			ns.curIter = buf.GetIterAtMark(buf.GetInsert())
+
 			return false //stop other actions
 		}
 	} else {
 		if ns.isIcase {
 			searchFlag = gtk.TEXT_SEARCH_CASE_INSENSITIVE
 		}
-
 		if ns.m2 != nil {
 			buf.PlaceCursor(buf.GetIterAtMark(ns.m2))
 			ns.curIter = buf.GetIterAtMark(buf.GetInsert())
@@ -135,6 +135,7 @@ func (ns *NoteSearch) FindText() bool {
 		} else {
 			if !ok {
 				MessageBox("Search text not found. Will reset iter")
+				buf.PlaceCursor(buf.GetStartIter())
 				ns.curIter = buf.GetStartIter()
 				ns.m1, ns.m2 = nil, nil
 			}
@@ -183,6 +184,17 @@ func (ns *NoteSearch) KeyPressed(o interface{}, ev *gdk.Event) {
 	}
 }
 
+func (ns *NoteSearch) ResetIter() {
+	//Crash the following code if textview does not have pointer
+	if !ns.np.textView.HasGrab() {
+		ns.np.textView.GrabFocus()
+	}
+	buf := ns.np.buff
+	fmt.Println("Init curIter")
+	ns.curIter = buf.GetIterAtMark(buf.GetInsert())
+	ns.m1, ns.m2 = nil, nil
+}
+
 //NewNoteSearch - Create new  NotePad
 func NewNoteSearch(np *NotePad) *NoteSearch {
 	ns := &NoteSearch{np: np}
@@ -208,15 +220,7 @@ func NewNoteSearch(np *NotePad) *NoteSearch {
 
 	ns.replaceBox = GetEntry(builder, "replace_text")
 
-	//Crash the following code if textview does not have pointer
-	if !np.textView.HasGrab() {
-		np.textView.GrabFocus()
-	}
-
-	buf := np.buff
-	fmt.Println("Init curIter")
-	ns.curIter = buf.GetIterAtMark(buf.GetInsert())
-	ns.m1, ns.m2 = nil, nil
+	ns.ResetIter()
 
 	ns.w.Connect("delete-event", func() bool {
 		ns.np.noteSearch = nil
