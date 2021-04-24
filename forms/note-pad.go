@@ -1,6 +1,7 @@
 package forms
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	sourceview "github.com/linuxerwang/sourceview3"
 	"github.com/pkg/browser"
+	"golang.org/x/net/publicsuffix"
 )
 
 //NotePad - GUI related
@@ -309,7 +311,7 @@ func (np *NotePad) SaveWindowSize() {
 	windowSize := fmt.Sprintf("%dx%d", w, h)
 	fmt.Printf("save side - %dx%d\n", w, h)
 	if e := SetConfig("window_size", windowSize); e != nil {
-		fmt.Printf("ERROR save side - %v\n", e)
+		MessageBox(fmt.Sprintf("ERROR save side - %v", e))
 	}
 }
 
@@ -476,10 +478,12 @@ func (np *NotePad) SaveToWebnote() {
 		WebNotePassword = InputDialog(
 			"title", "Password requried", "password-mask", '*', "label", "Enter webnote password. If you need OTP token, enter it at the end of the password separated with ':'")
 	}
-	webnoteUrl, _ := GetConfig("webnote_url", "https://note20.duckdns.org:6919")
-	cookieJar, _ := cookiejar.New(nil)
+	webnoteUrl, _ := GetConfig("webnote_url", "https://note.kaykraft.org:6919")
+	if CookieJar == nil {
+		CookieJar, _ = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	}
 	client := &http.Client{
-		Jar: cookieJar,
+		Jar: CookieJar,
 	}
 	otpCode := ""
 	otpPtn, _ := regexp.Compile(`([^\:]+)\:([\d]+)$`)
@@ -487,52 +491,59 @@ func (np *NotePad) SaveToWebnote() {
 	if len(_otpCode) == 3 {
 		otpCode = _otpCode[2]
 		WebNotePassword = _otpCode[1]
+	} else {
+		fmt.Printf("not found the TOPT pass\n")
 	}
 	if WebNoteUser == "" || WebNotePassword == "" {
 		MessageBox("No username or password. Aborting ...")
 		return
 	}
 	//Getfirst to get the csrf token
-	resp, err := client.Get(webnoteUrl + "/login")
+	resp, err := client.Get(webnoteUrl)
 	if err != nil {
-		fmt.Printf("ERROR sync webnote %v", err)
+		MessageBox(fmt.Sprintf("ERROR sync webnote %v", err))
 		return
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		fmt.Printf("ERROR sync webnote code %v", resp.StatusCode)
+		MessageBox(fmt.Sprintf("ERROR sync webnote code %v", resp.StatusCode))
 		return
 	}
 	csrfPtn := regexp.MustCompile(`name="gorilla.csrf.Token" value="([^"]+)"`)
 	respText, _ := ioutil.ReadAll(resp.Body)
+	respTextStr := string(respText)
+	fmt.Printf("DEBUG %s\n", respTextStr)
 	matches := csrfPtn.FindSubmatch(respText)
 	if len(matches) == 0 {
-		fmt.Printf("ERROR sync webnote Can not find csrf token in response\n")
+		MessageBox("ERROR sync webnote Can not find csrf token in response\n")
 		return
 	}
 	csrfToken := string(matches[1])
+
+	if bytes.Contains(respText, []byte("Enter login name and password:")) {
+		data := url.Values{
+			"username":           {WebNoteUser},
+			"password":           {WebNotePassword},
+			"totp_number":        {otpCode},
+			"gorilla.csrf.Token": {csrfToken},
+		}
+		resp, err = client.PostForm(webnoteUrl+"/login", data)
+		if err != nil {
+			MessageBox(fmt.Sprintf("ERROR - CRITICAL login to webnote %v", err))
+			WebNotePassword = ""
+			WebNoteUser = ""
+		}
+		respText, _ = ioutil.ReadAll(resp.Body)
+
+		if strings.HasPrefix(string(respText), "Failed login") {
+			MessageBox(fmt.Sprintf("ERROR Failed login - '%s'\n", respText))
+			WebNotePassword = ""
+			WebNoteUser = ""
+			return
+		}
+	}
+
 	data := url.Values{
-		"username":           {WebNoteUser},
-		"password":           {WebNotePassword},
-		"totp_number":        {otpCode},
-		"gorilla.csrf.Token": {csrfToken},
-	}
-	resp, err = client.PostForm(webnoteUrl+"/login", data)
-	if err != nil {
-		fmt.Printf("ERROR - CRITICAL login to webnote %v", err)
-		WebNotePassword = ""
-		WebNoteUser = ""
-	}
-	respText, _ = ioutil.ReadAll(resp.Body)
-
-	if strings.HasPrefix(string(respText), "Failed login") {
-		MessageBox("Error login to webnote. Check your password")
-		WebNotePassword = ""
-		WebNoteUser = ""
-		return
-	}
-
-	data = url.Values{
 		"title":              {np.Title},
 		"datelog":            {fmt.Sprintf("%d", np.Datelog)},
 		"timestamp":          {fmt.Sprintf("%d", np.Timestamp)},
@@ -547,7 +558,7 @@ func (np *NotePad) SaveToWebnote() {
 	}
 	resp, err = client.PostForm(webnoteUrl+"/savenote", data)
 	if err != nil {
-		fmt.Printf("ERROR - CRITICAL save to webnote %v", err)
+		MessageBox(fmt.Sprintf("ERROR - CRITICAL save to webnote %v", err))
 		panic(2)
 	}
 	respText, _ = ioutil.ReadAll(resp.Body)
@@ -562,7 +573,7 @@ func (np *NotePad) SaveToWebnote() {
 func (np *NotePad) SaveNote() {
 	np.FetchDataFromGUI()
 	if e := DbConn.Save(&np.Note).Error; e != nil {
-		fmt.Printf("ERROR can not save note - %v\n", e)
+		MessageBox(fmt.Sprintf("ERROR can not save note - %v\n", e))
 	} else {
 		fmt.Printf("INFO Note saved\n")
 		b := GetButton(np.builder, "bt_close")

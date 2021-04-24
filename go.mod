@@ -12,5 +12,5 @@ require (
 	github.com/linuxerwang/sourceview3 v0.0.0-20200530202158-9184b497454e
 	github.com/mattn/go-sqlite3 v1.14.6 // indirect
 	github.com/pkg/browser v0.0.0-20210115035449-ce105d075bb4
-	golang.org/x/sys v0.0.0-20210324051608-47abb6519492 // indirect
+	golang.org/x/net v0.0.0-20210423184538-5f58ad60dda6 // indirect
 )
