@@ -1,19 +1,23 @@
 package forms
 
 import (
-	"os"
 	"fmt"
+	"net/http/cookiejar"
+	"os"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 //DateLayout - global
 var DateLayout string
+
 //WebNotePassword
 var WebNotePassword string
+
 //WebNoteUser
 var WebNoteUser string
-
+var CookieJar *cookiejar.Jar
 
 //AppConfig - Application config struct
 type AppConfig struct {
@@ -34,11 +38,11 @@ func SetupConfigDB() {
 	fmt.Printf("Use dbpath %v\n", dbPath)
 	DbConn, err = gorm.Open("sqlite3", dbPath)
 	if err != nil {
-	  panic("failed to connect database")
+		panic("failed to connect database")
 	}
 	DbConn.AutoMigrate(&AppConfig{})
 	DbConn.AutoMigrate(&Note{})
-	setupSQL :=  `
+	setupSQL := `
 CREATE VIRTUAL TABLE IF NOT EXISTS note_fts USING fts5(title, datelog, content, content='notes', content_rowid='id');
 
 CREATE TRIGGER IF NOT EXISTS notes_ai AFTER INSERT ON notes BEGIN
@@ -71,18 +75,18 @@ func SetupDefaultConfig() {
 	DbConn.Unscoped().Exec("DELETE FROM app_configs;")
 
 	configSet := map[string]string{
-		"config_created": "",
+		"config_created":    "",
 		"list_imap_account": "",
-		"pnmain_win_pos" : "2202:54",
-		"select_limit" : "250",
-		"list_flags" : "TODO<|>IMPORTANT<|>URGENT",
-		"recent_filter_cmd" : "",
-		"window_size" : "429x503",
-		"main_window_size" : "300x291",
-		"date_layout": "02-01-2006 15:04:05 MST",
-		"webnote_url": "https://note.inxuanthuy.com:6919",
+		"pnmain_win_pos":    "2202:54",
+		"select_limit":      "250",
+		"list_flags":        "TODO<|>IMPORTANT<|>URGENT",
+		"recent_filter_cmd": "",
+		"window_size":       "429x503",
+		"main_window_size":  "300x291",
+		"date_layout":       "02-01-2006 15:04:05 MST",
+		"webnote_url":       "https://note.kaykraft.org:6919",
 	}
-	for key, val := range(configSet) {
+	for key, val := range configSet {
 		fmt.Printf("Inserting %s - %s\n", key, val)
 		if e := DbConn.Create(&AppConfig{Key: key, Val: val}).Error; e != nil {
 			fmt.Printf("ERROR %v\n", e)
@@ -108,7 +112,7 @@ func GetConfig(key ...string) (string, error) {
 //SetConfig - Set a config key with value
 func SetConfig(key, val string) error {
 	var cfg = AppConfig{}
-	if e := DbConn.FirstOrInit(&cfg, AppConfig{Key: key}).Error; e != nil{
+	if e := DbConn.FirstOrInit(&cfg, AppConfig{Key: key}).Error; e != nil {
 		return e
 	}
 	cfg.Val = val
