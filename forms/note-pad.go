@@ -227,7 +227,7 @@ func (np *NotePad) ClearURL() {
 }
 
 func (np *NotePad) DecryptContent() {
-	key := InputDialog("title", "Password required", "label", "Enter passphrase to encrypt: ", "password-mask", '*')
+	key := InputDialog("title", "Password required", "label", "Enter passphrase to decrypt: ", "password-mask", '*')
 	eCt, startI, endI := np.GetSelection()
 	eCt = strings.TrimPrefix(eCt, "ENC:")
 	eCt = strings.TrimSuffix(eCt, ":ENC")
