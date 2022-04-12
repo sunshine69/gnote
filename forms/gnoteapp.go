@@ -241,9 +241,7 @@ func (app *GnoteApp) doFullTextSearch() {
 	keyword, _ := w.GetText()
 	var sql string
 	fmt.Printf("keyword: '%s'\n", keyword)
-	if strings.HasPrefix(keyword, "fts:") {
-		sql = keyword
-	} else if keyword == "" || strings.HasPrefix(keyword, "f:") || strings.HasPrefix(keyword, "flags:") || strings.HasPrefix(keyword, "F:") || strings.HasPrefix(keyword, "FLAGS:") || strings.HasPrefix(keyword, " ") {
+	if keyword == "" || strings.HasPrefix(keyword, "f:") || strings.HasPrefix(keyword, "flags:") || strings.HasPrefix(keyword, "F:") || strings.HasPrefix(keyword, "FLAGS:") || strings.HasPrefix(keyword, " ") {
 		app.doSearch()
 		return
 	} else {
