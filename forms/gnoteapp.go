@@ -309,10 +309,14 @@ func (app *GnoteApp) doSearch() {
 		}
 		q = fmt.Sprintf("SELECT id, title, datelog, timestamp from notes WHERE %v", q)
 	} else {
-		tokens := strings.Split(keyword, " & ")
+		tokens := strings.Split(keyword, " + ")
 		_l := len(tokens)
-
+		if _l == 0 {
+			tokens = strings.Split(keyword, " & ")
+			_l = len(tokens)
+		}
 		for i, t := range tokens {
+			t = strings.TrimSpace(t)
 			if i == _l-1 {
 				q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') ORDER BY datelog DESC LIMIT 200;", q, t, t)
 			} else {
