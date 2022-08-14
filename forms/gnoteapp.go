@@ -146,10 +146,7 @@ func (app *GnoteApp) InitApp() {
 	window.Connect("delete-event", app.doExit)
 
 	window.SetTitle("gnote")
-	_, err := window.Connect("destroy", app.doExit)
-	if err != nil {
-		panic(err)
-	}
+	window.Connect("destroy", app.doExit)
 
 	statusBar := GetStatusBar(Builder, "status_bar")
 	statusBar.Push(1, "Welcome to gnote")
