@@ -20,7 +20,7 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-//NotePad - GUI related
+// NotePad - GUI related
 type NotePad struct {
 	app             *GnoteApp
 	w               *gtk.Window
@@ -38,12 +38,12 @@ type NotePad struct {
 	Note
 }
 
-//ShowMainWindowBtnClick -
+// ShowMainWindowBtnClick -
 func (np *NotePad) ShowMainWindowBtnClick(o *gtk.Button) {
 	np.app.ShowMain()
 }
 
-//Load - Load note data and set the widget with data
+// Load - Load note data and set the widget with data
 func (np *NotePad) Load(id int) {
 	if id < 0 { //Datelog only constructed in here and never be updated for teh life of the note.
 		np.Datelog = time.Now().UnixNano()
@@ -106,7 +106,7 @@ func (np *NotePad) Load(id int) {
 
 }
 
-//NewNotePad - Create new  NotePad
+// NewNotePad - Create new  NotePad
 func NewNotePad(id int) *NotePad {
 	np := &NotePad{}
 	builder, err := gtk.BuilderNewFromFile("glade/note.glade")
@@ -288,7 +288,7 @@ func (np *NotePad) AppendUpdateMarkBtnClick() {
 	np.textView.GrabFocus()
 }
 
-//NewNoteFromFile -
+// NewNoteFromFile -
 func NewNoteFromFile(filename string) *NotePad {
 	ct, e := ioutil.ReadFile(filename)
 	if e != nil {
@@ -301,7 +301,7 @@ func NewNoteFromFile(filename string) *NotePad {
 	return np
 }
 
-//SaveWindowSize -
+// SaveWindowSize -
 func (np *NotePad) SaveWindowSize() {
 	w, h := np.w.GetSize()
 	windowSize := fmt.Sprintf("%dx%d", w, h)
@@ -311,7 +311,7 @@ func (np *NotePad) SaveWindowSize() {
 	}
 }
 
-//NoteSearch - Search text in the note
+// NoteSearch - Search text in the note
 func (np *NotePad) NoteSearch() {
 	if np.noteSearch == nil {
 		np.noteSearch = NewNoteSearch(np)
@@ -343,7 +343,7 @@ func (np *NotePad) SaveNoteToFile() {
 	dlg.Destroy()
 }
 
-//KeyPressed - handle key board
+// KeyPressed - handle key board
 func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 	keyEvent := &gdk.EventKey{ev}
 	// fmt.Printf("Key val: %v\n", keyEvent.KeyVal())
@@ -411,7 +411,7 @@ Ctrl + q - Close this note window.
 	return false
 }
 
-//TextChanged - Marked as changed
+// TextChanged - Marked as changed
 func (np *NotePad) TextChanged() {
 	_o, _ := np.builder.GetObject("bt_close")
 	b := _o.(*gtk.Button)
@@ -421,7 +421,25 @@ func (np *NotePad) TextChanged() {
 	}
 }
 
-//FetchDataFromGUI - populate the Note data from GUI widget. Prepare to save to db or anything else
+func GetFirstnChar(text string, n int) (o string) {
+	text = strings.TrimSpace(text)
+	ptn0 := regexp.MustCompile(`\<[^\<]+\>`)
+	text = ptn0.ReplaceAllString(text, "")
+	ptn := regexp.MustCompile(`([^\n]+)\n`)
+	text = strings.TrimSpace(text)
+	o1 := ptn.FindString(text)
+	o1 = strings.TrimSpace(o1)
+	l := len(o1)
+	if l > n {
+		o = o1[0:n]
+	} else {
+		o = o1
+	}
+	o = strings.TrimSpace(o)
+	return o
+}
+
+// FetchDataFromGUI - populate the Note data from GUI widget. Prepare to save to db or anything else
 func (np *NotePad) FetchDataFromGUI() {
 	b := np.builder
 	var e error
@@ -455,6 +473,9 @@ func (np *NotePad) FetchDataFromGUI() {
 			fmt.Printf("ERROR can get content\n")
 		}
 	}
+	if np.Title == "" {
+		np.Title = GetFirstnChar(np.Content, 128)
+	}
 
 	np.Timestamp = time.Now().UnixNano()
 	if np.Title == "" {
@@ -462,7 +483,7 @@ func (np *NotePad) FetchDataFromGUI() {
 	}
 }
 
-//SaveToWebnote - save to webnote store
+// SaveToWebnote - save to webnote store
 func (np *NotePad) SaveToWebnote() {
 	np.SaveNote()
 	if WebNoteUser == "" {
@@ -568,7 +589,7 @@ func (np *NotePad) SaveToWebnote() {
 	}
 }
 
-//SaveNote - save current note
+// SaveNote - save current note
 func (np *NotePad) SaveNote() {
 	np.FetchDataFromGUI()
 	if e := DbConn.Save(&np.Note).Error; e != nil {
@@ -592,7 +613,7 @@ func (np *NotePad) closeBtnClick() {
 	np.w.Close()
 }
 
-//ToggleReadOnly - set content readonly mode
+// ToggleReadOnly - set content readonly mode
 func (np *NotePad) ToggleReadOnly(bt *gtk.ToggleButton) {
 	state := bt.GetActive()
 	if state {
@@ -604,8 +625,8 @@ func (np *NotePad) ToggleReadOnly(bt *gtk.ToggleButton) {
 	w.SetEditable(!(np.Readonly == 1))
 }
 
-//GetSelection - Get the current selection and return start_iter, end_iter, text
-//To be used in various places
+// GetSelection - Get the current selection and return start_iter, end_iter, text
+// To be used in various places
 func (np *NotePad) GetSelection() (string, *gtk.TextIter, *gtk.TextIter) {
 	buff := np.buff
 	if buff.GetHasSelection() {
@@ -628,7 +649,7 @@ func (np *NotePad) GetSelection() (string, *gtk.TextIter, *gtk.TextIter) {
 	return "", nil, nil
 }
 
-//HighlightBtnClick -
+// HighlightBtnClick -
 func (np *NotePad) HighlightBtnClick() {
 	fmt.Printf("Start Highlight\n")
 	buf := np.buff
