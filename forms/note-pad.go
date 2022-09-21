@@ -421,7 +421,23 @@ func (np *NotePad) TextChanged() {
 		np.noteSearch.ResetIter()
 	}
 }
-
+func GetFirstnChar(text string, n int) (o string) {
+	text = strings.TrimSpace(text)
+	ptn0 := regexp.MustCompile(`\<[^\<]+\>`)
+	text = ptn0.ReplaceAllString(text, "")
+	ptn := regexp.MustCompile(`([^\n]+)\n`)
+	text = strings.TrimSpace(text)
+	o1 := ptn.FindString(text)
+	o1 = strings.TrimSpace(o1)
+	l := len(o1)
+	if l > n {
+		o = o1[0:n]
+	} else {
+		o = o1
+	}
+	o = strings.TrimSpace(o)
+	return o
+}
 // FetchDataFromGUI - populate the Note data from GUI widget. Prepare to save to db or anything else
 func (np *NotePad) FetchDataFromGUI() {
 	b := np.builder
@@ -431,7 +447,6 @@ func (np *NotePad) FetchDataFromGUI() {
 	if e != nil {
 		fmt.Printf("ERROR get title entry text\n")
 	}
-
 	widget = GetEntry(b, "flags")
 	np.Flags, e = widget.GetText()
 	if e != nil {
@@ -456,7 +471,9 @@ func (np *NotePad) FetchDataFromGUI() {
 			fmt.Printf("ERROR can get content\n")
 		}
 	}
-
+	if np.Title == "" {
+		np.Title = GetFirstnChar(np.Content, 128)
+	}
 	np.Timestamp = time.Now().UnixNano()
 	if np.Title == "" {
 		np.Title = strings.ReplaceAll(ChunkString(np.Content, 64)[0], "\n", " ")
