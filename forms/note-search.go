@@ -6,14 +6,13 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"runtime"
 	"strings"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 )
 
-//NoteSearch - GUI related
+// NoteSearch - GUI related
 type NoteSearch struct {
 	w                 *gtk.Window
 	builder           *gtk.Builder
@@ -76,12 +75,8 @@ func (ns *NoteSearch) FindText() bool {
 			_tmpF.Write([]byte(text))
 			cmdText := fmt.Sprintf("%s %s", keyword, _tmpF.Name())
 			var cmd *exec.Cmd
-			if runtime.GOOS == "windows" {
-				commandList := strings.Fields(cmdText)
-				cmd = exec.Command(commandList[0], commandList[1:]...)
-			} else {
-				cmd = exec.Command("sh", "-c", cmdText)
-			}
+			commandList := strings.Fields(cmdText)
+			cmd = exec.Command(commandList[0], commandList[1:]...)
 			cmd.Env = append(os.Environ())
 			stdoutStderr, err := cmd.CombinedOutput()
 			if err != nil {
@@ -144,12 +139,12 @@ func (ns *NoteSearch) FindText() bool {
 	return output
 }
 
-//NoteFindText -
+// NoteFindText -
 func (ns *NoteSearch) NoteFindText() {
 	ns.FindText()
 }
 
-//NoteReplaceText -
+// NoteReplaceText -
 func (ns *NoteSearch) NoteReplaceText(o *gtk.Button) {
 	buf := ns.np.buff
 
@@ -162,7 +157,7 @@ func (ns *NoteSearch) NoteReplaceText(o *gtk.Button) {
 
 }
 
-//NoteReplaceAll -
+// NoteReplaceAll -
 func (ns *NoteSearch) NoteReplaceAll(o *gtk.Button) {
 	buf := ns.np.buff
 
@@ -195,7 +190,7 @@ func (ns *NoteSearch) ResetIter() {
 	ns.m1, ns.m2 = nil, nil
 }
 
-//NewNoteSearch - Create new  NotePad
+// NewNoteSearch - Create new  NotePad
 func NewNoteSearch(np *NotePad) *NoteSearch {
 	ns := &NoteSearch{np: np}
 	builder, err := gtk.BuilderNewFromFile("glade/note-search.glade")
