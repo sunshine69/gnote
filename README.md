@@ -155,3 +155,91 @@ See the output in the new note.
 
 Now you have the idea how to utilize this feature.
 
+## New example - use it as jsonformatter or yaml formatter
+
+Create a note with proper title and content below
+
+```
+from datetime import datetime, timedelta
+import ipaddress
+import time
+import csv, re, sys, os, subprocess
+from glob import glob
+import yaml, json, sqlite3, uuid
+
+def str_presenter(dumper, data):
+    """configures yaml for dumping multiline strings
+    Ref: https://stackoverflow.com/questions/8640959/how-can-i-control-what-scalar-form-pyyaml-uses-for-my-data
+    usage:
+        yaml.add_representer(str, str_presenter)
+        yaml.representer.SafeRepresenter.add_representer(str, str_presenter)
+    """
+    if data.count('\n') > 0:  # check for multiline string
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
+    return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+
+yaml.add_representer(str, str_presenter)
+yaml.representer.SafeRepresenter.add_representer(str, str_presenter)
+
+def json_dump(obj: dict, indent: int = 4):
+    o = json.dumps(obj, indent=indent)
+    print(o)
+    return o
+
+def json_dumps(jsontext: str, indent: int = 4):
+    obj = json.loads(jsontext)
+    return json_dump(obj, indent)
+
+def yaml_load(ymltext: str) ->dict:
+    return  yaml.load(ymltext, Loader=yaml.CLoader)
+
+def yaml_dumps(ymltext: str) ->str:
+    o = yaml_load(ymltext)
+    os = yaml.dump(o)
+    print(os)
+    return os
+
+def run_cmd(cmd,sendtxt=None, working_dir=".", args=[], shell=True, DEBUG=False, shlex=False):
+    if DEBUG:
+        cmd2 = re.sub('root:([^\s])', 'root:xxxxx', cmd) # suppress the root password printout
+        print(cmd2)
+    if sys.platform == "win32":
+        args = cmd
+    else:
+        if shlex:
+            import shlex
+            args = shlex.split(cmd)
+        else:
+            args = cmd
+    popen = subprocess.Popen(
+            args,
+            shell=shell,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            cwd=working_dir
+        )
+    if sendtxt: output, err = popen.communicate(bytearray(sendtxt, 'utf-8'))
+    else: output, err = popen.communicate()
+    code = popen.returncode
+    if not code == 0 or DEBUG:
+        output = "Command string: '%s'\n\n%s" % (cmd, output)
+    return (output.strip().decode(encoding='utf-8'), code, err)
+
+datatxt = '''
+{"what": 233, "ever": 3222}
+'''
+
+json_dumps(datatxt)
+```
+
+Click the highlight button to detect src type, if it pops up select python.
+
+You know, the `datatxt` is part where you paste your unformatted json or yaml. Then you can use the python func
+`json_dumps()` or `yaml_dumps()` to print out the output. There are several functions we defined above.
+
+After pasting text, and select which function to run (in here I use json_dumps); press Ctrl + f or click the
+search button in the right note tool bar. Select cmd, new type the command `python3` and click `cmd` button. See
+the output in the new note.
+
+I import several modules just if we need it but not all of them is used in the sample. Get wild!
