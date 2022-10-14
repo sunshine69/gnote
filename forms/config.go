@@ -9,33 +9,33 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-//DateLayout - global
+// DateLayout - global
 var DateLayout string
 
-//WebNotePassword
+// WebNotePassword
 var WebNotePassword string
 
-//WebNoteUser
+// WebNoteUser
 var WebNoteUser string
 var CookieJar *cookiejar.Jar
 
-//AppConfig - Application config struct
+// AppConfig - Application config struct
 type AppConfig struct {
 	gorm.Model
 	// Section string `gorm:"type:varchar(128);unique_index:section_key"`
 	Key string `gorm:"type:varchar(128);unique_index:section_key"`
-	Val string
+	Val string `gorm:"type:text"`
 }
 
-//DbConn - Global DB connection
+// DbConn - Global DB connection
 var DbConn *gorm.DB
 
-//SetupConfigDB - SetupDB. This is the initial point of config setup. Note init() does not work if it relies
-//on DbConn as at the time the DBPATH is not yet available
+// SetupConfigDB - SetupDB. This is the initial point of config setup. Note init() does not work if it relies
+// on DbConn as at the time the DBPATH is not yet available
 func SetupConfigDB() {
 	var err error
 	dbPath := os.Getenv("DBPATH")
-	fmt.Printf("Use dbpath %v\n", dbPath)
+	// fmt.Printf("Use dbpath %v\n", dbPath)
 	DbConn, err = gorm.Open("sqlite3", dbPath)
 	if err != nil {
 		panic("failed to connect database")
@@ -70,7 +70,7 @@ END;
 	WebNoteUser, _ = GetConfig("webnote_user")
 }
 
-//SetupDefaultConfig - Setup/reset default configuration set
+// SetupDefaultConfig - Setup/reset default configuration set
 func SetupDefaultConfig() {
 	DbConn.Unscoped().Exec("DELETE FROM app_configs;")
 
@@ -94,7 +94,7 @@ func SetupDefaultConfig() {
 	}
 }
 
-//GetConfig - by key and return value. Give second arg as default value.
+// GetConfig - by key and return value. Give second arg as default value.
 func GetConfig(key ...string) (string, error) {
 	var cfg = AppConfig{}
 	err := DbConn.Find(&cfg, AppConfig{Key: key[0]}).Error
@@ -109,7 +109,7 @@ func GetConfig(key ...string) (string, error) {
 	}
 }
 
-//SetConfig - Set a config key with value
+// SetConfig - Set a config key with value
 func SetConfig(key, val string) error {
 	var cfg = AppConfig{}
 	if e := DbConn.FirstOrInit(&cfg, AppConfig{Key: key}).Error; e != nil {
@@ -122,7 +122,7 @@ func SetConfig(key, val string) error {
 	return nil
 }
 
-//DeleteConfig - delete the config key
+// DeleteConfig - delete the config key
 func DeleteConfig(key string) error {
 	var cfg = AppConfig{}
 	if e := DbConn.Find(&cfg, AppConfig{Key: key}).Error; e != nil {

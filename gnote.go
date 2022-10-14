@@ -14,11 +14,9 @@ func main() {
 	gtk.Init(&os.Args)
 	dbPath := flag.String("db", "", "Path to the database file")
 	doMigrate := flag.Bool("mig", false, "Migrate")
+	oldDB := flag.String("old-db", "", "Path to the old database file. If it is encrypted pass the key like filename?_pragma_key=x'<YOUR_KEY>'")
+
 	flag.Parse()
-	if *doMigrate {
-		forms.DoMigration()
-		os.Exit(0)
-	}
 
 	workdir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
@@ -27,9 +25,9 @@ func main() {
 	}
 
 	if _, e := os.Stat(fmt.Sprintf("%s/glade", workdir)); e != nil {
-        forms.RestoreAssetsAll(workdir)
-    }
-    os.Chdir(workdir)
+		forms.RestoreAssetsAll(workdir)
+	}
+	os.Chdir(workdir)
 
 	homeDir, e := os.UserHomeDir()
 	if e != nil {
@@ -39,7 +37,32 @@ func main() {
 		*dbPath = fmt.Sprintf("%s%s%s", homeDir, string(os.PathSeparator), ".gnote.db")
 		fmt.Printf("Use the database file %s\n", *dbPath)
 	}
-	os.Setenv("DBPATH", *dbPath)
+
+	key := forms.InputDialog("title", "Enter decode 32 bytes key (64 char long)", "label", "Enter decode key. Type auto to auto generate. To disable leave it empty just hit enter", "password-mask", '*')
+	var fullDBPath string = ""
+	switch key {
+	case "auto":
+		key, _ = forms.RandomHex(32)
+		fmt.Printf("[INFO] HERE IS YOUR KEY. WRITE IT DOWN SAVE TO SOMWHERE. IF GET LOST ALL YOUR FUTURE DATA WILL BE GONE\n%s\n", key)
+		fullDBPath = fmt.Sprintf("%s?_pragma_key=x'%s'", *dbPath, key)
+	case "":
+		fmt.Println("[INFO] Encryption is disabled")
+		fullDBPath = *dbPath
+	default:
+		if len(key) == 64 {
+			fullDBPath = fmt.Sprintf("%s?_pragma_key=x'%s'", *dbPath, key)
+		} else {
+			fmt.Printf("[WARN] key length is not 64 char long, so use non hex key\n")
+			fullDBPath = fmt.Sprintf("%s?_pragma_key='%s'", *dbPath, key)
+		}
+	}
+
+	if *doMigrate {
+		forms.DoMigrationV1(*oldDB, fullDBPath)
+		os.Exit(0)
+	}
+
+	os.Setenv("DBPATH", fullDBPath)
 	forms.SetupConfigDB()
 
 	if _, e := forms.GetConfig("config_created"); e != nil {
