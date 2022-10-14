@@ -50,16 +50,16 @@ func main() {
 	switch key {
 	case "auto":
 		key, _ = u.RandomHex(32)
-		fmt.Printf("[INFO] HERE IS YOUR KEY. WRITE IT DOWN SAVE TO SOMWHERE. IF GET LOST ALL YOUR FUTURE DATA WILL BE GONE\n%s\n", key)
+		forms.InputDialog("title", "INFO", "label", "[INFO] HERE IS YOUR KEY. WRITE IT DOWN SAVE TO SOMEWHERE. IF GET LOST ALL YOUR FUTURE DATA WILL BE GONE", "default", key)
 		fullDBPath = fmt.Sprintf("%s?_pragma_key=x'%s'", *dbPath, key)
 	case "":
-		fmt.Println("[INFO] Encryption is disabled")
+		forms.MessageBox("[INFO] Encryption is disabled")
 		fullDBPath = *dbPath
 	default:
 		if len(key) == 64 {
 			fullDBPath = fmt.Sprintf("%s?_pragma_key=x'%s'", *dbPath, key)
 		} else {
-			fmt.Printf("[WARN] key length is not 64 char long, so use non hex key\n")
+			forms.MessageBox("[WARN] key length is not 64 char long, so use non hex key\n")
 			fullDBPath = fmt.Sprintf("%s?_pragma_key='%s'", *dbPath, key)
 		}
 	}
