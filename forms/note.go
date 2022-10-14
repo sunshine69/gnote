@@ -3,7 +3,7 @@ package forms
 import (
 	"fmt"
 	"time"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	// _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 //Note - data structure
