@@ -9,7 +9,34 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 )
+func DoMigrationV1(oldDB, newDB string) {
+	oldDBCon, _ := gorm.Open("sqlite3", oldDB)
+	newDbConn, _ := gorm.Open("sqlite3", newDB)
+	oldDBCon.AutoMigrate(&Note{})
+	oldDBCon.AutoMigrate(&AppConfig{})
+	newDbConn.AutoMigrate(&Note{})
+	newDbConn.AutoMigrate(&AppConfig{})
+	oldRows, err := oldDBCon.Raw("select ID, datelog, title, flags, timestamp, readonly, content, url, reminder_ticks, timestamp, format_tag, alert_count, pixbuf_dict, time_spent from notes;").Rows()
+	if err != nil {
+		log.Fatalf("[ERROR] %v\n", err)
+	}
+	defer oldRows.Close()
+	count := 0
+	newDbConn.Begin().New()
+	for oldRows.Next() {
+		// if count > 500 {
+		// 	break
+		// }
+		_newNote := Note{}
+		oldRows.Scan(&_newNote.ID, &_newNote.Datelog, &_newNote.Title, &_newNote.Flags, &_newNote.Timestamp, &_newNote.Readonly, &_newNote.Content, &_newNote.URL, &_newNote.ReminderTicks, &_newNote.Timestamp, &_newNote.FormatTag, &_newNote.AlertCount, &_newNote.PixbufDict, &_newNote.TimeSpent)
+		// fmt.Printf("note: %v\n", _newNote)
+		newDbConn.Create(&_newNote)
+		// newDbConn.Save(&_newNote)
+		count++
+	}
+	newDbConn.Commit()
 
+}
 //DoMigration - once off
 func DoMigration() {
 	// oldDBCon, _ := gorm.Open("sqlite3", "/home/stevek/Documents/clt.db")

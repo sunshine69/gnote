@@ -447,3 +447,11 @@ func pangoFinalize(inString string) string {
 	inString = strings.Replace(inString, pangoEscapeChar[1][2], pangoEscapeChar[1][1], -1)
 	return strings.Replace(inString, pangoEscapeChar[0][2], pangoEscapeChar[0][1], -1)
 }
+
+func RandomHex(n int) (string, error) {
+	bytes := make([]byte, n)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}

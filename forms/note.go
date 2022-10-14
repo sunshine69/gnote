@@ -3,25 +3,26 @@ package forms
 import (
 	"fmt"
 	"time"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-//Note - data structure
+// Note - data structure
 type Note struct {
-	ID int `gorm:"primary_key"`
-	Title string `gorm:"type:varchar(512);not null;unique_index"`
-	Datelog int64
-	Content string `gorm:"type:text"`
-	URL string
-	Flags string
-	ReminderTicks int64
-	Timestamp int64
-	Readonly int8 `gorm:"default 0"`
-	FormatTag []byte
-	AlertCount int8 `gorm:"type:int;default 0"`
-	PixbufDict []byte
-	TimeSpent int `gorm:"type:int;default 0"`
-	LastTextMark []byte
+	// Do not embed gorm Model as we use our own ID as primary key
+	// gorm.Model
+	ID            int    `gorm:"primary_key"`
+	Title         string `gorm:"type:varchar(512);not null;unique_index"`
+	Datelog       int64  `gorm:"type:int"`
+	Content       string `gorm:"type:text"`
+	URL           string `gorm:"type:text"`
+	Flags         string `gorm:"type:text"`
+	ReminderTicks int64  `gorm:"type:int;default 0"`
+	Timestamp     int64  `gorm:"type:int;default 0"`
+	Readonly      int8   `gorm:"default 0"`
+	FormatTag     []byte
+	AlertCount    int8 `gorm:"type:int;default 0"`
+	PixbufDict    []byte
+	TimeSpent     int `gorm:"type:int;default 0"`
+	LastTextMark  []byte
 }
 
 //NewNote - Create a new note object
