@@ -26,7 +26,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-//Time handling
+// Time handling
 const (
 	millisPerSecond     = int64(time.Second / time.Millisecond)
 	nanosPerMillisecond = int64(time.Millisecond / time.Nanosecond)
@@ -39,7 +39,7 @@ func nsToTime(ns int64) time.Time {
 	return time.Unix(secs, nanos)
 }
 
-//MessageBox - display a message
+// MessageBox - display a message
 func MessageBox(msg string) {
 	d := gtk.MessageDialogNew(nil, gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, msg)
 	d.Run()
@@ -55,7 +55,7 @@ func MessageBox(msg string) {
 // 	return tm
 // }
 
-//RestoreAssetsAll -
+// RestoreAssetsAll -
 func RestoreAssetsAll(extractDir string) {
 	for _, as := range AssetNames() {
 		fmt.Printf("Restore %s\n", as)
@@ -63,7 +63,7 @@ func RestoreAssetsAll(extractDir string) {
 	}
 }
 
-//ChunkString -
+// ChunkString -
 func ChunkString(s string, chunkSize int) []string {
 	var chunks []string
 	runes := []rune(s)
@@ -458,4 +458,12 @@ func pangoPrepare(inString string) string {
 func pangoFinalize(inString string) string {
 	inString = strings.Replace(inString, pangoEscapeChar[1][2], pangoEscapeChar[1][1], -1)
 	return strings.Replace(inString, pangoEscapeChar[0][2], pangoEscapeChar[0][1], -1)
+}
+
+func RandomHex(n int) (string, error) {
+	bytes := make([]byte, n)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
 }

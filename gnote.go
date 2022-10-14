@@ -39,7 +39,23 @@ func main() {
 		*dbPath = fmt.Sprintf("%s%s%s", homeDir, string(os.PathSeparator), ".gnote.db")
 		fmt.Printf("Use the database file %s\n", *dbPath)
 	}
-	os.Setenv("DBPATH", *dbPath)
+
+	key := forms.InputDialog("title", "Enter decode 32 bytes key (64 char long)", "label", "Enter decode key. Will auto generate if empty and in initial setup", "password-mask", '*')
+	var fullDBPath string = ""
+	if key == "" {
+		key, _ = forms.RandomHex(32)
+		fmt.Printf("[INFO] HERE IS YOUR KEY. WRITE IT DOWN SAVE TO SOMWHERE. IF GET LOST ALL YOUR FUTURE DATA WILL BE GONE\n%s\n", key)
+		fullDBPath = fmt.Sprintf("%s?_pragma_key=x'%s'", *dbPath, key)
+	} else {
+		if len(key) == 64 {
+		fullDBPath = fmt.Sprintf("%s?_pragma_key=x'%s'", *dbPath, key)
+		} else {
+			fmt.Printf("[WARN] key length is not 64 char long, so use non hex key")
+			fullDBPath = fmt.Sprintf("%s?_pragma_key='%s'", *dbPath, key)
+		}
+	}
+
+	os.Setenv("DBPATH", fullDBPath)
 	forms.SetupConfigDB()
 
 	if _, e := forms.GetConfig("config_created"); e != nil {
