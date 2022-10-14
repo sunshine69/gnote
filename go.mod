@@ -2,6 +2,8 @@ module github.com/sunshine69/gnote
 
 replace github.com/jinzhu/gorm => github.com/sunshine69/gorm v0.0.0-20221014040923-1961091f669a
 
+replace github.com/linuxerwang/sourceview3 => github.com/sunshine69/sourceview3 v0.0.0-20221014105841-66c9420e858d
+
 go 1.13
 
 require (
