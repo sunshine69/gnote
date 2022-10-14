@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os/exec"
+	"os"
 	"strings"
 
 	"github.com/alecthomas/chroma"
@@ -20,10 +20,12 @@ import (
 	"github.com/alecthomas/chroma/quick"
 	sourceview "github.com/linuxerwang/sourceview3"
 
-	// "strconv"
 	"time"
 
 	"github.com/gotk3/gotk3/gtk"
+	u "github.com/sunshine69/golang-tools/utils"
+	cp "github.com/otiai10/copy"
+	"path/filepath"
 )
 
 // Time handling
@@ -80,24 +82,6 @@ func ChunkString(s string, chunkSize int) []string {
 		chunks = append(chunks, string(runes[i:nn]))
 	}
 	return chunks
-}
-
-func runSystemCommand(command ...string) {
-	cmd := exec.Command(command[0], command[1])
-	var out, errOut bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &errOut
-	err := cmd.Start()
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		cmd.Wait()
-		if cmd.ProcessState.Success() {
-			fmt.Printf("OUTPUT CMD '%s' =>\n'%s'\n", strings.Join(command, " "), out.String())
-		} else {
-			fmt.Printf("Some error - %s\n", errOut.String())
-		}
-	}
 }
 
 //GUI helpers
@@ -466,4 +450,44 @@ func RandomHex(n int) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
+}
+
+// Python and msys shell is like s***t. File not found while file exists and etc etc.. FFS lets write it in golang
+func CreateWinBundle() {
+	srcRootDir := "c:/ansible_install"
+	srcDir := srcRootDir + "/gnote"
+	targetDir := srcRootDir + "/gnote-windows-bundle"
+	mingw64Prefix := "c:/tools/msys64/mingw64"
+
+	os.RemoveAll(targetDir)
+	for _, _f := range []string{"/bin", "/lib", "/share"} {
+		os.MkdirAll(targetDir +  _f, 0755)
+	}
+
+	err := cp.Copy(mingw64Prefix + "/lib/gdk-pixbuf-2.0", targetDir + "/lib/gdk-pixbuf-2.0")
+	fmt.Println(err)
+	err = cp.Copy(mingw64Prefix + "/share/glib-2.0", targetDir + "/share/glib-2.0")
+	fmt.Println(err)
+	err = cp.Copy(mingw64Prefix + "/share/gtksourceview-3.0", targetDir + "/share/gtksourceview-3.0")
+	fmt.Println(err)
+	err = cp.Copy(mingw64Prefix + "/share/icons", targetDir + "/share/icons")
+	fmt.Println(err)
+
+	exeFiles, err := filepath.Glob(srcDir + "/gnote*.exe")
+	u.CheckErr(err, "Glob")
+	for _, _f := range exeFiles { cp.Copy(_f,  targetDir + "/bin/" + filepath.Base(_f) ) }
+
+	dllFilesByte, err := os.ReadFile(srcDir + "/dll_files.lst")
+	u.CheckErr(err, "dll_files")
+	dllFilesStr := string(dllFilesByte)
+	dllFilesStr = strings.ReplaceAll(dllFilesStr, "\r\n", "\n")
+	lines := strings.Split(dllFilesStr, "\n")
+	for _, _f := range lines {
+		if _f != "" {
+			fmt.Printf("Copy %s/%s => %s/%s\n", mingw64Prefix, _f, targetDir + "/bin", _f )
+			err = cp.Copy(mingw64Prefix + "/bin/" +_f, targetDir + "/bin/" + _f)
+			fmt.Println(err)
+		}
+	}
+	fmt.Println("Output folder " + targetDir)
 }

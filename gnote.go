@@ -15,8 +15,14 @@ func main() {
 	dbPath := flag.String("db", "", "Path to the database file")
 	doMigrate := flag.Bool("mig", false, "Migrate")
 	oldDB := flag.String("old-db", "", "Path to the old database file. If it is encrypted pass the key like filename?_pragma_key=x'<YOUR_KEY>'")
+	createWinBundle := flag.Bool("create-win-bundle", false, "Create a windows bundle script")
 
 	flag.Parse()
+
+	if *createWinBundle {
+		forms.CreateWinBundle()
+		os.Exit(1)
+	}
 
 	workdir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {

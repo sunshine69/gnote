@@ -13,7 +13,9 @@ require (
 	github.com/gotk3/gotk3 v0.6.1
 	github.com/jinzhu/gorm v1.9.16
 	github.com/linuxerwang/sourceview3 v0.1.1
+	github.com/otiai10/copy v1.7.0
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
+	github.com/sunshine69/golang-tools/utils v0.0.0-20220929115838-4ef136848074
 	golang.org/x/net v0.0.0-20221012135044-0b7e1fb9d458
 	golang.org/x/sys v0.0.0-20221013171732-95e765b1cc43 // indirect
 )
