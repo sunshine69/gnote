@@ -6,25 +6,27 @@ import (
 	// _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-//Note - data structure
+// Note - data structure
 type Note struct {
-	ID int `gorm:"primary_key"`
-	Title string `gorm:"type:varchar(512);not null;unique_index"`
-	Datelog int64
-	Content string `gorm:"type:text"`
-	URL string
-	Flags string
-	ReminderTicks int64
-	Timestamp int64
-	Readonly int8 `gorm:"default 0"`
-	FormatTag []byte
-	AlertCount int8 `gorm:"type:int;default 0"`
-	PixbufDict []byte
-	TimeSpent int `gorm:"type:int;default 0"`
-	LastTextMark []byte
+	// Do not embed gorm Model as we use our own ID as primary key
+	// gorm.Model
+	ID            int    `gorm:"primary_key"`
+	Title         string `gorm:"type:varchar(512);not null;unique_index"`
+	Datelog       int64  `gorm:"type:int"`
+	Content       string `gorm:"type:text"`
+	URL           string `gorm:"type:text"`
+	Flags         string `gorm:"type:text"`
+	ReminderTicks int64  `gorm:"type:int;default 0"`
+	Timestamp     int64  `gorm:"type:int;default 0"`
+	Readonly      int8   `gorm:"default 0"`
+	FormatTag     []byte
+	AlertCount    int8 `gorm:"type:int;default 0"`
+	PixbufDict    []byte
+	TimeSpent     int `gorm:"type:int;default 0"`
+	LastTextMark  []byte
 }
 
-//NewNote - Create a new note object
+// NewNote - Create a new note object
 func (n *Note) NewNote(in map[string]interface{}) {
 	ct, ok := in["content"].(string)
 	if !ok {
@@ -34,9 +36,11 @@ func (n *Note) NewNote(in map[string]interface{}) {
 	titleText, ok := in["title"].(string)
 	if !ok {
 		// fmt.Printf("INFO No title provided, parse from content\n")
-		if ct != ""{
+		if ct != "" {
 			_l := len(ct)
-			if _l >= 64 {_l = 64}
+			if _l >= 64 {
+				_l = 64
+			}
 			titleText = ct[0:_l]
 			n.Content = ct
 		} else {
@@ -68,19 +72,19 @@ func (n *Note) NewNote(in map[string]interface{}) {
 
 	if flags, ok := in["flags"]; ok {
 		n.Flags = flags.(string)
-	} else{
+	} else {
 		n.Flags = ""
 	}
 
 	if url, ok := in["url"]; ok {
 		n.URL = url.(string)
-	} else{
+	} else {
 		n.URL = ""
 	}
 
 	if readonly, ok := in["readonly"]; ok {
 		n.Readonly = readonly.(int8)
-	} else{
+	} else {
 		n.Readonly = 0
 	}
 
@@ -89,7 +93,7 @@ func (n *Note) NewNote(in map[string]interface{}) {
 	}
 }
 
-//Update - Update existing note. Currently not need as the above already populate most data
+// Update - Update existing note. Currently not need as the above already populate most data
 func (n *Note) Update(in map[string]interface{}) {
 	if e := DbConn.Find(n, Note{ID: n.ID}).Error; e != nil {
 		fmt.Printf("INFO Can not find the note to update - %v\n", e)
@@ -98,7 +102,7 @@ func (n *Note) Update(in map[string]interface{}) {
 	if ok {
 		n.Title = titleText
 	}
-	for k, v := range(in) {
+	for k, v := range in {
 		switch k {
 		case "content":
 			n.Content = v.(string)
@@ -119,9 +123,9 @@ func (n *Note) Update(in map[string]interface{}) {
 	}
 }
 
-func (n *Note) String() string {return n.Title}
+func (n *Note) String() string { return n.Title }
 
-//Delete - Delete note
+// Delete - Delete note
 func (n *Note) Delete() {
 	DbConn.Unscoped().Delete(&n)
 	*n = Note{}

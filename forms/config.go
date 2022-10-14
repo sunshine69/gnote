@@ -24,7 +24,7 @@ type AppConfig struct {
 	gorm.Model
 	// Section string `gorm:"type:varchar(128);unique_index:section_key"`
 	Key string `gorm:"type:varchar(128);unique_index:section_key"`
-	Val string
+	Val string `gorm:"type:text"`
 }
 
 // DbConn - Global DB connection
@@ -35,7 +35,7 @@ var DbConn *gorm.DB
 func SetupConfigDB() {
 	var err error
 	dbPath := os.Getenv("DBPATH")
-	fmt.Printf("Use dbpath %v\n", dbPath)
+	// fmt.Printf("Use dbpath %v\n", dbPath)
 	DbConn, err = gorm.Open("sqlite3", dbPath)
 	if err != nil {
 		panic("failed to connect database")
