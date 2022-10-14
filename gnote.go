@@ -8,6 +8,7 @@ import (
 
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/sunshine69/gnote/forms"
+	u "github.com/sunshine69/golang-tools/utils"
 )
 
 func main() {
@@ -48,7 +49,7 @@ func main() {
 	var fullDBPath string = ""
 	switch key {
 	case "auto":
-		key, _ = forms.RandomHex(32)
+		key, _ = u.RandomHex(32)
 		fmt.Printf("[INFO] HERE IS YOUR KEY. WRITE IT DOWN SAVE TO SOMWHERE. IF GET LOST ALL YOUR FUTURE DATA WILL BE GONE\n%s\n", key)
 		fullDBPath = fmt.Sprintf("%s?_pragma_key=x'%s'", *dbPath, key)
 	case "":

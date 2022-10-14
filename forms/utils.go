@@ -3,12 +3,6 @@ package forms
 import (
 	"bufio"
 	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/md5"
-	"crypto/rand"
-	"encoding/base64"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
@@ -20,26 +14,12 @@ import (
 	"github.com/alecthomas/chroma/quick"
 	sourceview "github.com/linuxerwang/sourceview3"
 
-	"time"
+	"path/filepath"
 
 	"github.com/gotk3/gotk3/gtk"
-	u "github.com/sunshine69/golang-tools/utils"
 	cp "github.com/otiai10/copy"
-	"path/filepath"
+	u "github.com/sunshine69/golang-tools/utils"
 )
-
-// Time handling
-const (
-	millisPerSecond     = int64(time.Second / time.Millisecond)
-	nanosPerMillisecond = int64(time.Millisecond / time.Nanosecond)
-	nanosPerSecond      = int64(time.Second / time.Nanosecond)
-)
-
-func nsToTime(ns int64) time.Time {
-	secs := ns / nanosPerSecond
-	nanos := ns - secs*nanosPerSecond
-	return time.Unix(secs, nanos)
-}
 
 // MessageBox - display a message
 func MessageBox(msg string) {
@@ -63,25 +43,6 @@ func RestoreAssetsAll(extractDir string) {
 		fmt.Printf("Restore %s\n", as)
 		RestoreAssets(extractDir, as)
 	}
-}
-
-// ChunkString -
-func ChunkString(s string, chunkSize int) []string {
-	var chunks []string
-	runes := []rune(s)
-
-	if len(runes) == 0 {
-		return []string{s}
-	}
-
-	for i := 0; i < len(runes); i += chunkSize {
-		nn := i + chunkSize
-		if nn > len(runes) {
-			nn = len(runes)
-		}
-		chunks = append(chunks, string(runes[i:nn]))
-	}
-	return chunks
 }
 
 //GUI helpers
@@ -227,62 +188,6 @@ func GetButton(b *gtk.Builder, id string) (btn *gtk.Button) {
 
 	btn, _ = obj.(*gtk.Button)
 	return
-}
-
-func CreateHash(key string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(key))
-	return hex.EncodeToString(hasher.Sum(nil))
-}
-
-func Encrypt(text, key string) string {
-	text1 := []byte(text)
-	// generate a new aes cipher using our 32 byte long key
-	c, err := aes.NewCipher([]byte(CreateHash(key)))
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	gcm, err := cipher.NewGCM(c)
-	if err != nil {
-		fmt.Println(err)
-	}
-	nonce := make([]byte, gcm.NonceSize())
-	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		fmt.Println(err)
-	}
-	encData := gcm.Seal(nonce, nonce, text1, nil)
-	return base64.StdEncoding.EncodeToString(encData)
-}
-
-func Decrypt(ciphertextBase64 string, key string) (string, error) {
-	key1 := []byte(CreateHash(key))
-
-	ciphertext, err := base64.StdEncoding.DecodeString(ciphertextBase64)
-	if err != nil {
-		return "Decode error", err
-	}
-	c, err := aes.NewCipher(key1)
-	if err != nil {
-		return "NewCipher error", err
-	}
-
-	gcm, err := cipher.NewGCM(c)
-	if err != nil {
-		return "NewGCM error", err
-	}
-
-	nonceSize := gcm.NonceSize()
-	if len(ciphertext) < nonceSize {
-		return "Unexpected size with nonce data", err
-	}
-
-	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
-	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		return "Decrypt error", err
-	}
-	return string(plaintext), nil
 }
 
 // func GetFileChooserButton(b *gtk.Builder, id string) (btn *gtk.FileChooserButton) {
@@ -444,14 +349,6 @@ func pangoFinalize(inString string) string {
 	return strings.Replace(inString, pangoEscapeChar[0][2], pangoEscapeChar[0][1], -1)
 }
 
-func RandomHex(n int) (string, error) {
-	bytes := make([]byte, n)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
-}
-
 // Python and msys shell is like s***t. File not found while file exists and etc etc.. FFS lets write it in golang
 func CreateWinBundle() {
 	srcRootDir := "c:/ansible_install"
@@ -461,21 +358,23 @@ func CreateWinBundle() {
 
 	os.RemoveAll(targetDir)
 	for _, _f := range []string{"/bin", "/lib", "/share"} {
-		os.MkdirAll(targetDir +  _f, 0755)
+		os.MkdirAll(targetDir+_f, 0755)
 	}
 
-	err := cp.Copy(mingw64Prefix + "/lib/gdk-pixbuf-2.0", targetDir + "/lib/gdk-pixbuf-2.0")
+	err := cp.Copy(mingw64Prefix+"/lib/gdk-pixbuf-2.0", targetDir+"/lib/gdk-pixbuf-2.0")
 	fmt.Println(err)
-	err = cp.Copy(mingw64Prefix + "/share/glib-2.0", targetDir + "/share/glib-2.0")
+	err = cp.Copy(mingw64Prefix+"/share/glib-2.0", targetDir+"/share/glib-2.0")
 	fmt.Println(err)
-	err = cp.Copy(mingw64Prefix + "/share/gtksourceview-3.0", targetDir + "/share/gtksourceview-3.0")
+	err = cp.Copy(mingw64Prefix+"/share/gtksourceview-3.0", targetDir+"/share/gtksourceview-3.0")
 	fmt.Println(err)
-	err = cp.Copy(mingw64Prefix + "/share/icons", targetDir + "/share/icons")
+	err = cp.Copy(mingw64Prefix+"/share/icons", targetDir+"/share/icons")
 	fmt.Println(err)
 
 	exeFiles, err := filepath.Glob(srcDir + "/gnote*.exe")
 	u.CheckErr(err, "Glob")
-	for _, _f := range exeFiles { cp.Copy(_f,  targetDir + "/bin/" + filepath.Base(_f) ) }
+	for _, _f := range exeFiles {
+		cp.Copy(_f, targetDir+"/bin/"+filepath.Base(_f))
+	}
 
 	dllFilesByte, err := os.ReadFile(srcDir + "/dll_files.lst")
 	u.CheckErr(err, "dll_files")
@@ -484,8 +383,8 @@ func CreateWinBundle() {
 	lines := strings.Split(dllFilesStr, "\n")
 	for _, _f := range lines {
 		if _f != "" {
-			fmt.Printf("Copy %s/%s => %s/%s\n", mingw64Prefix, _f, targetDir + "/bin", _f )
-			err = cp.Copy(mingw64Prefix + "/bin/" +_f, targetDir + "/bin/" + _f)
+			fmt.Printf("Copy %s/%s => %s/%s\n", mingw64Prefix, _f, targetDir+"/bin", _f)
+			err = cp.Copy(mingw64Prefix+"/bin/"+_f, targetDir+"/bin/"+_f)
 			fmt.Println(err)
 		}
 	}

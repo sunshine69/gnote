@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	u "github.com/sunshine69/golang-tools/utils"
 )
 
 func DoMigrationV1(oldDB, newDB string) {
@@ -73,7 +74,7 @@ func DoMigration(oldDB, newDB string) {
 		rows.Scan(&note_id, &title, &datelog, &content, &flags, &url, &timestamp, &readonly)
 		_dData, e := strconv.ParseInt(datelog, 10, 64)
 		if e == nil {
-			d = nsToTime(_dData)
+			d = u.NsToTime(_dData)
 		} else {
 			if ptn.FindStringSubmatch(datelog) != nil {
 				datelog1 := fmt.Sprintf("%s AEST", datelog)

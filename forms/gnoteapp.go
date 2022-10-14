@@ -9,6 +9,7 @@ import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+	u "github.com/sunshine69/golang-tools/utils"
 )
 
 //GnoteApp - struct
@@ -264,8 +265,8 @@ func (app *GnoteApp) doFullTextSearch() {
 		}
 		id, title, datelog, lastUpdate = _note.ID, _note.Title, _note.Datelog, _note.Timestamp
 		// fmt.Printf("row: %v - %v %v\n", id, title, datelog)
-		_dateLogStr := nsToTime(datelog).Format(DateLayout)
-		_lastUpdateStr := nsToTime(lastUpdate).Format(DateLayout)
+		_dateLogStr := u.NsToTime(datelog).Format(DateLayout)
+		_lastUpdateStr := u.NsToTime(lastUpdate).Format(DateLayout)
 		iter := app.model.Append()
 		if e := app.model.Set(iter,
 			[]int{0, 1, 2, 3},
@@ -337,8 +338,8 @@ func (app *GnoteApp) doSearch() {
 	for rows.Next() {
 		rows.Scan(&id, &title, &datelog, &lastUpdate)
 		// fmt.Printf("row: %v - %v %v\n", id, title, datelog)
-		_dateLogStr := nsToTime(datelog).Format(DateLayout)
-		_lastUpdateStr := nsToTime(lastUpdate).Format(DateLayout)
+		_dateLogStr := u.NsToTime(datelog).Format(DateLayout)
+		_lastUpdateStr := u.NsToTime(lastUpdate).Format(DateLayout)
 		iter := app.model.Append()
 		if e := app.model.Set(iter,
 			[]int{0, 1, 2, 3},

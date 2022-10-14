@@ -19,6 +19,7 @@ import (
 	sourceview "github.com/linuxerwang/sourceview3"
 	"github.com/pkg/browser"
 	"golang.org/x/net/publicsuffix"
+	u "github.com/sunshine69/golang-tools/utils"
 )
 
 // NotePad - GUI related
@@ -47,7 +48,7 @@ func (np *NotePad) ShowMainWindowBtnClick(o *gtk.Button) {
 func (np *NotePad) Load(id int) {
 	if id < 0 { //Datelog only constructed in here and never be updated for the life of the note.
 		np.Datelog = time.Now().UnixNano()
-		np.wDateLog.SetText(nsToTime(np.Datelog).Format(DateLayout))
+		np.wDateLog.SetText(u.NsToTime(np.Datelog).Format(DateLayout))
 		np.StartUpdateTime = time.Now()
 		return
 	}
@@ -71,7 +72,7 @@ func (np *NotePad) Load(id int) {
 			return
 		}
 		w = _w.(*gtk.Entry)
-		w.SetText(nsToTime(np.Datelog).Format(DateLayout))
+		w.SetText(u.NsToTime(np.Datelog).Format(DateLayout))
 
 		_w, e = b.GetObject("flags")
 		if e != nil {
@@ -231,7 +232,7 @@ func (np *NotePad) DecryptContent() {
 	eCt, startI, endI := np.GetSelection()
 	eCt = strings.TrimPrefix(eCt, "ENC:")
 	eCt = strings.TrimSuffix(eCt, ":ENC")
-	ct, e := Decrypt(eCt, key)
+	ct, e := u.Decrypt(eCt, key)
 	if e != nil {
 		MessageBox("Decrypt error. Please check password")
 	} else {
@@ -244,7 +245,7 @@ func (np *NotePad) DecryptContent() {
 func (np *NotePad) EncryptContent() {
 	key := InputDialog("title", "Password required", "label", "Enter passphrase to encrypt: ", "password-mask", '*')
 	ct, startI, endI := np.GetSelection()
-	eCt := Encrypt(ct, key)
+	eCt := u.Encrypt(ct, key)
 	eCt = fmt.Sprintf("ENC:%s:ENC", eCt)
 	np.buff.SelectRange(startI, endI)
 	np.buff.DeleteSelection(true, true)
@@ -476,7 +477,7 @@ func (np *NotePad) FetchDataFromGUI() {
 	}
 	np.Timestamp = time.Now().UnixNano()
 	if np.Title == "" {
-		np.Title = strings.ReplaceAll(ChunkString(np.Content, 64)[0], "\n", " ")
+		np.Title = strings.ReplaceAll(u.ChunkString(np.Content, 64)[0], "\n", " ")
 	}
 }
 
