@@ -44,7 +44,10 @@ go-bindata -pkg forms -o forms/bindata.go -nomemcopy glade icons
 
 ```
 apt-get install libgtk-3-0  libgtk-3-dev ca-certificates
-go build --tags "icu json1 fts5 secure_delete" -ldflags='-s -w'
+go build --tags "icu json1 fts5 secure_delete" -ldflags='-s -w' 
+
+# To avoid glibc incompatibility maybe try:
+go build --tags "icu json1 fts5 secure_delete osusergo netgo sqlite_stat4 sqlite_foreign_keys" -ldflags='-s -w'
 ```
 
 My build is using a docker image to build and save cached. Basically at build host I pull and run image ubuntu:18.04 and exec in to install the above command. Download go and extract it to /usr/local. Then commit it into the image `golang-ubuntu-build`.  Now let the jenkins run it will use this image, pull go pkgs and build and save it as cache for the next build.
