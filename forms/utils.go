@@ -390,3 +390,22 @@ func CreateWinBundle() {
 	}
 	fmt.Println("Output folder " + targetDir)
 }
+
+func ChangePassphrase(old, new, keyFile string) error {
+	if old == "" || new == "" || keyFile == "" {
+		return fmt.Errorf("[ERROR] oldpass, newpass or keyfile is empty string")
+	}
+	keyEncData, err := os.ReadFile(keyFile)
+	if u.CheckErrNonFatal(err, "keyEncData") != nil {
+		return nil
+	}
+	key, err := u.Decrypt(string(keyEncData), old)
+	if u.CheckErrNonFatal(err, "Decrypt keyEncData") == nil {
+		keyEnc := u.Encrypt(key, new)
+		err = os.WriteFile(keyFile, []byte(keyEnc), 0600)
+		return u.CheckErrNonFatal(err, "WriteFile")
+	} else {
+		fmt.Println(string(keyEncData))
+	}
+	return nil
+}

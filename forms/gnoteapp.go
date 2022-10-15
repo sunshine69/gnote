@@ -12,7 +12,7 @@ import (
 	u "github.com/sunshine69/golang-tools/utils"
 )
 
-//GnoteApp - struct
+// GnoteApp - struct
 type GnoteApp struct {
 	Builder         *gtk.Builder
 	MainWindow      *gtk.Window
@@ -23,12 +23,12 @@ type GnoteApp struct {
 	searchBox       *gtk.SearchEntry
 }
 
-//ShowMain - show main window to do something. Meant to be called from NotePad
+// ShowMain - show main window to do something. Meant to be called from NotePad
 func (app *GnoteApp) ShowMain() {
 	app.MainWindow.Present()
 }
 
-//RowActivated - Process when a treeview list row activated. Pop up a note window with the id
+// RowActivated - Process when a treeview list row activated. Pop up a note window with the id
 func (app *GnoteApp) RowActivated(treeView *gtk.TreeView, path *gtk.TreePath, column *gtk.TreeViewColumn) {
 	// note_id = model.get_value(model.get_iter(path), 0)
 	model, _ := treeView.GetModel()
@@ -47,7 +47,7 @@ func (app *GnoteApp) RowActivated(treeView *gtk.TreeView, path *gtk.TreePath, co
 	}
 }
 
-//ResultListKeyPress - evt
+// ResultListKeyPress - evt
 func (app *GnoteApp) ResultListKeyPress(w *gtk.TreeView, ev *gdk.Event) {
 	keyEvent := &gdk.EventKey{ev}
 	// fmt.Printf("DEBUG KEY %v\n", keyEvent.KeyVal() )
@@ -63,7 +63,7 @@ func (app *GnoteApp) ResultListKeyPress(w *gtk.TreeView, ev *gdk.Event) {
 	}
 }
 
-//TreeSelectionChanged - evt
+// TreeSelectionChanged - evt
 func (app *GnoteApp) TreeSelectionChanged(s *gtk.TreeSelection) {
 	// Returns glib.List of gtk.TreePath pointers
 	ListStore := app.model
@@ -81,7 +81,17 @@ func (app *GnoteApp) TreeSelectionChanged(s *gtk.TreeSelection) {
 	app.selectedID = &items
 }
 
-//NewNoteFromFile -
+// Change Passphrase
+func (app *GnoteApp) DoChangePassphrase() {
+	currentPass := InputDialog("title", "Enter Current Passphrase", "label", "Enter CURRENT passphrase to decode key.", "password-mask", '*')
+	newPass := InputDialog("title", "Enter New Passphrase", "label", "Enter NEW passphrase to decode key.", "password-mask", '*')
+	fullDbPath := os.Getenv("DBPATH")
+	dbPath := strings.Split(fullDbPath, "?")[0]
+	keyFile := dbPath + ".key"
+	u.CheckErrNonFatal(ChangePassphrase(currentPass, newPass, keyFile), "Call ChangePassphrase")
+}
+
+// NewNoteFromFile -
 func (app *GnoteApp) NewNoteFromFile(o *gtk.FileChooserButton) {
 	np := NewNoteFromFile(o.GetFilename())
 	app.curNoteWindowID[np.ID] = np
@@ -114,13 +124,13 @@ Are you sure to do that? Type 'yes'. otherwise type 'no' or hit enter.
 	}
 }
 
-//DoUpdateResource -
+// DoUpdateResource -
 func (app *GnoteApp) DoUpdateResource() {
 	RestoreAssetsAll("./")
 	MessageBox("Resource is updated. You need to restart the program to take effect")
 }
 
-//InitApp -
+// InitApp -
 func (app *GnoteApp) InitApp() {
 	Builder := app.Builder
 
@@ -139,6 +149,7 @@ func (app *GnoteApp) InitApp() {
 		"DoResetDB":            app.DoResetDB,
 		"DoVacuum":             app.DoVacuum,
 		"DoUpdateResource":     app.DoUpdateResource,
+		"ChangePassphrase":     app.DoChangePassphrase,
 	}
 
 	Builder.ConnectSignals(signals)

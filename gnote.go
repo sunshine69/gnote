@@ -25,43 +25,56 @@ func main() {
 		os.Exit(1)
 	}
 
-	workdir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
-	}
+	binaryDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	u.CheckErr(err, "binaryDir")
 
-	if _, e := os.Stat(fmt.Sprintf("%s/glade", workdir)); e != nil {
-		forms.RestoreAssetsAll(workdir)
+	if _, e := os.Stat(fmt.Sprintf("%s/glade", binaryDir)); e != nil {
+		forms.RestoreAssetsAll(binaryDir)
 	}
-	os.Chdir(workdir)
+	// os.Chdir(binaryDir)
 
+	workDir, err := os.Getwd()
+	u.CheckErr(err, "Getwd")
 	homeDir, e := os.UserHomeDir()
-	if e != nil {
-		fmt.Printf("ERROR %v\n", e)
-	}
+	u.CheckErr(e, "UserHomeDir")
+
+	var keyFile string = ""
+
 	if *dbPath == "" {
 		*dbPath = fmt.Sprintf("%s%s%s", homeDir, string(os.PathSeparator), ".gnote.db")
-		fmt.Printf("Use the database file %s\n", *dbPath)
+		fmt.Println("Use the database file in user home dir")
+		keyFile = fmt.Sprintf("%s%s%s", homeDir, string(os.PathSeparator), ".gnote.db.key")
+	} else {
+		keyFile = fmt.Sprintf("%s%s%s", workDir, string(os.PathSeparator), *dbPath+".key")
+	}
+	var key, passphrase string
+	var initialSetup bool = false
+	if exist, _ := u.FileExists(keyFile); !exist {
+		initialSetup = true
+	}
+	passphrase = forms.InputDialog("title", "Enter Passphrase", "label", "Enter passphrase to decode key. hit enter if you know your DB is not encrypted", "password-mask", '*')
+	if passphrase != "" {
+		if initialSetup {
+			key, _ = u.RandomHex(32)
+			encryptedKey := u.Encrypt(key, passphrase)
+			err = os.WriteFile(keyFile, []byte(encryptedKey), 0600)
+			u.CheckErr(err, "Write encrypted key file")
+		} else {
+			keyEncodedByte, err := os.ReadFile(keyFile)
+			u.CheckErr(err, "keyEncodedByte")
+			key, err = u.Decrypt(string(keyEncodedByte), passphrase)
+			u.CheckErr(err, "Decode Key")
+		}
+	} else {
+		key = ""
 	}
 
-	key := forms.InputDialog("title", "Enter decode 32 bytes key (64 char long)", "label", "Enter decode key. Type auto to auto generate. To disable leave it empty just hit enter", "password-mask", '*')
 	var fullDBPath string = ""
 	switch key {
-	case "auto":
-		key, _ = u.RandomHex(32)
-		forms.InputDialog("title", "INFO", "label", "[INFO] HERE IS YOUR KEY. WRITE IT DOWN SAVE TO SOMEWHERE. IF GET LOST ALL YOUR FUTURE DATA WILL BE GONE", "default", key)
-		fullDBPath = fmt.Sprintf("%s?_pragma_key=x'%s'", *dbPath, key)
 	case "":
-		forms.MessageBox("[INFO] Encryption is disabled")
 		fullDBPath = *dbPath
 	default:
-		if len(key) == 64 {
-			fullDBPath = fmt.Sprintf("%s?_pragma_key=x'%s'", *dbPath, key)
-		} else {
-			forms.MessageBox("[WARN] key length is not 64 char long, so use non hex key\n")
-			fullDBPath = fmt.Sprintf("%s?_pragma_key='%s'", *dbPath, key)
-		}
+		fullDBPath = fmt.Sprintf("%s?_pragma_key=x'%s'", *dbPath, key)
 	}
 
 	if *doMigrate {
