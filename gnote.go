@@ -31,9 +31,9 @@ func main() {
 	if _, e := os.Stat(fmt.Sprintf("%s/glade", binaryDir)); e != nil {
 		forms.RestoreAssetsAll(binaryDir)
 	}
-	// os.Chdir(binaryDir)
+	// For loading the glade resources etc.. DBPATH should be absolute path
+	os.Chdir(binaryDir)
 
-	workDir, err := os.Getwd()
 	u.CheckErr(err, "Getwd")
 	homeDir, e := os.UserHomeDir()
 	u.CheckErr(e, "UserHomeDir")
@@ -45,7 +45,7 @@ func main() {
 		fmt.Println("Use the database file in user home dir")
 		keyFile = fmt.Sprintf("%s%s%s", homeDir, string(os.PathSeparator), ".gnote.db.key")
 	} else {
-		keyFile = fmt.Sprintf("%s%s%s", workDir, string(os.PathSeparator), *dbPath+".key")
+		keyFile = *dbPath+".key"
 	}
 	var key, passphrase string
 	var initialSetup bool = false
