@@ -74,6 +74,17 @@ $ sed -i -e 's/-Wl,-luuid/-luuid/g' /mingw64/lib/pkgconfig/gdk-3.0.pc # This fix
 $ go get github.com/gotk3/gotk3/gtk
 ```
 
+- MacOS
+
+I used these commands to build on MacOS Monterey for amd64
+
+```
+brew install pkg-config gtk+3 adwaita-icon-theme
+brew install gtksourceview3
+go build --tags "json1 fts5 secure_delete osusergo netgo sqlite_stat4 sqlite_foreign_keys" -ldflags='-s -w'
+```
+
+
 ## Text processing feature
 
 gnote is a smaller source editor and runner. The note itself is using gtksourceview with all syntax highlighting
