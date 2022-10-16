@@ -84,6 +84,19 @@ brew install gtksourceview3
 go build --tags "json1 fts5 secure_delete osusergo netgo sqlite_stat4 sqlite_foreign_keys" -ldflags='-s -w'
 ```
 
+To install it into the applciation folder so you can double click it in Finder and run it rather than run from terminal 
+
+```
+# at terminal
+mkdir ~/Applications/gnote.app
+# Extract the binary downloaded from teh release page
+tar xf gnote-macos-amd64.tgz -C ~/Applications/gnote.app
+# If you build it locally then just copy the binary to the fodler gnote.app above
+```
+
+Now you can use Finder and navigate to your Home/Applications you should see the app icon (actually it is the default icon). Double click the first time, it would extract these assets files like glade and icons. Then it will run the first setup.
+
+I do not know how to make it appear in the normal Applications - I need to navigte to my home first and get inside the Applications folder. Not sure why.
 
 ## Text processing feature
 
