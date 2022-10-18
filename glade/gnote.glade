@@ -76,6 +76,16 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Set application config key:value</property>
+                        <property name="label" translatable="yes">Set application config Key:Value</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="SetConfig" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkImageMenuItem">
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>

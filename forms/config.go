@@ -76,7 +76,6 @@ func SetupDefaultConfig() {
 
 	configSet := map[string]string{
 		"config_created":    "",
-		"list_imap_account": "",
 		"pnmain_win_pos":    "2202:54",
 		"select_limit":      "250",
 		"list_flags":        "TODO<|>IMPORTANT<|>URGENT",
@@ -84,7 +83,8 @@ func SetupDefaultConfig() {
 		"window_size":       "429x503",
 		"main_window_size":  "300x291",
 		"date_layout":       "02-01-2006 15:04:05 MST",
-		"webnote_url":       "https://note.kaykraft.org:6919",
+		"webnote_url":       "",
+		"debug":             "false",
 	}
 	for key, val := range configSet {
 		fmt.Printf("Inserting %s - %s\n", key, val)

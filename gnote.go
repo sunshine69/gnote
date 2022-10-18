@@ -45,7 +45,7 @@ func main() {
 		fmt.Println("Use the database file in user home dir")
 		keyFile = fmt.Sprintf("%s%s%s", homeDir, string(os.PathSeparator), ".gnote.db.key")
 	} else {
-		keyFile = *dbPath+".key"
+		keyFile = *dbPath + ".key"
 	}
 	var key, passphrase string
 	var initialSetup bool = false

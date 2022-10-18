@@ -18,8 +18,8 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	sourceview "github.com/linuxerwang/sourceview3"
 	"github.com/pkg/browser"
-	"golang.org/x/net/publicsuffix"
 	u "github.com/sunshine69/golang-tools/utils"
+	"golang.org/x/net/publicsuffix"
 )
 
 // NotePad - GUI related
@@ -439,6 +439,7 @@ func GetFirstnChar(text string, n int) (o string) {
 	o = strings.TrimSpace(o)
 	return o
 }
+
 // FetchDataFromGUI - populate the Note data from GUI widget. Prepare to save to db or anything else
 func (np *NotePad) FetchDataFromGUI() {
 	b := np.builder
@@ -496,7 +497,7 @@ func (np *NotePad) SaveToWebnote() {
 		WebNotePassword = InputDialog(
 			"title", "Password requried", "password-mask", '*', "label", "Enter webnote password. If you need OTP token, enter it at the end of the password separated with ':'")
 	}
-	webnoteUrl, _ := GetConfig("webnote_url", "https://note.kaykraft.org:6919")
+	webnoteUrl, _ := GetConfig("webnote_url", "")
 	if CookieJar == nil {
 		CookieJar, _ = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	}
@@ -529,8 +530,12 @@ func (np *NotePad) SaveToWebnote() {
 	}
 	csrfPtn := regexp.MustCompile(`name="gorilla.csrf.Token" value="([^"]+)"`)
 	respText, _ := ioutil.ReadAll(resp.Body)
-	respTextStr := string(respText)
-	fmt.Printf("DEBUG %s\n", respTextStr)
+
+	if debug, _ := GetConfig("debug", "FALSE"); debug == "TRUE" {
+		respTextStr := string(respText)
+		fmt.Printf("DEBUG %s\n", respTextStr)
+	}
+
 	matches := csrfPtn.FindSubmatch(respText)
 	if len(matches) == 0 {
 		MessageBox("ERROR sync webnote Can not find csrf token in response\n")

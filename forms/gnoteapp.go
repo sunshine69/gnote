@@ -91,6 +91,17 @@ func (app *GnoteApp) DoChangePassphrase() {
 	u.CheckErrNonFatal(ChangePassphrase(currentPass, newPass, keyFile), "Call ChangePassphrase")
 }
 
+// Set config Key -> Value. We no longe rbe able to open the db directly using sqlite3 command if teh file is encrypted thus we need this
+func (app *GnoteApp) DoSetConfig() {
+	key := InputDialog("title", "Set config KEY", "label", "Enter the config Key\nKey could be: select_limit, list_flags, webnote_url... See the config.go file for complete list")
+	val := InputDialog("title", "Set config VALUE", "label", "Enter the config Value\nSee the config.go file for details")
+	if err := SetConfig(key, val); err == nil {
+		MessageBox("Config key: " + key + " Value: " + val + " have been set")
+	} else {
+		MessageBox("Some errors. " + err.Error())
+	}
+}
+
 // NewNoteFromFile -
 func (app *GnoteApp) NewNoteFromFile(o *gtk.FileChooserButton) {
 	np := NewNoteFromFile(o.GetFilename())
@@ -150,6 +161,7 @@ func (app *GnoteApp) InitApp() {
 		"DoVacuum":             app.DoVacuum,
 		"DoUpdateResource":     app.DoUpdateResource,
 		"ChangePassphrase":     app.DoChangePassphrase,
+		"SetConfig":            app.DoSetConfig,
 	}
 
 	Builder.ConnectSignals(signals)
