@@ -383,7 +383,7 @@ func CreateWinBundle() {
 	lines := strings.Split(dllFilesStr, "\n")
 	for _, _f := range lines {
 		if _f != "" {
-			fmt.Printf("Copy %s/%s => %s/%s\n", mingw64Prefix, _f, targetDir+"/bin", _f)
+			fmt.Printf("Copy %s/bin/%s => %s/%s\n", mingw64Prefix, _f, targetDir+"/bin", _f)
 			err = cp.Copy(mingw64Prefix+"/bin/"+_f, targetDir+"/bin/"+_f)
 			fmt.Println(err)
 		}
