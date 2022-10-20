@@ -673,6 +673,14 @@ func (np *NotePad) HighlightBtnClick() {
 		lexerStr = c.Name
 	} else {
 		lexerStr = InputDialog("title", "Input required", "label", "Enter the language string for highlighter:", "default", "python")
+		checkLang := IsLanguageSupported(lexerStr)
+		if checkLang == "" {
+			MessageBox("The language string you type is not supported. To view list of language supported. Hit enter to show list of supported languages")
+			_n := Note{}
+			DbConn.First(&_n, Note{Title: "CreateDataNoteListOfLanguageSupport"})
+			newNp := NewNotePad(_n.ID)
+			newNp.app = np.app // Avoid crash when delete as it is orphaned
+		}
 	}
 	lexerStr = strings.ToLower(lexerStr)
 	np.Language, np.FileExt = lexerStr, LookupFileExtByLanguage(lexerStr)

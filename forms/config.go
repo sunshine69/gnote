@@ -70,6 +70,7 @@ END;
 	DateLayout, _ = GetConfig("date_layout")
 	WebNoteUser, _ = GetConfig("webnote_user")
 	CreateDataNoteLangFileExt()
+	CreateDataNoteListOfLanguageSupport()
 }
 
 // SetupDefaultConfig - Setup/reset default configuration set
@@ -145,11 +146,33 @@ func CreateDataNoteLangFileExt() {
 	defer DbConn.Save(&note)
 	if note.Content == "" {
 		// Fetch it so we do not waste memory by adding this resource to go-bindata
-		jsonText, err := u.Curl("GET", "https://raw.githubusercontent.com/sunshine69/gnote/gtksourceview/CreateDataNoteLangFileE.json", "", "", []string{})
+		jsonText, err := u.Curl("GET", "https://raw.githubusercontent.com/sunshine69/gnote/gtksourceview/CreateDataNoteLangFileExt.json", "", "", []string{})
 		if u.CheckErrNonFatal(err, "CreateDataNoteLangFileExt GET") != nil {
 			fmt.Println("Error fetching CreateDataNoteLangFileExt. You can manually search the note with title CreateDataNoteLangFileExt and insert the content yourself. The content is from the this repo project github")
 			return
 		}
 		note.Content = jsonText
+		note.Readonly = 1
+	}
+}
+
+// Parse the language string that current gtksourceview support and save it to a note so we can check against it
+// The list is created from this command on linux ls /usr/share/gtksourceview-3.0/language-specs/ | sed 's/.lang//'
+func CreateDataNoteListOfLanguageSupport() {
+	note := Note{}
+	if e := DbConn.FirstOrInit(&note, Note{Title: "CreateDataNoteListOfLanguageSupport"}).Error; e != nil {
+		fmt.Printf("INFO Can not create data note  CreateDataNoteListOfLanguageSupport %s\n", e.Error())
+		return
+	}
+	defer DbConn.Save(&note)
+	if note.Content == "" {
+		// Fetch it so we do not waste memory by adding this resource to go-bindata
+		jsonText, err := u.Curl("GET", "https://raw.githubusercontent.com/sunshine69/gnote/gtksourceview/CreateDataNoteListOfLanguageSupport.json", "", "", []string{})
+		if u.CheckErrNonFatal(err, "CreateDataNoteListOfLanguageSupport GET") != nil {
+			fmt.Println("Error fetching CreateDataNoteListOfLanguageSupport. You can manually search the note with title CreateDataNoteListOfLanguageSupport and insert the content yourself. The content is from the this repo project github")
+			return
+		}
+		note.Content = jsonText
+		note.Readonly = 1
 	}
 }

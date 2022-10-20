@@ -439,3 +439,27 @@ func LookupFileExtByLanguage(lang string) string {
 	fmt.Println("[INFO] Not found in the database. Use language name as extention")
 	return lang
 }
+
+// Take a string, lookup the supported language and if found return the string or match part of string. If completely not found, return empty string
+func IsLanguageSupported(lang string) string {
+	note := Note{}
+	DbConn.First(&note, Note{Title: "CreateDataNoteListOfLanguageSupport"})
+
+	jsonObjLst := []string{}
+	err := json.Unmarshal([]byte(note.Content), &jsonObjLst)
+	if u.CheckErrNonFatal(err, "CreateDataNoteListOfLanguageSupport Unmarshal") != nil {
+		fmt.Println("[ERROR] Use language name as extention")
+		return ""
+	}
+	langU := strings.ToUpper(lang)
+	for _, v := range jsonObjLst {
+		if strings.ToUpper(v) == langU  {
+			return v
+		}
+		if strings.Contains(strings.ToUpper(v), langU) {
+			return v
+		}
+	}
+	fmt.Println("[INFO] Not found in the database. Use language name as extention")
+	return ""
+}

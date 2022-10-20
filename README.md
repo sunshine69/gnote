@@ -44,9 +44,9 @@ go-bindata -pkg forms -o forms/bindata.go -nomemcopy glade icons
 
 ```
 apt-get install libgtk-3-0  libgtk-3-dev ca-certificates
-go build --tags "icu json1 fts5 secure_delete" -ldflags='-s -w' 
+go build --tags "icu json1 fts5 secure_delete" -ldflags='-s -w'
 
-# To avoid glibc incompatibility maybe try:
+# To avoid glibc incompatibility maybe try the below. Note it might cause link errors, if so use the previous build command.
 go build --tags "icu json1 fts5 secure_delete osusergo netgo sqlite_stat4 sqlite_foreign_keys" -ldflags='-s -w'
 ```
 
@@ -84,7 +84,7 @@ brew install gtksourceview3
 go build --tags "json1 fts5 secure_delete osusergo netgo sqlite_stat4 sqlite_foreign_keys" -ldflags='-s -w'
 ```
 
-To install it into the applciation folder so you can double click it in Finder and run it rather than run from terminal 
+To install it into the applciation folder so you can double click it in Finder and run it rather than run from terminal
 
 ```
 # at terminal
