@@ -10,6 +10,7 @@ import (
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
+	u "github.com/sunshine69/golang-tools/utils"
 )
 
 // NoteSearch - GUI related
@@ -71,8 +72,10 @@ func (ns *NoteSearch) FindText() bool {
 		}
 		outStr := ""
 		if replaceWith == "" {
-			_tmpF, _ := ioutil.TempFile("", fmt.Sprintf("browser*.%s", ns.np.lang))
+			_tmpF, _ := ioutil.TempFile("", fmt.Sprintf("browser*.%s", ns.np.Language))
 			_tmpF.Write([]byte(text))
+			err := _tmpF.Close()
+			u.CheckErrNonFatal(err, "run-command can not close tmp file")
 			cmdText := fmt.Sprintf("%s %s", keyword, _tmpF.Name())
 			var cmd *exec.Cmd
 			commandList := strings.Fields(cmdText)
@@ -192,7 +195,7 @@ func (ns *NoteSearch) ResetIter() {
 
 // NewNoteSearch - Create new  NotePad
 func NewNoteSearch(np *NotePad) *NoteSearch {
-	ns := &NoteSearch{np: np}
+	ns := &NoteSearch{np: np, isIcase: true}
 	builder, err := gtk.BuilderNewFromFile("glade/note-search.glade")
 	if err != nil {
 		panic(err)

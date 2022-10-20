@@ -7,6 +7,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	u "github.com/sunshine69/golang-tools/utils"
 )
 
 // DateLayout - global
@@ -55,7 +56,7 @@ END;
 
 CREATE TRIGGER IF NOT EXISTS notes_au AFTER UPDATE ON notes BEGIN
   INSERT INTO note_fts(note_fts, rowid, title, datelog, content) VALUES('delete', old.id, old.title, old.datelog, old.content);
- INSERT INTO note_fts(rowid, title, datelog, content) VALUES (new.id, new.title, new.datelog, new.content);
+  INSERT INTO note_fts(rowid, title, datelog, content) VALUES (new.id, new.title, new.datelog, new.content);
 END;
 `
 	DbConn.Exec(setupSQL)
@@ -68,6 +69,7 @@ END;
 	// value := Config.Val
 	DateLayout, _ = GetConfig("date_layout")
 	WebNoteUser, _ = GetConfig("webnote_user")
+	CreateDataNoteLangFileExt()
 }
 
 // SetupDefaultConfig - Setup/reset default configuration set
@@ -129,4 +131,25 @@ func DeleteConfig(key string) error {
 		return e
 	}
 	return DbConn.Unscoped().Delete(&cfg).Error
+}
+
+// Populate some notes needed for data lookup - used by other part of the app
+// Currently we store the language / file extention data but in the future we might store more
+// This note is used to lookup Language => File Extention so we can save the note to file with correct extension in note-pad.go and note-search.go
+func CreateDataNoteLangFileExt() {
+	note := Note{}
+	if e := DbConn.FirstOrInit(&note, Note{Title: "CreateDataNoteLangFileExt"}).Error; e != nil {
+		fmt.Printf("INFO Can not create data note  CreateDataNoteLangFileExt %s\n", e.Error())
+		return
+	}
+	defer DbConn.Save(&note)
+	if note.Content == "" {
+		// Fetch it so we do not waste memory by adding this resource to go-bindata
+		jsonText, err := u.Curl("GET", "https://raw.githubusercontent.com/sunshine69/gnote/gtksourceview/CreateDataNoteLangFileE.json", "", "", []string{})
+		if u.CheckErrNonFatal(err, "CreateDataNoteLangFileExt GET") != nil {
+			fmt.Println("Error fetching CreateDataNoteLangFileExt. You can manually search the note with title CreateDataNoteLangFileExt and insert the content yourself. The content is from the this repo project github")
+			return
+		}
+		note.Content = jsonText
+	}
 }

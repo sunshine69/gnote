@@ -24,6 +24,8 @@ type Note struct {
 	PixbufDict    []byte
 	TimeSpent     int `gorm:"type:int;default 0"`
 	LastTextMark  []byte
+	Language      string `gorm:"type:text"`
+	FileExt       string `gorm:"type:text"`
 }
 
 // NewNote - Create a new note object
@@ -86,6 +88,18 @@ func (n *Note) NewNote(in map[string]interface{}) {
 		n.Readonly = readonly.(int8)
 	} else {
 		n.Readonly = 0
+	}
+
+	if lang, ok := in["language"]; ok {
+		n.Language = lang.(string)
+	} else {
+		n.Language = "markdown"
+	}
+
+	if ext, ok := in["file-ext"]; ok {
+		n.FileExt = ext.(string)
+	} else {
+		n.FileExt = ".md"
 	}
 
 	if e := DbConn.Save(n).Error; e != nil {

@@ -34,7 +34,6 @@ type NotePad struct {
 	wDateLog        *gtk.Entry
 	wURL            *gtk.Entry
 	StartUpdateTime time.Time
-	lang            string
 	noteSearch      *NoteSearch
 	Note
 }
@@ -155,7 +154,7 @@ func NewNotePad(id int) *NotePad {
 	np.buff, _ = vWidget.GetBuffer()
 
 	lm, _ := sourceview.SourceLanguageManagerGetDefault()
-	l, _ := lm.GetLanguage("markdown")
+	l, _ := lm.GetLanguage(np.Language)
 	np.buff.SetLanguage(l)
 
 	_w, e := builder.GetObject("title")
@@ -202,6 +201,7 @@ func NewNotePad(id int) *NotePad {
 		return false
 	})
 	np.w.ShowAll()
+	np.DoHighlight()
 	return np
 }
 
@@ -331,7 +331,7 @@ func (np *NotePad) SaveNoteToFile() {
 	)
 	dlg.SetDefaultResponse(gtk.RESPONSE_OK)
 	filter, _ := gtk.FileFilterNew()
-	filter.SetName("txt")
+	filter.SetName(np.FileExt)
 	// filter.AddMimeType("text/text")
 	// filter.AddMimeType("image/jpeg")
 	// filter.AddPattern("*.png")
@@ -361,11 +361,11 @@ func (np *NotePad) KeyPressed(o interface{}, ev *gdk.Event) bool {
 		case gdk.KeyvalFromName("f"): //Find & Replace
 			np.NoteSearch()
 		case gdk.KeyvalFromName("b"): //Open in browser
-			fmt.Printf("languge %s\n", np.lang)
+			fmt.Printf("languge %s\n", &np.Language)
 			_t, _ := np.buff.GetText(np.buff.GetStartIter(), np.buff.GetEndIter(), true)
 			md := []byte(_t)
 			var output []byte
-			if (np.lang == "") || (np.lang == "md") || (np.lang == "markdown") {
+			if (np.Language == "") || (np.Language == "md") || (np.Language == "markdown") {
 				output = markdown.ToHTML(md, nil, nil)
 			} else {
 				fmt.Println("render as raw text to browser")
@@ -675,10 +675,8 @@ func (np *NotePad) HighlightBtnClick() {
 		lexerStr = InputDialog("title", "Input required", "label", "Enter the language string for highlighter:", "default", "python")
 	}
 	lexerStr = strings.ToLower(lexerStr)
-	np.lang = lexerStr
-	lm, _ := sourceview.SourceLanguageManagerGetDefault()
-	l, _ := lm.GetLanguage(lexerStr)
-	np.buff.SetLanguage(l)
+	np.Language, np.FileExt = lexerStr, LookupFileExtByLanguage(lexerStr)
+	np.DoHighlight()
 	// formattedSource, err := ChromaHighlight(someSourceCode, lexerStr)
 	// if err == nil {
 	// 	buf.Delete(startI, endI)
@@ -686,4 +684,13 @@ func (np *NotePad) HighlightBtnClick() {
 	// } else {
 	// 	fmt.Printf("%v\n", err)
 	// }
+}
+func (np *NotePad) DoHighlight() {
+	lm, _ := sourceview.SourceLanguageManagerGetDefault()
+	l, err := lm.GetLanguage(np.Language)
+	if u.CheckErrNonFatal(err, "GetLanguage for " + np.Language) == nil {
+		np.buff.SetLanguage(l)
+	} else {
+		fmt.Println("[ERROR] can not set language " + np.Language)
+	}
 }

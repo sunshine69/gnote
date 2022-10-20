@@ -210,7 +210,7 @@ func (app *GnoteApp) InitApp() {
 	h, _ := strconv.Atoi(_size[1])
 	window.SetDefaultSize(w, h)
 
-	window.Move(3000, 0)
+	// window.Move(3000, 0)
 	window.ShowAll()
 }
 

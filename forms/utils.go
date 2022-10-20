@@ -3,6 +3,7 @@ package forms
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -408,4 +409,33 @@ func ChangePassphrase(old, new, keyFile string) error {
 		fmt.Println(string(keyEncData))
 	}
 	return nil
+}
+
+func LookupFileExtByLanguage(lang string) string {
+	note := Note{}
+	DbConn.First(&note, Note{Title: "CreateDataNoteLangFileExt"})
+	type LangExtData struct {
+		Name        string   `json:"name"`
+		Type        string   `json:"type"`
+		Extenstions []string `json:"extensions"`
+	}
+	jsonObjLst := []LangExtData{}
+	err := json.Unmarshal([]byte(note.Content), &jsonObjLst)
+	if u.CheckErrNonFatal(err, "LookupFileExtByLanguage Unmarshal") != nil {
+		fmt.Println("[ERROR] Use language name as extention")
+		return lang
+	}
+	lang = strings.ToUpper(lang)
+	for _, v := range jsonObjLst {
+		if strings.ToUpper(v.Name) == lang {
+			if len(v.Extenstions) >= 1 {
+				return v.Extenstions[0]
+			} else {
+				fmt.Println("[ERROR] Language found but no ext found. Use language name as extention")
+				return lang
+			}
+		}
+	}
+	fmt.Println("[INFO] Not found in the database. Use language name as extention")
+	return lang
 }
