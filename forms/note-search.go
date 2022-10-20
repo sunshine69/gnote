@@ -72,7 +72,7 @@ func (ns *NoteSearch) FindText() bool {
 		}
 		outStr := ""
 		if replaceWith == "" {
-			_tmpF, _ := ioutil.TempFile("", fmt.Sprintf("browser*.%s", ns.np.Language))
+			_tmpF, _ := ioutil.TempFile("", fmt.Sprintf("browser*.%s", ns.np.FileExt))
 			_tmpF.Write([]byte(text))
 			err := _tmpF.Close()
 			u.CheckErrNonFatal(err, "run-command can not close tmp file")
