@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"regexp"
@@ -13,7 +14,11 @@ import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	u "github.com/sunshine69/golang-tools/utils"
+	"github.com/yuin/gluare"
 	lua "github.com/yuin/gopher-lua"
+	"github.com/cjoudrey/gluahttp"
+	"github.com/kohkimakimoto/gluayaml"
+	gopherjson "github.com/layeh/gopher-json"
 )
 
 // NoteSearch - GUI related
@@ -73,6 +78,10 @@ func RunLuaFile(luaFileName string) string {
 
 	L := lua.NewState()
 	defer L.Close()
+	L.PreloadModule("re", gluare.Loader)
+	L.PreloadModule("http", gluahttp.NewHttpModule(&http.Client{}).Loader)
+	L.PreloadModule("yaml", gluayaml.Loader)
+	L.PreloadModule("yaml", gopherjson.Loader)
 	err := L.DoFile(luaFileName)
 	u.CheckErrNonFatal(err, "Lua DoFile")
 
@@ -110,7 +119,7 @@ func (ns *NoteSearch) FindText() bool {
 			var outStr string
 			if commandList[0] == "gopher-lua" {
 				// Use internal lua VM to run the code
-				outStr = RunLuaFile( _tmpF.Name() )
+				outStr = RunLuaFile(_tmpF.Name())
 			} else {
 				cmd := exec.Command(commandList[0], commandList[1:]...)
 				cmd.Env = append(os.Environ())
