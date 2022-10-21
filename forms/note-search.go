@@ -11,14 +11,14 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/cjoudrey/gluahttp"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/kohkimakimoto/gluayaml"
+	gopherjson "github.com/layeh/gopher-json"
 	u "github.com/sunshine69/golang-tools/utils"
 	"github.com/yuin/gluare"
 	lua "github.com/yuin/gopher-lua"
-	"github.com/cjoudrey/gluahttp"
-	"github.com/kohkimakimoto/gluayaml"
-	gopherjson "github.com/layeh/gopher-json"
 )
 
 // NoteSearch - GUI related
@@ -62,6 +62,14 @@ func (ns *NoteSearch) OutputToNewNote(o *gtk.CheckButton) {
 	ns.searchBox.GrabFocus()
 }
 
+func GetNoteFromLua(L *lua.LState) int {
+	title := L.ToString(1) /* get argument */
+	note := Note{}
+	DbConn.First(&note, Note{Title: title})
+	L.Push(lua.LString(note.Content)) /* push result */
+	return 1                          /* number of results */
+}
+
 func RunLuaFile(luaFileName string) string {
 	old := os.Stdout // keep backup of the real stdout
 
@@ -82,6 +90,7 @@ func RunLuaFile(luaFileName string) string {
 	L.PreloadModule("http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 	L.PreloadModule("yaml", gluayaml.Loader)
 	L.PreloadModule("yaml", gopherjson.Loader)
+	L.SetGlobal("getnote", L.NewFunction(GetNoteFromLua))
 	err := L.DoFile(luaFileName)
 	u.CheckErrNonFatal(err, "Lua DoFile")
 
