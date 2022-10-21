@@ -1,7 +1,9 @@
 package forms
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -11,6 +13,7 @@ import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	u "github.com/sunshine69/golang-tools/utils"
+	lua "github.com/yuin/gopher-lua"
 )
 
 // NoteSearch - GUI related
@@ -54,6 +57,31 @@ func (ns *NoteSearch) OutputToNewNote(o *gtk.CheckButton) {
 	ns.searchBox.GrabFocus()
 }
 
+func RunLuaFile(luaFileName string) string {
+	old := os.Stdout // keep backup of the real stdout
+
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	outC := make(chan string)
+	// copy the output in a separate goroutine so printing can't block indefinitely
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, r)
+		outC <- buf.String()
+	}()
+
+	L := lua.NewState()
+	defer L.Close()
+	err := L.DoFile(luaFileName)
+	u.CheckErrNonFatal(err, "Lua DoFile")
+
+	w.Close()
+	os.Stdout = old
+	out := <-outC
+	return out
+}
+
 func (ns *NoteSearch) FindText() bool {
 	buf := ns.np.buff
 	keyword, _ := ns.searchBox.GetText()
@@ -77,17 +105,24 @@ func (ns *NoteSearch) FindText() bool {
 			err := _tmpF.Close()
 			u.CheckErrNonFatal(err, "run-command can not close tmp file")
 			cmdText := fmt.Sprintf("%s %s", keyword, _tmpF.Name())
-			var cmd *exec.Cmd
+
 			commandList := strings.Fields(cmdText)
-			cmd = exec.Command(commandList[0], commandList[1:]...)
-			cmd.Env = append(os.Environ())
-			stdoutStderr, err := cmd.CombinedOutput()
-			if err != nil {
-				fmt.Printf("DEBUG E %v\n", err)
+			var outStr string
+			if commandList[0] == "gopher-lua" {
+				// Use internal lua VM to run the code
+				outStr = RunLuaFile( _tmpF.Name() )
+			} else {
+				cmd := exec.Command(commandList[0], commandList[1:]...)
+				cmd.Env = append(os.Environ())
+				stdoutStderr, err := cmd.CombinedOutput()
+				if err != nil {
+					fmt.Printf("DEBUG E %v\n", err)
+				}
+				outStr = string(stdoutStderr)
 			}
 			os.Remove(_tmpF.Name())
 			SetConfig("last_cmd_filter", keyword)
-			outStr = string(stdoutStderr)
+
 			if ns.isOutputToNewNote {
 				_np := NewNotePad(-1)
 				_np.app = ns.np.app
