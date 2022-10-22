@@ -98,6 +98,18 @@ Now you can use Finder and navigate to your Home/Applications you should see the
 
 I do not know how to make it appear in the normal Applications - I need to navigte to my home first and get inside the Applications folder. Not sure why.
 
+ISSUES
+
+The first time you run it it may give you the error like this
+
+```
+gnote[1532:17457] *** Terminating app due to uncaught exception 'NSInternalInconsistencyException', reason: 'NSWindow drag regions should only be invalidated on the Main Thread!'
+```
+
+I think as I display the dialog without opening a main window. On MAC they prohibit it. The setup process has been completed at that time thus the next time you run it will run fine.
+
+I will have some time to think how to fix that problem.
+
 ## Text processing feature
 
 gnote is a smaller source editor and runner. The note itself is using gtksourceview with all syntax highlighting
@@ -117,6 +129,10 @@ also PCRE compatible.
 Click the `cmd` button to turn it into run a external command on the sections/or the whole content. In here you
 can run `sed` or `perl` etc. You do not need to quote - example like type `sed s/^/#/g` to add `#` at the
 begining of the line.
+
+If you type `gopher-lua` then it will trigger to use the internal lua5.1 VM inpterpreter and will run the note (or selection content) as lua code. See [gopher-lua](https://github.com/yuin/gopher-lua) for more. I include some libraries as well, gluare (allow golang regexp syntax to use), gluahttp (http client), gopher-json, gluayaml (handle json and yaml), gluacrypto (some simple crypto func). Please refer to this site for examples of usage.
+
+This allows us to use text processing features without any external command. For more about Lua programming language see [this](https://www.lua.org).
 
 It works by taking the note content or selection, write it to a temporary file with the extention detected by
 the highlight button and run the command you type using the file path as the last argument.
@@ -182,7 +198,7 @@ See the output in the new note.
 
 Now you have the idea how to utilize this feature.
 
-## New example - use it as jsonformatter or yaml formatter
+## New example - use python3 modules as jsonformatter or yaml formatter
 
 Create a note with proper title and content below
 
@@ -270,3 +286,35 @@ search button in the right note tool bar. Select cmd, new type the command `pyth
 the output in the new note.
 
 I import several modules just if we need it but not all of them is used in the sample. Get wild!
+
+## New example - Use built in Lua VM
+
+Create a note with content below
+
+```
+local re = require("re")
+local http = require("http")
+
+content = getnote("CreateDataNoteListOfLanguageSupport")
+print(content)
+```
+
+First/Second line to allow you to use the module `re` using golang regexp syntax, but the command is the same as lua regex (string.find, gsub etc)
+
+Next, you can get the data as string from a existing note. The func `getnote` will search a note with the title `CreateDataNoteListOfLanguageSupport` and get the content. Note that there are notes which is automatically created at startup if it does not exists to serve as a data point for some internal usage. At the moment there are 2 and you should not remove it as if you do, it will be re-created again at the next start, and in your session some feature might stop working.
+
+Now you can use anything lua allows you with the content.
+
+You can fetch url to get the content as well using http. See https://github.com/cjoudrey/gluahttp.
+
+```
+response, error_message = http.request("GET", "http://example.com", {
+    query="page=1",
+    timeout="30s",
+    headers={
+        Accept="*/*"
+    }
+})
+print(response.body)
+-- response has fields:  body (string), body_size (number), headers (table), cookies (table), status_code (number), url (string)
+```
