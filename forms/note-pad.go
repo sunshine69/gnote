@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -267,7 +268,7 @@ func (np *NotePad) EndUpdateMarkBtnClick() {
 }
 
 func (np *NotePad) InsertFileToNote(o *gtk.FileChooserButton) {
-	ct, _ := ioutil.ReadFile(o.GetFilename())
+	ct, _ := os.ReadFile(o.GetFilename())
 	buf := np.buff
 	buf.InsertAtCursor(string(ct))
 }
@@ -295,7 +296,7 @@ func (np *NotePad) AppendUpdateMarkBtnClick() {
 
 // NewNoteFromFile -
 func NewNoteFromFile(filename string) *NotePad {
-	ct, e := ioutil.ReadFile(filename)
+	ct, e := os.ReadFile(filename)
 	if e != nil {
 		MessageBox("Can not open file for reading")
 		return nil
@@ -329,6 +330,7 @@ func (np *NotePad) SaveNoteToFile() {
 		"choose file", nil, gtk.FILE_CHOOSER_ACTION_SAVE,
 		"Open", gtk.RESPONSE_OK, "Cancel", gtk.RESPONSE_CANCEL,
 	)
+	defer dlg.Destroy()
 	dlg.SetDefaultResponse(gtk.RESPONSE_OK)
 	filter, _ := gtk.FileFilterNew()
 	filter.SetName(np.FileExt)
@@ -336,16 +338,14 @@ func (np *NotePad) SaveNoteToFile() {
 	// filter.AddMimeType("image/jpeg")
 	// filter.AddPattern("*.png")
 	// filter.AddPattern("*.jpg")
-	filter.AddPattern("*.*")
+	filter.AddPattern("*" + np.FileExt)
 	dlg.SetFilter(filter)
 	response := dlg.Run()
 	if response == gtk.RESPONSE_OK {
 		filename := dlg.GetFilename()
-		// imgview.SetFromFile(filename)
 		text, _, _ := np.GetSelection()
 		ioutil.WriteFile(filename, []byte(text), 0644)
 	}
-	dlg.Destroy()
 }
 
 // KeyPressed - handle key board
@@ -696,7 +696,7 @@ func (np *NotePad) HighlightBtnClick() {
 func (np *NotePad) DoHighlight() {
 	lm, _ := sourceview.SourceLanguageManagerGetDefault()
 	l, err := lm.GetLanguage(np.Language)
-	if u.CheckErrNonFatal(err, "GetLanguage for " + np.Language) == nil {
+	if u.CheckErrNonFatal(err, "GetLanguage for "+np.Language) == nil {
 		np.buff.SetLanguage(l)
 	} else {
 		fmt.Println("[ERROR] can not set language " + np.Language)

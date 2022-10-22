@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http/cookiejar"
 	"os"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -152,7 +153,8 @@ func CreateDataNoteLangFileExt() {
 			return
 		}
 		note.Content = jsonText
-		note.Readonly = 1
+		datelog := time.Now().UnixNano()
+		note.Readonly, note.Datelog, note.Timestamp = 1, datelog, datelog
 	}
 }
 
@@ -173,6 +175,7 @@ func CreateDataNoteListOfLanguageSupport() {
 			return
 		}
 		note.Content = jsonText
-		note.Readonly = 1
+		datelog := time.Now().UnixNano()
+		note.Readonly, note.Datelog, note.Timestamp = 1, datelog, datelog
 	}
 }

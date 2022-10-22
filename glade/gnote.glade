@@ -86,6 +86,26 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Export Notes</property>
+                        <property name="label" translatable="yes">Export Notes</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="DoExportNotes" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Import Notes</property>
+                        <property name="label" translatable="yes">Import Notes</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="DoImportNotes" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkImageMenuItem">
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
@@ -145,6 +165,21 @@
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-new</property>
                 <signal name="clicked" handler="NewNote" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="newc">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">new note from clipboard</property>
+                <property name="label" translatable="yes">new from clipboard</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-new</property>
+                <signal name="clicked" handler="NewNoteFromClipboard" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

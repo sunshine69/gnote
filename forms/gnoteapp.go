@@ -1,6 +1,7 @@
 package forms
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -79,6 +80,110 @@ func (app *GnoteApp) TreeSelectionChanged(s *gtk.TreeSelection) {
 		items = append(items, str.(int))
 	}
 	app.selectedID = &items
+	// fmt.Println(app.selectedID)
+}
+
+// Export a selections of notes into json file
+func (app *GnoteApp) DoExportNotes() {
+	if len(*app.selectedID) == 0 {
+		return
+	}
+	outNoteList := []Note{}
+	for _, _id := range *app.selectedID {
+		_n := Note{}
+		DbConn.First(&_n, _id)
+		if _n.ID != -1 {
+			outNoteList = append(outNoteList, _n)
+		}
+	}
+	outputJson := u.JsonDump(outNoteList, "  ")
+	dlg, _ := gtk.FileChooserDialogNewWith2Buttons(
+		"choose file", nil, gtk.FILE_CHOOSER_ACTION_SAVE,
+		"Open", gtk.RESPONSE_OK, "Cancel", gtk.RESPONSE_CANCEL,
+	)
+	defer dlg.Destroy()
+	dlg.SetDefaultResponse(gtk.RESPONSE_OK)
+	filter, _ := gtk.FileFilterNew()
+	filter.SetName("my-export.json")
+	filter.AddPattern("*.json")
+	dlg.SetFilter(filter)
+	response := dlg.Run()
+	if response == gtk.RESPONSE_OK {
+		filename := dlg.GetFilename()
+		os.WriteFile(filename, []byte(outputJson), 0644)
+	}
+}
+
+// Import notes from previously exported json file
+func (app *GnoteApp) DoImportNotes() {
+	var inputByte []byte
+	var err error
+	dlg, _ := gtk.FileChooserDialogNewWith2Buttons(
+		"choose file", nil, gtk.FILE_CHOOSER_ACTION_OPEN,
+		"Open", gtk.RESPONSE_OK, "Cancel", gtk.RESPONSE_CANCEL,
+	)
+	defer dlg.Destroy()
+	dlg.SetDefaultResponse(gtk.RESPONSE_OK)
+	filter, _ := gtk.FileFilterNew()
+	filter.SetName("my-export.json")
+	filter.AddPattern("*.json")
+	dlg.SetFilter(filter)
+	response := dlg.Run()
+	if response == gtk.RESPONSE_OK {
+		filename := dlg.GetFilename()
+		inputByte, err = os.ReadFile(filename)
+		if u.CheckErrNonFatal(err, "ReadFile DoImportNotes") != nil {
+			MessageBox("ERROR ReadFile DoImportNotes")
+			return
+		}
+	}
+	if response == gtk.RESPONSE_CANCEL {
+		return
+	}
+	inputNotes := []Note{}
+	err = json.Unmarshal(inputByte, &inputNotes)
+	if u.CheckErrNonFatal(err, "Unmarshal DoImportNotes") != nil {
+		MessageBox("ERROR Unmarshal DoImportNotes")
+		return
+	}
+	for _, note := range inputNotes {
+		_n := Note{}
+		DbConn.First(&_n, Note{Title: note.Title})
+		if _n.ID == 0 {
+			fmt.Println("new note")
+			note.ID = 0
+			DbConn.Create(&note)
+		} else {
+			fmt.Printf("update note new: %s - %d\nold: %s - %d\n", note.Title, note.Timestamp, _n.Title, _n.Timestamp)
+			if note.Timestamp >= _n.Timestamp { // Update as input is newer or equal (rare)
+				_n = note
+				DbConn.Save(&_n)
+			} else {
+				fmt.Println("Input is older than current. Do not update")
+				fmt.Printf("Existing note ID %d, title: '%s', TS: %d\n", _n.ID, _n.Title, _n.Timestamp)
+				fmt.Printf("Input note note title: '%s', TS: %d\n", note.Title, note.Timestamp)
+			}
+		}
+	}
+}
+
+// Create a note from current clipboard
+func (app *GnoteApp) DoCreateNoteFromClipboard() {
+	clip, err := gtk.ClipboardGet(gdk.SELECTION_PRIMARY)
+	if u.CheckErrNonFatal(err, "ClipboardGet SELECTION_CLIPBOARD") != nil {
+		MessageBox("ERROR Get clipboard " + err.Error())
+		return
+	}
+	content, err := clip.WaitForText()
+	if u.CheckErrNonFatal(err, "ClipboardGet WaitForText") != nil {
+		MessageBox("ERROR Get clipboard WaitForText" + err.Error())
+		return
+	}
+	note := Note{}
+	note.NewNote(map[string]interface{}{
+		"content": content,
+	})
+	DbConn.Save(&note)
 }
 
 // Change Passphrase
@@ -152,10 +257,10 @@ func (app *GnoteApp) InitApp() {
 	Builder := app.Builder
 
 	signals := map[string]interface{}{
-		"ShowAbout":            app.showAbout,
-		"OpenPref":             app.openPref,
-		"NewNote":              app.newNote,
-		"OpenDbfile":           app.openDBFile,
+		"ShowAbout": app.showAbout,
+		// "OpenPref":             app.openPref,
+		"NewNote": app.newNote,
+		// "OpenDbfile":           app.openDBFile,
 		"DoExit":               app.doExit,
 		"DoClearSearchbox":     app.doClearSearchbox,
 		"DoSearch":             app.doFullTextSearch,
@@ -168,6 +273,9 @@ func (app *GnoteApp) InitApp() {
 		"DoUpdateResource":     app.DoUpdateResource,
 		"ChangePassphrase":     app.DoChangePassphrase,
 		"SetConfig":            app.DoSetConfig,
+		"DoExportNotes":        app.DoExportNotes,
+		"DoImportNotes":        app.DoImportNotes,
+		"NewNoteFromClipboard": app.DoCreateNoteFromClipboard,
 	}
 
 	Builder.ConnectSignals(signals)
@@ -221,18 +329,18 @@ func (app *GnoteApp) InitApp() {
 }
 
 // looks like handlers can literally be any function or method
-func (app *GnoteApp) openPref() {
-	fmt.Println("Open Pref")
-	Builder, err := gtk.BuilderNewFromFile("glade/gnote-editpref.glade")
-	if err != nil {
-		panic(err)
-	}
-	GetWindow(Builder, "edit_pref").Show()
-}
+// func (app *GnoteApp) openPref() {
+// 	fmt.Println("Open Pref")
+// 	Builder, err := gtk.BuilderNewFromFile("glade/gnote-editpref.glade")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	GetWindow(Builder, "edit_pref").Show()
+// }
 
-func (app *GnoteApp) openDBFile() {
-	fmt.Println("Open DB File")
-}
+// func (app *GnoteApp) openDBFile() {
+// 	fmt.Println("Open DB File")
+// }
 
 func (app *GnoteApp) newNote() *NotePad {
 	np := NewNotePad(-1)
