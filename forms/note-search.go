@@ -17,7 +17,7 @@ import (
 	"github.com/kohkimakimoto/gluayaml"
 	gopherjson "github.com/layeh/gopher-json"
 	u "github.com/sunshine69/golang-tools/utils"
-	"github.com/yuin/gluare"
+	"github.com/sunshine69/gluare"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -89,7 +89,7 @@ func RunLuaFile(luaFileName string) string {
 	L.PreloadModule("re", gluare.Loader)
 	L.PreloadModule("http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 	L.PreloadModule("yaml", gluayaml.Loader)
-	L.PreloadModule("yaml", gopherjson.Loader)
+	L.PreloadModule("json", gopherjson.Loader)
 	L.SetGlobal("getnote", L.NewFunction(GetNoteFromLua))
 	err := L.DoFile(luaFileName)
 	u.CheckErrNonFatal(err, "Lua DoFile")
@@ -118,7 +118,7 @@ func (ns *NoteSearch) FindText() bool {
 		}
 		outStr := ""
 		if replaceWith == "" {
-			_tmpF, _ := ioutil.TempFile("", fmt.Sprintf("browser*.%s", ns.np.FileExt))
+			_tmpF, _ := ioutil.TempFile("", fmt.Sprintf("gnote-*%s", ns.np.FileExt))
 			_tmpF.Write([]byte(text))
 			err := _tmpF.Close()
 			u.CheckErrNonFatal(err, "run-command can not close tmp file")
@@ -156,8 +156,9 @@ func (ns *NoteSearch) FindText() bool {
 				}
 				outStr = strings.Join(newTxt, "\n")
 			} else {
-				fmt.Printf("ERROR %v\n", e)
+				MessageBox( fmt.Sprintf("ERROR %s\n", e.Error()))
 			}
+
 		}
 		if !ns.isOutputToNewNote {
 			buf := ns.np.buff
@@ -241,7 +242,7 @@ func (ns *NoteSearch) ResetIter() {
 		ns.np.textView.GrabFocus()
 	}
 	buf := ns.np.buff
-	fmt.Println("Init curIter")
+	// fmt.Println("Init curIter")
 	ns.curIter = buf.GetIterAtMark(buf.GetInsert())
 	ns.m1, ns.m2 = nil, nil
 }
@@ -250,9 +251,7 @@ func (ns *NoteSearch) ResetIter() {
 func NewNoteSearch(np *NotePad) *NoteSearch {
 	ns := &NoteSearch{np: np, isIcase: true}
 	builder, err := gtk.BuilderNewFromFile("glade/note-search.glade")
-	if err != nil {
-		panic(err)
-	}
+	u.CheckErr(err, "BuilderNewFromFile note-search.glade")
 	ns.builder = builder
 	signals := map[string]interface{}{
 		"NoteFindIcase":   ns.NoteFindIcase,
