@@ -16,8 +16,8 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/kohkimakimoto/gluayaml"
 	gopherjson "github.com/layeh/gopher-json"
-	u "github.com/sunshine69/golang-tools/utils"
 	"github.com/sunshine69/gluare"
+	u "github.com/sunshine69/golang-tools/utils"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -70,6 +70,31 @@ func GetNoteFromLua(L *lua.LState) int {
 	return 1                          /* number of results */
 }
 
+func SearchNotesFromLua(L *lua.LState) int {
+	sqlWhereList := L.ToString(1) // lua supply arg like this [[ WHERE content LIKE '%text%' ]]
+	if !strings.HasPrefix(sqlWhereList, "WHERE") {
+		L.Push(lua.LString("ERROR - the arg is a string and should started with 'WHERE'"))
+		return 1
+	}
+	sql := "SELECT id FROM notes " + sqlWhereList
+	rows, err := DbConn.Raw(sql).Rows()
+	if err != nil {
+		fmt.Printf("ERROR - exec sql\n")
+		L.Push(lua.LString(err.Error()))
+		return 1
+	}
+	defer rows.Close()
+	oNoteList := []Note{}
+	for rows.Next() {
+		_n, nid := Note{}, 0
+		rows.Scan(&nid)
+		DbConn.First(&_n, nid)
+		oNoteList = append(oNoteList, _n)
+	}
+	L.Push(lua.LString(u.JsonDump(oNoteList, "")))
+	return 1
+}
+
 func RunLuaFile(luaFileName string) string {
 	old := os.Stdout // keep backup of the real stdout
 
@@ -91,6 +116,7 @@ func RunLuaFile(luaFileName string) string {
 	L.PreloadModule("yaml", gluayaml.Loader)
 	L.PreloadModule("json", gopherjson.Loader)
 	L.SetGlobal("getnote", L.NewFunction(GetNoteFromLua))
+	L.SetGlobal("searchnote", L.NewFunction(SearchNotesFromLua))
 	err := L.DoFile(luaFileName)
 	u.CheckErrNonFatal(err, "Lua DoFile")
 
@@ -156,7 +182,7 @@ func (ns *NoteSearch) FindText() bool {
 				}
 				outStr = strings.Join(newTxt, "\n")
 			} else {
-				MessageBox( fmt.Sprintf("ERROR %s\n", e.Error()))
+				MessageBox(fmt.Sprintf("ERROR %s\n", e.Error()))
 			}
 
 		}
