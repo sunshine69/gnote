@@ -695,6 +695,7 @@ func (np *NotePad) HighlightBtnClick() {
 }
 func (np *NotePad) DoHighlight() {
 	lm, _ := sourceview.SourceLanguageManagerGetDefault()
+	if np.Language == "" {np.Language = "markdown"}
 	l, err := lm.GetLanguage(np.Language)
 	if u.CheckErrNonFatal(err, "GetLanguage for "+np.Language) == nil {
 		np.buff.SetLanguage(l)
