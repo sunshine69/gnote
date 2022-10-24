@@ -15,7 +15,7 @@ import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/kohkimakimoto/gluayaml"
-	gopherjson "github.com/layeh/gopher-json"
+	gopherjson "github.com/sunshine69/gopher-json"
 	"github.com/sunshine69/gluare"
 	u "github.com/sunshine69/golang-tools/utils"
 	lua "github.com/yuin/gopher-lua"
@@ -66,7 +66,7 @@ func GetNoteFromLua(L *lua.LState) int {
 	title := L.ToString(1) /* get argument */
 	note := Note{}
 	DbConn.First(&note, Note{Title: title})
-	L.Push(lua.LString(note.Content)) /* push result */
+	L.Push(lua.LString( u.JsonDump(note,"") )) /* push result */
 	return 1                          /* number of results */
 }
 
@@ -95,6 +95,17 @@ func SearchNotesFromLua(L *lua.LState) int {
 	return 1
 }
 
+func UpdateNotesFromLua(L *lua.LState) int {
+	sql := L.ToString(1) // lua supply arg like this [[ UPDATE notes SET content = 'new content' WHERE xxx ]]
+	if !strings.HasPrefix(sql, "UPDATE") {
+		L.Push(lua.LString("ERROR - the arg is a string and should started with 'UPDATE'"))
+		return 1
+	}
+	DbConn.Exec(sql)
+	L.Push(lua.LString( fmt.Sprintf("OK %d rows affected", DbConn.RowsAffected) ))
+	return 1
+}
+
 func RunLuaFile(luaFileName string) string {
 	old := os.Stdout // keep backup of the real stdout
 
@@ -115,8 +126,9 @@ func RunLuaFile(luaFileName string) string {
 	L.PreloadModule("http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 	L.PreloadModule("yaml", gluayaml.Loader)
 	L.PreloadModule("json", gopherjson.Loader)
-	L.SetGlobal("getnote", L.NewFunction(GetNoteFromLua))
-	L.SetGlobal("searchnote", L.NewFunction(SearchNotesFromLua))
+	L.SetGlobal("get_note", L.NewFunction(GetNoteFromLua))
+	L.SetGlobal("search_notes", L.NewFunction(SearchNotesFromLua))
+	L.SetGlobal("update_notes", L.NewFunction(UpdateNotesFromLua))
 	err := L.DoFile(luaFileName)
 	u.CheckErrNonFatal(err, "Lua DoFile")
 

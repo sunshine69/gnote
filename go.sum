@@ -35,8 +35,6 @@ github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnr
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/kohkimakimoto/gluayaml v0.0.0-20160815032708-6fe413d49d73 h1:e2UU76WBjv6W0QUuPHe2QfSAXLR1kouek1fcSUtnSrk=
 github.com/kohkimakimoto/gluayaml v0.0.0-20160815032708-6fe413d49d73/go.mod h1:I+YgUp/uc0hF+H4RuQjR+uzDJNjUz7Sm21e63UCLWWQ=
-github.com/layeh/gopher-json v0.0.0-20201124131017-552bb3c4c3bf h1:bg6J/5S/AeTz7K9i/luJRj31BJ8f+LgYwKQBSOZxSEM=
-github.com/layeh/gopher-json v0.0.0-20201124131017-552bb3c4c3bf/go.mod h1:E/q28EyUVBgBQnONAVPIdwvEsv4Ve0vaCA9JWim4+3I=
 github.com/lib/pq v1.1.1 h1:sJZmqHoEaY7f+NPP8pgLB/WxulyR3fewgCM2qaSlBb4=
 github.com/lib/pq v1.1.1/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
@@ -71,6 +69,8 @@ github.com/sunshine69/gluare v0.0.0-20170607022532-d7c94f1a80ed h1:lHdjcXg0AjHM9
 github.com/sunshine69/gluare v0.0.0-20170607022532-d7c94f1a80ed/go.mod h1:E2tYRrAsfvQolvtxNbS5uA5lGAe2Y9lHQf8P6XNa8lY=
 github.com/sunshine69/golang-tools/utils v0.0.0-20221019025034-d2467f2eea8e h1:UsMosQeEGy4DhxoXoVWfEnEm4Dmujt2RhUyE81UP3+M=
 github.com/sunshine69/golang-tools/utils v0.0.0-20221019025034-d2467f2eea8e/go.mod h1:oLwIL0WDf/NwVNECJufcs3Us4T89EmDCBVX35VVklOw=
+github.com/sunshine69/gopher-json v0.0.0-20221024001855-6c6de212e5bf h1:e1phanUticq+3keFY8OKxVXveSYv16U+TwhdUHhjrVg=
+github.com/sunshine69/gopher-json v0.0.0-20221024001855-6c6de212e5bf/go.mod h1:rweV4C9gVvUW7am+kkqw415ZQm1i5a/uQBskFKDHMiA=
 github.com/sunshine69/gorm v0.0.0-20221014040923-1961091f669a h1:6B1/rhCYo9ILYVvrY3B8gVKOBID2uAgOgcnPPV/3gcg=
 github.com/sunshine69/gorm v0.0.0-20221014040923-1961091f669a/go.mod h1:i+XabuSwaI/MeTtnhO9wyo8Sr1aC4V2m1L7oOE3I/xM=
 github.com/sunshine69/sourceview3 v0.0.0-20221014105841-66c9420e858d h1:kn66to9aPx5jLCFTl0lPEw1ktdiuI5qy9lMaDaoXums=
