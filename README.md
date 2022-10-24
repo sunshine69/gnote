@@ -295,13 +295,13 @@ Create a note with content below
 local re = require("re")
 local http = require("http")
 
-content = getnote("CreateDataNoteListOfLanguageSupport")
+content = get_note("CreateDataNoteListOfLanguageSupport")
 print(content)
 ```
 
 First/Second line to allow you to use the module `re` using golang regexp syntax, but the command is the same as lua regex (string.find, gsub etc)
 
-Next, you can get the data as string from a existing note. The func `getnote` will search a note with the title `CreateDataNoteListOfLanguageSupport` and get the content. Note that there are notes which is automatically created at startup if it does not exists to serve as a data point for some internal usage. At the moment there are 2 and you should not remove it as if you do, it will be re-created again at the next start, and in your session some feature might stop working.
+Next, you can get the data as string from a existing note. The func `get_note` will search a note with the title `CreateDataNoteListOfLanguageSupport` and get the content. Note that there are notes which is automatically created at startup if it does not exists to serve as a data point for some internal usage. At the moment there are 2 and you should not remove it as if you do, it will be re-created again at the next start, and in your session some feature might stop working.
 
 Now you can use anything lua allows you with the content.
 
@@ -317,4 +317,101 @@ response, error_message = http.request("GET", "http://example.com", {
 })
 print(response.body)
 -- response has fields:  body (string), body_size (number), headers (table), cookies (table), status_code (number), url (string)
+```
+
+Function in lua to deal with notes have been implemented:
+- get_note - give a string as note title - get one note
+- search_notes - give an WHERE sql part, return all notes match that.
+- update_notes - The full sql UPDATE statement
+
+For these get functions, return a json string dump of the result. You can then use json.decode them into lua table and process.
+
+More example ...
+
+```
+json = require("json")
+-- List of usefull fields: title, datelog, content, url, flags, language, fileext, timestamp, readonly, reminderticks
+
+o = search_notes("WHERE flags = ':TAO' ")
+
+-- dump output to json file
+file = io.open("notes-dump.json", "w")
+file:write(o)
+file:close()
+
+-- print(o)
+
+o1 = json.decode(o)
+
+for _, v in ipairs(o1) do
+  print(v.Title)
+end
+```
+
+Lua split lines ..
+
+```
+--Returns a table splitting some string with a delimiter
+--Changes to enhance the code from https://gist.github.com/jaredallard/ddb152179831dd23b230
+function string:split(delimiter)
+    local result = {}
+    local from = 1
+    local delim_from, delim_to = string.find(self, delimiter, from, true)
+    while delim_from do
+        if (delim_from ~= 1) then
+            table.insert(result, string.sub(self, from, delim_from-1))
+        end
+        from = delim_to + 1
+        delim_from, delim_to = string.find(self, delimiter, from, true)
+    end
+    if (from <= #self) then table.insert(result, string.sub(self, from)) end
+    return result
+end
+-- data
+mdata = [[qwe
+asd
+
+
+rzxc
+]]
+-- execution
+lines = mdata:split("\n")
+for _, s in ipairs(lines) do
+  if not ((s == '') or (s == nil)) then
+    print(s)
+  end
+end
+```
+
+Regex examples ...
+
+```
+local re = require("re")
+
+-- quote
+assert(re.quote("^$.?a") == [[\^\$\.\?a]])
+
+local data = "Today is 21/10/2022"
+local ptn = [[([\d]+/[\d]+/[\d]+)]]
+i, j, s = re.find(data, ptn)
+print(i, j, s)
+
+a, b, s = re.find("abcd efgh i23", "i([0-9]+)")
+print(a,b,s)
+
+-- re wont work with lua regex ptn, only accept go regexp. Need to use raw string for the pattern
+-- This will use normal lua string regex
+print( string.find(data, "%d%d/%d%d/%d%d%d%d") )
+
+-- find will return index start, end, capture (start from 1). sub extract index
+-- capture return is optional
+-- .sub wont use capture
+s = "Deadline is 30/05/1999, firm"
+date = "%d%d/%d%d/%d%d%d%d"
+print(string.sub(s, string.find(s, date)))   --> 30/05/1999
+
+date = [[([\d]+/[\d]+)/[\d]+]]
+-- for this to work need to capture in the regex above. remember re.sub does not exists, u need to use string.sub
+print(string.sub(s, re.find(s, date))) --> 30/05
+
 ```

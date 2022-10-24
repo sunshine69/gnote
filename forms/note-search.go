@@ -15,9 +15,9 @@ import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/kohkimakimoto/gluayaml"
-	gopherjson "github.com/sunshine69/gopher-json"
 	"github.com/sunshine69/gluare"
 	u "github.com/sunshine69/golang-tools/utils"
+	gopherjson "github.com/sunshine69/gopher-json"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -66,8 +66,8 @@ func GetNoteFromLua(L *lua.LState) int {
 	title := L.ToString(1) /* get argument */
 	note := Note{}
 	DbConn.First(&note, Note{Title: title})
-	L.Push(lua.LString( u.JsonDump(note,"") )) /* push result */
-	return 1                          /* number of results */
+	L.Push(lua.LString(u.JsonDump(note, ""))) /* push result */
+	return 1                                  /* number of results */
 }
 
 func SearchNotesFromLua(L *lua.LState) int {
@@ -102,7 +102,7 @@ func UpdateNotesFromLua(L *lua.LState) int {
 		return 1
 	}
 	DbConn.Exec(sql)
-	L.Push(lua.LString( fmt.Sprintf("OK %d rows affected", DbConn.RowsAffected) ))
+	L.Push(lua.LString(fmt.Sprintf("OK %d rows affected", DbConn.RowsAffected)))
 	return 1
 }
 
@@ -129,8 +129,11 @@ func RunLuaFile(luaFileName string) string {
 	L.SetGlobal("get_note", L.NewFunction(GetNoteFromLua))
 	L.SetGlobal("search_notes", L.NewFunction(SearchNotesFromLua))
 	L.SetGlobal("update_notes", L.NewFunction(UpdateNotesFromLua))
+
 	err := L.DoFile(luaFileName)
-	u.CheckErrNonFatal(err, "Lua DoFile")
+	if err := u.CheckErrNonFatal(err, "Lua DoFile"); err != nil {
+		fmt.Print(err.Error())
+	}
 
 	w.Close()
 	os.Stdout = old
