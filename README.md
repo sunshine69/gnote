@@ -112,7 +112,7 @@ I will have some time to think how to fix that problem.
 
 ## Text processing feature
 
-gnote is a smaller source editor and runner. The note itself is using gtksourceview with all syntax highlighting
+gnote is a small source editor and runner. The note itself is using gtksourceview with all syntax highlighting
 as you type. Just create a note, type some code snipper and click the button `source code highlight`. If it can
 not detect the code it will prompt you to type the language in.
 
