@@ -58,7 +58,7 @@
                 <property name="can-focus">False</property>
                 <property name="focus-on-click">False</property>
                 <property name="receives-default">False</property>
-                <property name="tooltip-text" translatable="yes">enable command filter. Type in the system command it will run against the note text content or selection (as a temp file input) and capture output to replace the text. If you type a golang regex and replace the text <EXTERNAL_CMD_OUPUT> with some text (including empty string) in the `replace with` box it will do regex search and replace.</property>
+                <property name="tooltip-text" translatable="yes">enable command filter. Type in the system command it will run against the note text content or selection (as a temp file input) and capture output to replace the text. If you type a golang regex and replace the text EXTERNAL_CMD_OUPUT with some text (including empty string) in the `replace with` box it will do regex search and replace.</property>
                 <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="CommandFilter" swapped="no"/>
               </object>
