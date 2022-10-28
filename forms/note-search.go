@@ -48,6 +48,7 @@ func (ns *NoteSearch) CommandFilter(o *gtk.CheckButton) {
 		ns.searchBox.SetText(lastCmd)
 		btnFind := GetButton(ns.builder, "find_btn")
 		btnFind.SetLabel("Cmd")
+		ns.replaceBox.SetText("<EXTERNAL_CMD_OUPUT>")
 
 	} else {
 		ns.searchBox.SetText("")
@@ -158,7 +159,7 @@ func (ns *NoteSearch) FindText() bool {
 			return false
 		}
 		outStr := ""
-		if replaceWith == "" {
+		if replaceWith == "<EXTERNAL_CMD_OUPUT>" {
 			_tmpF, _ := ioutil.TempFile("", fmt.Sprintf("gnote-*%s", ns.np.FileExt))
 			_tmpF.Write([]byte(text))
 			err := _tmpF.Close()
@@ -166,7 +167,7 @@ func (ns *NoteSearch) FindText() bool {
 			cmdText := fmt.Sprintf("%s %s", keyword, _tmpF.Name())
 
 			commandList := strings.Fields(cmdText)
-			var outStr string
+
 			if commandList[0] == "gopher-lua" {
 				// Use internal lua VM to run the code
 				outStr = RunLuaFile(_tmpF.Name())
