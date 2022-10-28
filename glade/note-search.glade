@@ -26,6 +26,7 @@
                 <property name="primary-icon-activatable">False</property>
                 <property name="primary-icon-sensitive">False</property>
                 <property name="placeholder-text" translatable="yes">search text</property>
+                <property name="tooltip-text" translatable="yes">Raw text to search/replace. To use regex and advance filter, hover the checkbox cmd for more info</property>
                 <signal name="activate" handler="NoteFindText" swapped="no"/>
               </object>
               <packing>
@@ -43,6 +44,7 @@
                 <property name="receives-default">False</property>
                 <property name="active">True</property>
                 <property name="draw-indicator">True</property>
+                <property name="tooltip-text" translatable="yes">Togle Case insensitive search</property>
                 <signal name="toggled" handler="NoteFindIcase" swapped="no"/>
               </object>
               <packing>
@@ -58,7 +60,7 @@
                 <property name="can-focus">False</property>
                 <property name="focus-on-click">False</property>
                 <property name="receives-default">False</property>
-                <property name="tooltip-text" translatable="yes">enable command filter. Type in the system command it will run against the note text content or selection (as a temp file input) and capture output to replace the text. If you type a golang regex and replace the text EXTERNAL_CMD_OUPUT with some text (including empty string) in the `replace with` box it will do regex search and replace.</property>
+                <property name="tooltip-text" translatable="yes">enable command filter. Type in the system command it will run against the note text content or selection (as a temp file input) and capture output to replace the text. If you type `gopher-lua` it will use internal lua VM to run the note as lua script. If you type a golang regex and replace the text &lt;EXTERNAL_CMD_OUPUT&gt; with some text (including empty string) in the `replace with` box it will do regex search and replace.</property>
                 <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="CommandFilter" swapped="no"/>
               </object>
@@ -75,7 +77,7 @@
                 <property name="can-focus">False</property>
                 <property name="focus-on-click">False</property>
                 <property name="receives-default">False</property>
-                <property name="tooltip-text" translatable="yes">output to a new note rather than replace</property>
+                <property name="tooltip-text" translatable="yes">output to a new note rather than replace the current note/selection</property>
                 <property name="draw-indicator">True</property>
                 <signal name="toggled" handler="OutputToNewNote" swapped="no"/>
               </object>
@@ -101,6 +103,7 @@
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="placeholder-text" translatable="yes">replace with</property>
+                <property name="tooltip-text" translatable="yes">Text for replacement. If cmd is checked and text is &lt;EXTERNAL_CMD_OUPUT&gt; then this box does nothing, all replace text is the output of the external command. If cdm is checked and this has some text inclduing empty tring, it will do a golang regex search and replace with this text.</property>
                 <signal name="activate" handler="NoteFindText" swapped="no"/>
               </object>
               <packing>
@@ -117,6 +120,7 @@
                 <property name="focus-on-click">False</property>
                 <property name="receives-default">True</property>
                 <property name="use-stock">True</property>
+                <property name="tooltip-text" translatable="yes">Execute Find or External Command if cmd is checked</property>
                 <signal name="clicked" handler="NoteFindText" swapped="no"/>
               </object>
               <packing>
@@ -132,6 +136,7 @@
                 <property name="can-focus">False</property>
                 <property name="focus-on-click">False</property>
                 <property name="receives-default">False</property>
+                <property name="tooltip-text" translatable="yes">Execute Find and replace one by one in the raw text search / replace</property>
                 <signal name="clicked" handler="NoteReplaceText" swapped="no"/>
               </object>
               <packing>
@@ -143,6 +148,7 @@
             <child>
               <object class="GtkButton">
                 <property name="label" translatable="yes">Repl all</property>
+                <property name="tooltip-text" translatable="yes">Execute Find and replace all matches the raw text search / replace</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="focus-on-click">False</property>
