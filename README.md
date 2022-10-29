@@ -84,12 +84,12 @@ brew install gtksourceview3
 go build --tags "json1 fts5 secure_delete osusergo netgo sqlite_stat4 sqlite_foreign_keys" -ldflags='-s -w'
 ```
 
-To install it into the applciation folder so you can double click it in Finder and run it rather than run from terminal
+To install it into the application folder so you can double click it in Finder and run it rather than run from terminal
 
 ```
 # at terminal
 mkdir ~/Applications/gnote.app
-# Extract the binary downloaded from teh release page
+# Extract the binary downloaded from the release page
 tar xf gnote-macos-amd64.tgz -C ~/Applications/gnote.app
 # If you build it locally then just copy the binary to the fodler gnote.app above
 ```

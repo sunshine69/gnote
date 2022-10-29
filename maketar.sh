@@ -1,16 +1,30 @@
 #!/bin/sh
 
-#go build --tags "icu json1 fts5 secure_delete" -ldflags='-s -w' -o ~/Public/gnote-linux-amd64
+# Build and create a tarball with name reflecting which current system to build
 
 ARCH=$(uname -m)
+OS=$(uname -s)
+GO_TAG="icu json1 fts5 secure_delete"
 
-go build --tags "json1 fts5 secure_delete" -ldflags='-s -w' -o gnote-${ARCH}
-mkdir -p gnote-release$$/
-cp -a glade icons gnote-${ARCH} gnote-release$$/
-tar czf gnote-${ARCH}.tgz gnote-release$$
-rm -rf gnote-release$$
+if [ "$OS" = "Linux" ]; then
+    DISTRO_NAME=$(grep '^NAME=' /etc/os-release | sed 's/ //g;s/"//g' | cut -f2 -d=)
+    DISTRO_VER=$(grep '^VERSION_ID=' /etc/os-release | sed 's/ //g;s/"//g' | cut -f2 -d=)
+    TARBALL_NAME="gnote-${DISTRO_NAME}-${DISTRO_VER}-${ARCH}.tgz"
+    REDHAT_SUPPORT_PRODUCT_VERSION=$(grep '^REDHAT_SUPPORT_PRODUCT_VERSION=' /etc/os-release | sed 's/ //g;s/"//g' | cut -f2 -d=)
+    if [ "$REDHAT_SUPPORT_PRODUCT_VERSION" = "8" ]; then
+        GO_TAG="${GO_TAG} pango_1_42 gtk_3_22"
+    fi
+elif [ "$OS" = "Darwin" ]; then
+    ProductName=$( sw_vers | grep ProductName | sed 's/ //g' | cut -f2 -d: )
+    ProductVersion=$( sw_vers | grep ProductVersion | sed 's/ //g' | cut -f2 -d: )
+    TARBALL_NAME="gnote-${ProductName}-${ProductVersion}-${ARCH}.tgz"
+fi
 
-echo Tar ball pkg is gnote-${ARCH}.tgz
+go build --tags "${GO_TAG}" -ldflags='-s -w' -o gnote
+
+tar czf $TARBALL_NAME gnote 
+
+echo Tar ball pkg is $TARBALL_NAME
 
 #docker run --rm -v $(pwd):/work --entrypoint /usr/local/go/bin/go --workdir /work golang-ubuntu1804-build:latest build --tags "json1 fts5 secure_delete" -ldflags='-s -w' -o gnote-ubuntu1804-${ARCH}
 
