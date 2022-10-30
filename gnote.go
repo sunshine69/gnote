@@ -17,12 +17,13 @@ func main() {
 	doMigrate := flag.Bool("mig", false, "Migrate")
 	oldDB := flag.String("old-db", "", "Path to the old database file. If it is encrypted pass the key like filename?_pragma_key=x'<YOUR_KEY>'")
 	createWinBundle := flag.Bool("create-win-bundle", false, "Create a windows bundle script")
+	mingw64Prefix := flag.String("mingw64-root", "c:/tools/msys64/ming64", "Mingw64 root dir. Under this we have the /bin dir which has all gtk dll files")
 
 	flag.Parse()
 
 	if *createWinBundle {
-		forms.CreateWinBundle()
-		os.Exit(1)
+		forms.CreateWinBundle(*mingw64Prefix)
+		os.Exit(0)
 	}
 
 	binaryDir, err := filepath.Abs(filepath.Dir(os.Args[0]))

@@ -351,18 +351,18 @@ func pangoFinalize(inString string) string {
 }
 
 // Python and msys shell is like s***t. File not found while file exists and etc etc.. FFS lets write it in golang
-func CreateWinBundle() {
-	srcRootDir := "c:/ansible_install"
-	srcDir := srcRootDir + "/gnote"
+func CreateWinBundle(mingw64Prefix string) {
+	srcDir, err := os.Getwd()
+	u.CheckErr(err, "Getwd")
+	srcRootDir := filepath.Dir(srcDir)
 	targetDir := srcRootDir + "/gnote-windows-bundle"
-	mingw64Prefix := "c:/tools/msys64/mingw64"
 
 	os.RemoveAll(targetDir)
 	for _, _f := range []string{"/bin", "/lib", "/share"} {
 		os.MkdirAll(targetDir+_f, 0755)
 	}
 
-	err := cp.Copy(mingw64Prefix+"/lib/gdk-pixbuf-2.0", targetDir+"/lib/gdk-pixbuf-2.0")
+	err = cp.Copy(mingw64Prefix+"/lib/gdk-pixbuf-2.0", targetDir+"/lib/gdk-pixbuf-2.0")
 	fmt.Println(err)
 	err = cp.Copy(mingw64Prefix+"/share/glib-2.0", targetDir+"/share/glib-2.0")
 	fmt.Println(err)
@@ -389,7 +389,7 @@ func CreateWinBundle() {
 			fmt.Println(err)
 		}
 	}
-	fmt.Println("Output folder " + targetDir)
+	fmt.Println("Output folder: " + targetDir)
 }
 
 func ChangePassphrase(old, new, keyFile string) error {
@@ -453,7 +453,7 @@ func IsLanguageSupported(lang string) string {
 	}
 	langU := strings.ToUpper(lang)
 	for _, v := range jsonObjLst {
-		if strings.ToUpper(v) == langU  {
+		if strings.ToUpper(v) == langU {
 			return v
 		}
 		if strings.Contains(strings.ToUpper(v), langU) {

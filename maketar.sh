@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Build and create a tarball with name reflecting which current system to build
 
@@ -18,6 +18,26 @@ elif [ "$OS" = "Darwin" ]; then
     ProductName=$( sw_vers | grep ProductName | sed 's/ //g; s/\t//g' | cut -f2 -d: )
     ProductVersion=$( sw_vers | grep ProductVersion | sed 's/ //g; s/\t//g' | cut -f2 -d: )
     TARBALL_NAME="gnote-${ProductName}-${ProductVersion}-${ARCH}.tgz"
+elif [[ "$OS" =~ MINGW64 ]]; then
+    go build -ldflags="-s -w -H=windowsgui" --tags "json1 fts5 secure_delete"  -o gnote-windows-amd64.exe gnote.go
+    if [ "$1" == "" ]; then
+        echo "Enter your mingw64 root dir: "
+        read MINGW64_ROOT_DIR
+    else
+        MINGW64_ROOT_DIR=$1
+    fi
+    if [ "$MINGW64_ROOT_DIR" != "" ]; then
+        MINGW64_ROOT_OPT="-mingw64-root ${MINGW64_ROOT_DIR}"
+    fi
+    ./gnote-windows-amd64.exe -create-win-bundle $MINGW64_ROOT_OPT
+    pushd .
+    cd ..
+
+    zip -r gnote-windows-bundle.zip gnote-windows-bundle
+    echo "Output bundle file: $(pwd)/gnote-windows-bundle.zip"
+    rm -rf gnote-windows-bundle
+    popd
+    exit 0
 fi
 
 go build --tags "${GO_TAG}" -ldflags='-s -w' -o gnote
