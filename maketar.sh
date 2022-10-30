@@ -22,7 +22,9 @@ fi
 
 go build --tags "${GO_TAG}" -ldflags='-s -w' -o gnote
 
-tar czf $TARBALL_NAME gnote 
+mkdir gnote.app
+cp -a gnote gnote.app/
+tar czf $TARBALL_NAME gnote.app
 
 echo Tar ball pkg is $TARBALL_NAME
 
