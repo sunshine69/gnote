@@ -42,6 +42,7 @@ fi
 
 go build --tags "${GO_TAG}" -ldflags='-s -w' -o gnote
 
+rm -rf gnote.app >/dev/null 2>&1
 mkdir gnote.app
 cp -a gnote gnote.app/
 tar czf $TARBALL_NAME gnote.app
