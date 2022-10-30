@@ -15,8 +15,8 @@ if [ "$OS" = "Linux" ]; then
         GO_TAG="${GO_TAG} pango_1_42 gtk_3_22"
     fi
 elif [ "$OS" = "Darwin" ]; then
-    ProductName=$( sw_vers | grep ProductName | sed 's/ //g' | cut -f2 -d: )
-    ProductVersion=$( sw_vers | grep ProductVersion | sed 's/ //g' | cut -f2 -d: )
+    ProductName=$( sw_vers | grep ProductName | sed 's/ //g; s/\t//g' | cut -f2 -d: )
+    ProductVersion=$( sw_vers | grep ProductVersion | sed 's/ //g; s/\t//g' | cut -f2 -d: )
     TARBALL_NAME="gnote-${ProductName}-${ProductVersion}-${ARCH}.tgz"
 fi
 
