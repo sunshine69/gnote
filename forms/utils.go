@@ -6,15 +6,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/alecthomas/chroma"
 	"github.com/alecthomas/chroma/formatters"
 	"github.com/alecthomas/chroma/quick"
 	sourceview "github.com/linuxerwang/sourceview3"
+	"golang.org/x/net/publicsuffix"
 
+	"net/http"
+	"net/http/cookiejar"
+	"net/url"
 	"path/filepath"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -462,4 +468,93 @@ func IsLanguageSupported(lang string) string {
 	}
 	fmt.Println("[INFO] Not found in the database. Use language name as extention")
 	return ""
+}
+
+func GetWebnoteCredential() string {
+	if WebNoteUser == "" {
+		msg := `
+		This feature allow user to save the note into a webnote.
+		You need to have a webnote user account.
+		Contact the author if you are interested.`
+		MessageBox(msg)
+		WebNoteUser = InputDialog("title", "Input required", "label", "Enter webnote username: ")
+	}
+	if WebNotePassword == "" {
+		WebNotePassword = InputDialog(
+			"title", "Password requried", "password-mask", '*', "label", "Enter webnote password. If you need OTP token, enter it at the end of the password separated with ':'")
+	}
+	webnoteUrl, _ := GetConfig("webnote_url", "")
+	return webnoteUrl
+}
+
+func LoginToWebnote() (*http.Client, string, string) {
+	webnoteUrl := GetWebnoteCredential()
+	if CookieJar == nil {
+		CookieJar, _ = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	}
+	client := &http.Client{
+		Jar: CookieJar,
+	}
+	otpCode := ""
+	otpPtn, _ := regexp.Compile(`([^\:]+)\:([\d]+)$`)
+	_otpCode := otpPtn.FindStringSubmatch(WebNotePassword)
+	if len(_otpCode) == 3 {
+		otpCode = _otpCode[2]
+		WebNotePassword = _otpCode[1]
+	} else {
+		fmt.Printf("not found the TOPT pass\n")
+	}
+	if WebNoteUser == "" || WebNotePassword == "" {
+		MessageBox("No username or password. Aborting. You can retry")
+		return nil, "", ""
+	}
+	//Getfirst to get the csrf token
+	resp, err := client.Get(webnoteUrl)
+	if err != nil {
+		MessageBox(fmt.Sprintf("ERROR sync webnote %v", err))
+		return nil, "", ""
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		MessageBox(fmt.Sprintf("ERROR sync webnote code %v", resp.StatusCode))
+		return nil, "", ""
+	}
+	csrfPtn := regexp.MustCompile(`name="gorilla.csrf.Token" value="([^"]+)"`)
+	respText, _ := ioutil.ReadAll(resp.Body)
+
+	if debug, _ := GetConfig("debug", "FALSE"); debug == "TRUE" {
+		respTextStr := string(respText)
+		fmt.Printf("DEBUG %s\n", respTextStr)
+	}
+
+	matches := csrfPtn.FindSubmatch(respText)
+	if len(matches) == 0 {
+		MessageBox("ERROR sync webnote Can not find csrf token in response\n")
+		return nil, "", ""
+	}
+	csrfToken := string(matches[1])
+
+	if bytes.Contains(respText, []byte("Enter login name and password:")) {
+		data := url.Values{
+			"username":           {WebNoteUser},
+			"password":           {WebNotePassword},
+			"totp_number":        {otpCode},
+			"gorilla.csrf.Token": {csrfToken},
+		}
+		resp, err = client.PostForm(webnoteUrl+"/login", data)
+		if err != nil {
+			MessageBox(fmt.Sprintf("ERROR - CRITICAL login to webnote %v", err))
+			WebNotePassword = ""
+			WebNoteUser = ""
+		}
+		respText, _ = ioutil.ReadAll(resp.Body)
+
+		if strings.HasPrefix(string(respText), "Failed login") {
+			MessageBox(fmt.Sprintf("ERROR Failed login - '%s'\n", respText))
+			WebNotePassword = ""
+			WebNoteUser = ""
+			return nil, "", ""
+		}
+	}
+	return client, csrfToken, webnoteUrl
 }

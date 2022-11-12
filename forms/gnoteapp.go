@@ -276,6 +276,7 @@ func (app *GnoteApp) InitApp() {
 		"DoExportNotes":        app.DoExportNotes,
 		"DoImportNotes":        app.DoImportNotes,
 		"NewNoteFromClipboard": app.DoCreateNoteFromClipboard,
+		"DoSyncNotes":          app.DoSyncNotesFromWebnote,
 	}
 
 	Builder.ConnectSignals(signals)
@@ -341,6 +342,12 @@ func (app *GnoteApp) InitApp() {
 // func (app *GnoteApp) openDBFile() {
 // 	fmt.Println("Open DB File")
 // }
+
+func (app *GnoteApp) DoSyncNotesFromWebnote() {
+	// duration := InputDialog("title", "Duration", "label", "Enter the time duration you want to sync: eg. 48h will sync all notes created in the last 48 hours", "default", "48h")
+	// client, csrfToken := GetWebnoteCredential()
+
+}
 
 func (app *GnoteApp) newNote() *NotePad {
 	np := NewNotePad(-1)
