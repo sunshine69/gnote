@@ -415,7 +415,8 @@ func (app *GnoteApp) DoSyncNotesFromWebnote() {
 			newnote.ID = myID
 		}
 		newnote.Title = note.Title
-		DbconNew.Save(&newnote)
+		// Why DbconNew here does not do the Save? FFS goORM
+		DbConn.Save(&newnote)
 	}
 	fmt.Printf("Have synced %d notes\n", len(webnotes1))
 }
