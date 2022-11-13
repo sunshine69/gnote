@@ -3,6 +3,8 @@ package forms
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -344,9 +346,78 @@ func (app *GnoteApp) InitApp() {
 // }
 
 func (app *GnoteApp) DoSyncNotesFromWebnote() {
-	// duration := InputDialog("title", "Duration", "label", "Enter the time duration you want to sync: eg. 48h will sync all notes created in the last 48 hours", "default", "48h")
-	// client, csrfToken := GetWebnoteCredential()
+	duration := InputDialog("title", "Duration", "label", "Enter the time duration you want to sync: eg. 48h will sync all notes created in the last 48 hours", "default", "48h")
+	client, csrfToken, webnoteURL := LoginToWebnote()
+	if client == nil {
+		return
+	}
+	resp, err := client.Get(fmt.Sprintf("%s/get_notes_titles?duration=%s&gorilla.csrf.Token=%s", webnoteURL, duration, csrfToken))
+	if u.CheckErrNonFatal(err, "DoSyncNotesFromWebnote get_notes_titles") != nil {
+		return
+	}
+	respText, _ := ioutil.ReadAll(resp.Body)
+	// Even struct Note and webnote Note has small diff but we only care about common fields thus using Note here does work
+	webnotes := []Note{}
+	err = json.Unmarshal(respText, &webnotes)
+	if u.CheckErrNonFatal(err, "Unmarshal") != nil {
+		return
+	}
+	needToGetContentIds := []string{}
+	for _, webnote := range webnotes {
+		mynote := Note{}
+		DbConnNew := DbConn.Where(&Note{Title: webnote.Title}).First(&mynote)
+		if DbConnNew.RecordNotFound() {
+			fmt.Printf("rec not found for title '%s', going to get it\n", webnote.Title)
+			needToGetContentIds = append(needToGetContentIds, fmt.Sprintf("%d", webnote.ID))
+		} else {
+			fmt.Printf("TS mynote %d - webnote %d -  %s - %s\n", mynote.Timestamp, webnote.Timestamp, mynote.Title, webnote.Title)
+			if mynote.Timestamp < webnote.Timestamp {
+				fmt.Printf("we are older, so get webnote id %d\n", webnote.ID)
+				needToGetContentIds = append(needToGetContentIds, fmt.Sprintf("%d", webnote.ID))
+			}
+		}
+	}
+	if len(needToGetContentIds) == 0 {
+		fmt.Println("Nothing new to sync")
+		return
+	}
+	data := fmt.Sprintf("(%s)", strings.Join(needToGetContentIds, ","))
+	fmt.Printf("Will ask to get these IDs %s\n", data)
+	getURL := fmt.Sprintf("%s/get_notes_by_id?ids=%s&gorilla.csrf.Token=%s", webnoteURL, url.QueryEscape(data), csrfToken)
+	resp, err = client.Get(getURL)
+	if u.CheckErrNonFatal(err, "DoSyncNotesFromWebnote get_notes_by_id") != nil {
+		return
+	}
+	respText, _ = ioutil.ReadAll(resp.Body)
 
+	webnotes1 := []Note{}
+	err = json.Unmarshal(respText, &webnotes1)
+	if u.CheckErrNonFatal(err, "Unmarshal") != nil {
+		return
+	}
+	for _, note := range webnotes1 {
+		newnote := Note{}
+		noteExp := Note{ // Not have ID or title (unique field). We use this as expression. GOORM sucks!
+			Datelog:   note.Datelog,
+			Flags:     note.Flags,
+			Content:   note.Content,
+			URL:       note.URL,
+			Timestamp: note.Timestamp,
+			TimeSpent: note.TimeSpent,
+			ReminderTicks: note.ReminderTicks,
+		}
+		DbconNew := DbConn.Where(&Note{Title: note.Title}).First(&newnote)
+		if DbconNew.RecordNotFound() {
+			newnote = noteExp
+		} else {
+			myID := newnote.ID
+			newnote = noteExp
+			newnote.ID = myID
+		}
+		newnote.Title = note.Title
+		DbconNew.Save(&newnote)
+	}
+	fmt.Printf("Have synced %d notes\n", len(webnotes1))
 }
 
 func (app *GnoteApp) newNote() *NotePad {

@@ -501,9 +501,9 @@ func (np *NotePad) SaveToWebnote() {
 		"gorilla.csrf.Token": {csrfToken},
 	}
 	resp, err := client.PostForm(webnoteUrl+"/savenote", data)
-	if err != nil {
+	if u.CheckErrNonFatal(err, "PostForm") != nil {
 		MessageBox(fmt.Sprintf("ERROR - CRITICAL save to webnote %v", err))
-		panic(2)
+		return
 	}
 	respText, _ := ioutil.ReadAll(resp.Body)
 	if string(respText) != "OK note saved" {

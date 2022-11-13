@@ -10,7 +10,7 @@ import (
 type Note struct {
 	// Do not embed gorm Model as we use our own ID as primary key
 	// gorm.Model
-	ID            int    `gorm:"primary_key"`
+	ID            int    `gorm:"primary_key,AUTO_INCREMENT"`
 	Title         string `gorm:"type:varchar(512);not null;unique_index"`
 	Datelog       int64  `gorm:"type:int"`
 	Content       string `gorm:"type:text"`

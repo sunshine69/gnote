@@ -471,6 +471,7 @@ func IsLanguageSupported(lang string) string {
 }
 
 func GetWebnoteCredential() string {
+	WebNoteUser, _ = GetConfig("webnote_user", "")
 	if WebNoteUser == "" {
 		msg := `
 		This feature allow user to save the note into a webnote.
@@ -479,11 +480,18 @@ func GetWebnoteCredential() string {
 		MessageBox(msg)
 		WebNoteUser = InputDialog("title", "Input required", "label", "Enter webnote username: ")
 	}
+	if WebNoteUser != "" {
+		SetConfig("webnote_user", WebNoteUser)
+	}
 	if WebNotePassword == "" {
 		WebNotePassword = InputDialog(
 			"title", "Password requried", "password-mask", '*', "label", "Enter webnote password. If you need OTP token, enter it at the end of the password separated with ':'")
 	}
 	webnoteUrl, _ := GetConfig("webnote_url", "")
+	if webnoteUrl == "" {
+		webnoteUrl = InputDialog("title", "Wenote URL", "label", "Enter webnote URL:" )
+	}
+	SetConfig("webnote_url", webnoteUrl)
 	return webnoteUrl
 }
 
