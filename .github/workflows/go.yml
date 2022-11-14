@@ -11,18 +11,27 @@ on:
 
 jobs:
 
-  build:
-    runs-on: ubuntu-latest
+  build-ubuntu:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
 
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.18
+        go-version: 1.19
+
+    - name: Install depends
+      run: ./install-depends.sh
 
     - name: Build
-      run: go build -v ./...
+      run: ./maketar.sh
 
-    - name: Test
-      run: go test -v ./...
+    - name: Upload my-artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: my-artifact
+        path: ./gnote*.tgz
