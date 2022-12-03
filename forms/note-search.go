@@ -48,7 +48,7 @@ func (ns *NoteSearch) CommandFilter(o *gtk.CheckButton) {
 		ns.searchBox.SetText(lastCmd)
 		btnFind := GetButton(ns.builder, "find_btn")
 		btnFind.SetLabel("Cmd")
-		ns.replaceBox.SetText("<EXTERNAL_CMD_OUPUT>")
+		ns.replaceBox.SetText("<CMD_OUTPUT>")
 
 	} else {
 		ns.searchBox.SetText("")
@@ -159,7 +159,7 @@ func (ns *NoteSearch) FindText() bool {
 			return false
 		}
 		outStr := ""
-		if replaceWith == "<EXTERNAL_CMD_OUPUT>" {
+		if replaceWith == "<CMD_OUTPUT>" {
 			_tmpF, _ := ioutil.TempFile("", fmt.Sprintf("gnote-*%s", ns.np.FileExt))
 			_tmpF.Write([]byte(text))
 			err := _tmpF.Close()
