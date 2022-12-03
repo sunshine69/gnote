@@ -94,11 +94,7 @@ func (ns *NoteSearch) FindText() bool {
 			}
 		} else {
 			if ptn, e := regexp.Compile(keyword); e == nil {
-				var newTxt []string
-				for _, lineTxt := range strings.Split(text, "\n") {
-					newTxt = append(newTxt, ptn.ReplaceAllString(lineTxt, replaceWith))
-				}
-				outStr = strings.Join(newTxt, "\n")
+				outStr = ptn.ReplaceAllString(text, replaceWith)
 			} else {
 				fmt.Printf("ERROR %v\n", e)
 			}
