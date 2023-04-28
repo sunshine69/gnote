@@ -8,11 +8,10 @@ go 1.13
 
 require (
 	github.com/alecthomas/chroma v0.10.0
-	github.com/dlclark/regexp2 v1.7.0 // indirect
-	github.com/gomarkdown/markdown v0.0.0-20221013030248-663e2500819c
+	github.com/dlclark/regexp2 v1.9.0 // indirect
+	github.com/gomarkdown/markdown v0.0.0-20230322041520-c84983bdbf2a
 	github.com/gotk3/gotk3 v0.6.1
 	github.com/jinzhu/gorm v1.9.16
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
-	golang.org/x/net v0.0.0-20221012135044-0b7e1fb9d458
-	golang.org/x/sys v0.0.0-20221013171732-95e765b1cc43 // indirect
+	golang.org/x/net v0.9.0
 )
