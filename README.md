@@ -48,6 +48,9 @@ go build --tags "icu json1 fts5 secure_delete" -ldflags='-s -w'
 
 # To avoid glibc incompatibility maybe try the below. Note it might cause link errors, if so use the previous build command.
 go build --tags "icu json1 fts5 secure_delete osusergo netgo sqlite_stat4 sqlite_foreign_keys" -ldflags='-s -w'
+
+# On RHEL8 is you get this error `could not determine kind of name for C.pango_attr_insert_hyphens_new` then add these tags into the build command `pango_1_42 gtk_3_22`
+
 ```
 
 My build is using a docker image to build and save cached. Basically at build host I pull and run image ubuntu:18.04 and exec in to install the above command. Download go and extract it to /usr/local. Then commit it into the image `golang-ubuntu-build`.  Now let the jenkins run it will use this image, pull go pkgs and build and save it as cache for the next build.
