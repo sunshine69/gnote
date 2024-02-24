@@ -43,7 +43,7 @@ go-bindata -pkg forms -o forms/bindata.go -nomemcopy glade icons
 - Linux
 
 ```
-apt-get install libgtk-3-0  libgtk-3-dev ca-certificates
+apt-get install libgtk-3-0  libgtk-3-dev ca-certificates libgtksourceview-3.0-dev
 go build --tags "icu json1 fts5 secure_delete" -ldflags='-s -w'
 
 # To avoid glibc incompatibility maybe try the below. Note it might cause link errors, if so use the previous build command.
