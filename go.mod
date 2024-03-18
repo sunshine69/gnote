@@ -20,7 +20,7 @@ require (
 	github.com/sunshine69/golang-tools/utils v0.0.0-20230903080424-1e5144ab4f87
 	github.com/sunshine69/gopher-json v0.0.0-20221024001855-6c6de212e5bf
 	github.com/yuin/gopher-lua v1.1.1
-	golang.org/x/net v0.21.0
+	golang.org/x/net v0.22.0
 )
 
 require (
@@ -34,7 +34,7 @@ require (
 	github.com/creack/pty v1.1.21 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denisenkom/go-mssqldb v0.12.3 // indirect
-	github.com/dlclark/regexp2 v1.10.0 // indirect
+	github.com/dlclark/regexp2 v1.11.0 // indirect
 	github.com/dnaeon/go-vcr v1.2.0 // indirect
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
@@ -69,12 +69,12 @@ require (
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/stvoidit/gosmtp v1.0.7 // indirect
 	github.com/yuin/goldmark v1.7.0 // indirect
-	golang.org/x/crypto v0.19.0 // indirect
+	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/mod v0.15.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/telemetry v0.0.0-20240222153655-3df865e588ac // indirect
-	golang.org/x/term v0.17.0 // indirect
+	golang.org/x/term v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.18.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
