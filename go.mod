@@ -9,7 +9,7 @@ go 1.19
 require (
 	github.com/alecthomas/chroma v0.10.0
 	github.com/cjoudrey/gluahttp v0.0.0-20201111170219-25003d9adfa9
-	github.com/gomarkdown/markdown v0.0.0-20231222211730-1d6d20845b47
+	github.com/gomarkdown/markdown v0.0.0-20240419095408-642f0ee99ae2
 	github.com/gotk3/gotk3 v0.6.3
 	github.com/jinzhu/gorm v1.9.16
 	github.com/kohkimakimoto/gluayaml v0.0.0-20160815032708-6fe413d49d73
@@ -20,7 +20,7 @@ require (
 	github.com/sunshine69/golang-tools/utils v0.0.0-20230903080424-1e5144ab4f87
 	github.com/sunshine69/gopher-json v0.0.0-20221024001855-6c6de212e5bf
 	github.com/yuin/gopher-lua v1.1.1
-	golang.org/x/net v0.22.0
+	golang.org/x/net v0.24.0
 )
 
 require (
@@ -69,12 +69,12 @@ require (
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/stvoidit/gosmtp v1.0.7 // indirect
 	github.com/yuin/goldmark v1.7.0 // indirect
-	golang.org/x/crypto v0.21.0 // indirect
+	golang.org/x/crypto v0.22.0 // indirect
 	golang.org/x/mod v0.15.0 // indirect
-	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/telemetry v0.0.0-20240222153655-3df865e588ac // indirect
-	golang.org/x/term v0.18.0 // indirect
+	golang.org/x/term v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.18.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
