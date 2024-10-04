@@ -8,14 +8,15 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
 	u "github.com/sunshine69/golang-tools/utils"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 func DoMigrationV1(oldDB, newDB string) {
 	// oldDBCon, _ := gorm.Open("sqlite3", "/home/stevek/Documents/clt.db")
-	oldDBCon, _ := gorm.Open("sqlite3", oldDB)
-	newDbConn, _ := gorm.Open("sqlite3", newDB)
+	oldDBCon, _ := gorm.Open(sqlite.Open(oldDB), &gorm.Config{})
+	newDbConn, _ := gorm.Open(sqlite.Open(newDB), &gorm.Config{})
 	// rows, e := oldDBCon.Raw(`SELECT id, title, datelog, content, flags, url, timestamp, readonly FROM notes;`).Rows()
 	// if e != nil {
 	// 	fmt.Printf("ERROR - exec sql\n")
@@ -31,7 +32,7 @@ func DoMigrationV1(oldDB, newDB string) {
 	}
 	defer oldRows.Close()
 	count := 0
-	newDbConn.Begin().New()
+	newDbConn.Begin()
 	for oldRows.Next() {
 		// if count > 500 {
 		// 	break
@@ -50,8 +51,8 @@ func DoMigrationV1(oldDB, newDB string) {
 // DoMigration - once off - this is old
 func DoMigration(oldDB, newDB string) {
 	// oldDBCon, _ := gorm.Open("sqlite3", "/home/stevek/Documents/clt.db")
-	oldDBCon, _ := gorm.Open("sqlite3", oldDB)
-	DbConn, _ = gorm.Open("sqlite3", newDB)
+	oldDBCon, _ := gorm.Open(sqlite.Open(oldDB), &gorm.Config{})
+	// DbConn, _ := gorm.Open(sqlite.Open(newDB), &gorm.Config{})
 	// rows, e := oldDBCon.Raw(`SELECT note_id, title, cast(datelog as text), content, flags, url, timestamp, readonly FROM lsnote;`).Rows()
 	rows, e := oldDBCon.Raw(`SELECT id, title, cast(datelog as text), content, flags, url, timestamp, readonly FROM notes;`).Rows()
 	if e != nil {

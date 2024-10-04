@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"net/http/cookiejar"
 	"os"
-	"time"	
-	"gorm.io/gorm"
-  	_ "gorm.io/driver/sqlite"	
+	"time"
+
 	u "github.com/sunshine69/golang-tools/utils"
+	"gorm.io/driver/sqlite"
+	_ "gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 // DateLayout - global
@@ -37,7 +39,7 @@ func SetupConfigDB() {
 	var err error
 	dbPath := os.Getenv("DBPATH")
 	// fmt.Printf("Use dbpath %v\n", dbPath)
-	DbConn, err = gorm.Open("sqlite3", dbPath)
+	DbConn, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -100,15 +102,15 @@ func SetupDefaultConfig() {
 // GetConfig - by key and return value. Give second arg as default value.
 func GetConfig(key ...string) (string, error) {
 	var cfg = AppConfig{}
-	err := DbConn.Find(&cfg, AppConfig{Key: key[0]}).Error
-	if err != nil {
+	tx := DbConn.Find(&cfg, AppConfig{Key: key[0]})
+	if tx.RowsAffected == 0 {
 		if len(key) == 2 {
 			return key[1], nil
 		} else {
-			return "", err
+			return "", tx.Error
 		}
 	} else {
-		return cfg.Val, err
+		return cfg.Val, tx.Error
 	}
 }
 

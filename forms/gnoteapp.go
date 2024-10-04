@@ -321,7 +321,9 @@ func (app *GnoteApp) InitApp() {
 	app.curNoteWindowID = make(map[int]*NotePad)
 	app.searchBox = GetSearchEntry(Builder, "searchBox")
 
-	wSize, _ := GetConfig("main_window_size", "300x291")
+	wSize, err := GetConfig("main_window_size", "300x291")
+	u.CheckErr(err, "GetConfig window_size")
+	fmt.Printf("[DEBUG] wSize: %s\n", wSize)
 	_size := strings.Split(wSize, "x")
 	w, _ := strconv.Atoi(_size[0])
 	h, _ := strconv.Atoi(_size[1])
@@ -366,7 +368,7 @@ func (app *GnoteApp) DoSyncNotesFromWebnote() {
 	for _, webnote := range webnotes {
 		mynote := Note{}
 		DbConnNew := DbConn.Where(&Note{Title: webnote.Title}).First(&mynote)
-		if DbConnNew.RecordNotFound() {
+		if DbConnNew.RowsAffected == 0 {
 			fmt.Printf("rec not found for title '%s', going to get it\n", webnote.Title)
 			needToGetContentIds = append(needToGetContentIds, fmt.Sprintf("%d", webnote.ID))
 		} else {
@@ -398,16 +400,16 @@ func (app *GnoteApp) DoSyncNotesFromWebnote() {
 	for _, note := range webnotes1 {
 		newnote := Note{}
 		noteExp := Note{ // Not have ID or title (unique field). We use this as expression. GOORM sucks!
-			Datelog:   note.Datelog,
-			Flags:     note.Flags,
-			Content:   note.Content,
-			URL:       note.URL,
-			Timestamp: note.Timestamp,
-			TimeSpent: note.TimeSpent,
+			Datelog:       note.Datelog,
+			Flags:         note.Flags,
+			Content:       note.Content,
+			URL:           note.URL,
+			Timestamp:     note.Timestamp,
+			TimeSpent:     note.TimeSpent,
 			ReminderTicks: note.ReminderTicks,
 		}
 		DbconNew := DbConn.Where(&Note{Title: note.Title}).First(&newnote)
-		if DbconNew.RecordNotFound() {
+		if DbconNew.RowsAffected == 0 {
 			newnote = noteExp
 		} else {
 			myID := newnote.ID
