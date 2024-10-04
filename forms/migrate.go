@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	u "github.com/sunshine69/golang-tools/utils"
 )
 

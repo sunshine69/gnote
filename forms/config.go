@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"net/http/cookiejar"
 	"os"
-	"time"
-
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"time"	
+	"gorm.io/gorm"
+  	_ "gorm.io/driver/sqlite"	
 	u "github.com/sunshine69/golang-tools/utils"
 )
 
