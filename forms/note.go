@@ -1,31 +1,30 @@
 package forms
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
-	// _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 // Note - data structure
 type Note struct {
-	// Do not embed gorm Model as we use our own ID as primary key
-	// gorm.Model
-	ID            int    `gorm:"primary_key,AUTO_INCREMENT"`
-	Title         string `gorm:"type:varchar(512);not null;unique_index"`
-	Datelog       int64  `gorm:"type:int"`
-	Content       string `gorm:"type:text"`
-	URL           string `gorm:"type:text"`
-	Flags         string `gorm:"type:text"`
-	ReminderTicks int64  `gorm:"type:int;default 0"`
-	Timestamp     int64  `gorm:"type:int;default 0"`
-	Readonly      int8   `gorm:"default 0"`
-	FormatTag     []byte
-	AlertCount    int8 `gorm:"type:int;default 0"`
-	PixbufDict    []byte
-	TimeSpent     int `gorm:"type:int;default 0"`
-	LastTextMark  []byte
-	Language      string `gorm:"type:text"`
-	FileExt       string `gorm:"type:text"`
+	ID            int    `db:"id"`
+	Title         string `db:"title"`
+	Datelog       int64  `db:"datelog"`
+	Content       string `db:"content"`
+	URL           string `db:"url"`
+	Flags         string `db:"flags"`
+	ReminderTicks int64  `db:"reminder_ticks"`
+	Timestamp     int64  `db:"timestamp"`
+	Readonly      int8   `db:"readonly"`
+	FormatTag     []byte `db:"format_tag"`
+	AlertCount    int8   `db:"alert_count"`
+	PixbufDict    []byte `db:"pixbuf_dict"`
+	TimeSpent     int    `db:"time_spent"`
+	LastTextMark  []byte `db:"last_text_mark"`
+	Language      string `db:"language"`
+	FileExt       string `db:"file_ext"`
 }
 
 // NewNote - Create a new note object
@@ -102,15 +101,16 @@ func (n *Note) NewNote(in map[string]interface{}) {
 		n.FileExt = ".md"
 	}
 
-	if e := DbConn.Save(n).Error; e != nil {
+	if _, e := DbConn.NamedExec(`INSERT INTO notes (title, datelog, content,url, flags , reminder_ticks, timestamp, readonly, format_tag , alert_count , pixbuf_dict , time_spent , last_text_mark , language , file_ext ) VALUES(:title, :datelog, :content,:url, :flags , :reminder_ticks,:timestamp, :readonly, :format_tag , :alert_count , :pixbuf_dict , :time_spent , :last_text_mark , :language , :file_ext) ON CONFLICT(title) DO UPDATE SET title=excluded.title, datelog=excluded.datelog, content=excluded.content, readonly=excluded.readonly, timestamp=excluded.timestamp, url=excluded.url, flags=excluded.flags, reminder_ticks=excluded.reminder_ticks, format_tag=excluded.format_tag, alert_count=excluded.alert_count, pixbuf_dict=excluded.pixbuf_dict,language=excluded.language, file_ext=excluded.file_ext`, n); e != nil {
 		fmt.Printf("ERROR saving note - %v\n", e)
 	}
 }
 
 // Update - Update existing note. Currently not need as the above already populate most data
 func (n *Note) Update(in map[string]interface{}) {
-	if e := DbConn.Find(n, Note{ID: n.ID}).Error; e != nil {
+	if e := DbConn.Get(n, "SELECT * FROM notes WHERE id=$1", n.ID); e != nil && errors.Is(e, sql.ErrNoRows) {
 		fmt.Printf("INFO Can not find the note to update - %v\n", e)
+		return
 	}
 	titleText, ok := in["title"].(string)
 	if ok {
@@ -132,15 +132,19 @@ func (n *Note) Update(in map[string]interface{}) {
 			n.TimeSpent = v.(int)
 		}
 	}
-	if e := DbConn.Save(n).Error; e != nil {
-		fmt.Printf("ERROR saving note - %v\n", e)
+	if _, e := DbConn.NamedExec(`UPDATE note SET content=:content, url=:url, flags=:flags, readonly=:readonly, alert_count=:alert_count, time_spent=:time_spent WHERE id=:id`, n); e != nil {
+		fmt.Printf("[ERROR] saving note - %s\n", e.Error())
 	}
+	return
 }
 
 func (n *Note) String() string { return n.Title }
 
 // Delete - Delete note
 func (n *Note) Delete() {
-	DbConn.Unscoped().Delete(&n)
-	*n = Note{}
+	if _, e := DbConn.Exec(`DELETE FROM notes WHERE id=:id`, n); e != nil {
+		fmt.Printf("[ERROR] delete note - %s\n", e.Error())
+	} else {
+		*n = Note{}
+	}
 }

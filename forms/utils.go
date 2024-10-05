@@ -3,7 +3,9 @@ package forms
 import (
 	"bufio"
 	"bytes"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -419,7 +421,10 @@ func ChangePassphrase(old, new, keyFile string) error {
 
 func LookupFileExtByLanguage(lang string) string {
 	note := Note{}
-	DbConn.First(&note, Note{Title: "CreateDataNoteLangFileExt"})
+	if e := DbConn.Get(&note, `SELECT * FROM notes WHERE title=$1`, "CreateDataNoteLangFileExt"); errors.Is(e, sql.ErrNoRows) {
+		fmt.Println("[ERROR] Note title CreateDataNoteLangFileExt not found")
+		return lang
+	}
 	type LangExtData struct {
 		Name        string   `json:"name"`
 		Type        string   `json:"type"`
@@ -449,7 +454,10 @@ func LookupFileExtByLanguage(lang string) string {
 // Take a string, lookup the supported language and if found return the string or match part of string. If completely not found, return empty string
 func IsLanguageSupported(lang string) string {
 	note := Note{}
-	DbConn.First(&note, Note{Title: "CreateDataNoteListOfLanguageSupport"})
+	if e := DbConn.Get(&note, `SELECT * FROM notes WHERE title=$1`, "CreateDataNoteListOfLanguageSupport"); errors.Is(e, sql.ErrNoRows) {
+		fmt.Println("[ERROR] Can not find note title CreateDataNoteListOfLanguageSupport")
+		return ""
+	}
 
 	jsonObjLst := []string{}
 	err := json.Unmarshal([]byte(note.Content), &jsonObjLst)
@@ -489,7 +497,7 @@ func GetWebnoteCredential() string {
 	}
 	webnoteUrl, _ := GetConfig("webnote_url", "")
 	if webnoteUrl == "" {
-		webnoteUrl = InputDialog("title", "Wenote URL", "label", "Enter webnote URL:" )
+		webnoteUrl = InputDialog("title", "Wenote URL", "label", "Enter webnote URL:")
 	}
 	SetConfig("webnote_url", webnoteUrl)
 	return webnoteUrl

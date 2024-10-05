@@ -8,60 +8,46 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+	_ "github.com/mutecomm/go-sqlcipher/v4"
 	u "github.com/sunshine69/golang-tools/utils"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 func DoMigrationV1(oldDB, newDB string) {
-	// oldDBCon, _ := gorm.Open("sqlite3", "/home/stevek/Documents/clt.db")
-	oldDBCon, _ := gorm.Open(sqlite.Open(oldDB), &gorm.Config{})
-	newDbConn, _ := gorm.Open(sqlite.Open(newDB), &gorm.Config{})
-	// rows, e := oldDBCon.Raw(`SELECT id, title, datelog, content, flags, url, timestamp, readonly FROM notes;`).Rows()
-	// if e != nil {
-	// 	fmt.Printf("ERROR - exec sql\n")
-	// }
-	// defer rows.Close()
-	oldDBCon.AutoMigrate(&Note{})
-	oldDBCon.AutoMigrate(&AppConfig{})
-	newDbConn.AutoMigrate(&Note{})
-	newDbConn.AutoMigrate(&AppConfig{})
-	oldRows, err := oldDBCon.Raw("select ID, datelog, title, flags, timestamp, readonly, content, url, reminder_ticks, timestamp, format_tag, alert_count, pixbuf_dict, time_spent from notes;").Rows()
-	if err != nil {
-		log.Fatalf("[ERROR] %v\n", err)
-	}
-	defer oldRows.Close()
+	// oldDBCon, _ := gorm.Open(sqlite.Open(oldDB), &gorm.Config{})
+	// newDbConn, _ := gorm.Open(sqlite.Open(newDB), &gorm.Config{})
+	oldDBCon := sqlx.MustConnect("sqlite3", oldDB)
+	newDbConn := sqlx.MustConnect("sqlite3", newDB)
+
+	oldNotes := []Note{}
+	u.CheckErr(oldDBCon.Select(&oldNotes, "select ID, datelog, title, flags, timestamp, readonly, content, url, reminder_ticks, timestamp, format_tag, alert_count, pixbuf_dict, time_spent from notes;"), "[ERROR] getiing old notes ")
+
 	count := 0
-	newDbConn.Begin()
-	for oldRows.Next() {
+	tx := newDbConn.MustBegin()
+	for _, oldNote := range oldNotes {
 		// if count > 500 {
 		// 	break
 		// }
-		_newNote := Note{}
-		oldRows.Scan(&_newNote.ID, &_newNote.Datelog, &_newNote.Title, &_newNote.Flags, &_newNote.Timestamp, &_newNote.Readonly, &_newNote.Content, &_newNote.URL, &_newNote.ReminderTicks, &_newNote.Timestamp, &_newNote.FormatTag, &_newNote.AlertCount, &_newNote.PixbufDict, &_newNote.TimeSpent)
-		// fmt.Printf("note: %v\n", _newNote)
-		newDbConn.Create(&_newNote)
-		// newDbConn.Save(&_newNote)
+		newDbConn.MustExec(`INSERT INTO notes (datelog, title, flags, timestamp, readonly, content, url, reminder_ticks, format_tag, alert_count, pixbuf_dict, time_spent) VALUES(:datelog, :title, :flags, :timestamp, :readonly, :content, :url, :reminder_ticks, :format_tag, :alert_count, :pixbuf_dict, :time_spent)`, oldNote)
 		count++
 	}
-	newDbConn.Commit()
-
+	tx.Commit()
 }
 
 // DoMigration - once off - this is old
 func DoMigration(oldDB, newDB string) {
 	// oldDBCon, _ := gorm.Open("sqlite3", "/home/stevek/Documents/clt.db")
-	oldDBCon, _ := gorm.Open(sqlite.Open(oldDB), &gorm.Config{})
-	// DbConn, _ := gorm.Open(sqlite.Open(newDB), &gorm.Config{})
-	// rows, e := oldDBCon.Raw(`SELECT note_id, title, cast(datelog as text), content, flags, url, timestamp, readonly FROM lsnote;`).Rows()
-	rows, e := oldDBCon.Raw(`SELECT id, title, cast(datelog as text), content, flags, url, timestamp, readonly FROM notes;`).Rows()
+	oldDBCon, e := sqlx.Connect("sqlite3", oldDB)
+	u.CheckErr(e, "DoMigration Connect")
+	oldNotes := []Note{}
+	e = oldDBCon.Select(&oldNotes, `SELECT id, title, cast(datelog as text), content, flags, url, timestamp, readonly FROM notes;`)
 	if e != nil {
 		fmt.Printf("ERROR - exec sql\n")
+		return
 	}
-	defer rows.Close()
-	var readonly int8
-	var count, note_id int
-	var title, content, flags, url, timestamp string
+	// var readonly int8
+	// var count, note_id int
+	// var title, content, flags, url, timestamp string
 	var datelog string
 	var errorList []int
 	ptn := regexp.MustCompile(`^\d\d\-\d\d\-\d\d\d\d \d\d\:\d\d\:\d\d$`)
@@ -70,9 +56,9 @@ func DoMigration(oldDB, newDB string) {
 	ptn4 := regexp.MustCompile(`(\d\d\/\d\d\/\d\d\d\d [\d]+\:\d\d:\d\d) ([pa]\.m\.)`)
 	ptn5 := regexp.MustCompile(`(.*) \-\d\d\d\d`)
 
-	for rows.Next() {
+	for _, oldNote := range oldNotes {
 		var d time.Time
-		rows.Scan(&note_id, &title, &datelog, &content, &flags, &url, &timestamp, &readonly)
+		// rows.Scan(&note_id, &title, &datelog, &content, &flags, &url, &timestamp, &readonly)
 		_dData, e := strconv.ParseInt(datelog, 10, 64)
 		if e == nil {
 			d = u.NsToTime(_dData)
@@ -120,14 +106,14 @@ func DoMigration(oldDB, newDB string) {
 
 		note := Note{}
 		note.NewNote(map[string]interface{}{
-			"title":    title,
+			"title":    oldNote.Title,
 			"datelog":  d.UnixNano(),
-			"content":  content,
-			"flags":    flags,
-			"URL":      url,
-			"readonly": readonly,
+			"content":  oldNote.Content,
+			"flags":    oldNote.Flags,
+			"URL":      oldNote.URL,
+			"readonly": oldNote.Readonly,
 		})
-		count = count + 1
+		// count = count + 1
 		// if count == 100 { break }
 	}
 	fmt.Printf("%v\n", errorList)

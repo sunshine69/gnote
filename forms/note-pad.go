@@ -1,6 +1,8 @@
 package forms
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -44,12 +46,13 @@ func (np *NotePad) ShowMainWindowBtnClick(o *gtk.Button) {
 func (np *NotePad) Load(id int) {
 	if id < 0 { //Datelog only constructed in here and never be updated for the life of the note.
 		np.Datelog = time.Now().UnixNano()
+		fmt.Printf("[DEBUG] Datelog in Load Note %d - %s\n", np.Datelog, u.NsToTime(np.Datelog).Format(DateLayout))
 		np.wDateLog.SetText(u.NsToTime(np.Datelog).Format(DateLayout))
 		np.StartUpdateTime = time.Now()
 		return
 	}
 
-	if e := DbConn.FirstOrInit(&np.Note, Note{ID: id}).Error; e != nil {
+	if e := DbConn.Get(&np.Note, `SELECT * FROM notes WHERE id=$1`, id); errors.Is(e, sql.ErrNoRows) {
 		fmt.Printf("INFO Can not find that note ID %d\n", id)
 		return
 	} else {
@@ -516,7 +519,7 @@ func (np *NotePad) SaveToWebnote() {
 // SaveNote - save current note
 func (np *NotePad) SaveNote() {
 	np.FetchDataFromGUI()
-	if e := DbConn.Save(&np.Note).Error; e != nil {
+	if _, e := DbConn.NamedExec(`INSERT INTO notes (title, datelog, content,url, flags , reminder_ticks, timestamp, readonly, format_tag , alert_count , pixbuf_dict , time_spent , last_text_mark , language , file_ext ) VALUES(:title, :datelog, :content,:url, :flags , :reminder_ticks,:timestamp, :readonly, :format_tag , :alert_count , :pixbuf_dict , :time_spent , :last_text_mark , :language , :file_ext) ON CONFLICT(title) DO UPDATE SET title=excluded.title, datelog=excluded.datelog, content=excluded.content, readonly=excluded.readonly, timestamp=excluded.timestamp, url=excluded.url, flags=excluded.flags, reminder_ticks=excluded.reminder_ticks, format_tag=excluded.format_tag, alert_count=excluded.alert_count, pixbuf_dict=excluded.pixbuf_dict,language=excluded.language, file_ext=excluded.file_ext`, &np.Note); e != nil {
 		MessageBox(fmt.Sprintf("ERROR can not save note - %v\n", e))
 	} else {
 		fmt.Printf("INFO Note saved\n")
@@ -598,7 +601,10 @@ func (np *NotePad) HighlightBtnClick() {
 		if checkLang == "" {
 			MessageBox("The language string you type is not supported. To view list of language supported. Hit enter to show list of supported languages")
 			_n := Note{}
-			DbConn.First(&_n, Note{Title: "CreateDataNoteListOfLanguageSupport"})
+			if e := DbConn.Get(&_n, `SELECT * FROM notes WHERE title=$1`, "CreateDataNoteListOfLanguageSupport"); errors.Is(e, sql.ErrNoRows) {
+				MessageBox("Can not get note title CreateDataNoteListOfLanguageSupport")
+				return
+			}
 			newNp := NewNotePad(_n.ID)
 			newNp.app = np.app // Avoid crash when delete as it is orphaned
 		}

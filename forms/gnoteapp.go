@@ -1,13 +1,16 @@
 package forms
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
@@ -58,7 +61,7 @@ func (app *GnoteApp) ResultListKeyPress(w *gtk.TreeView, ev *gdk.Event) {
 		for _, id := range *app.selectedID {
 			fmt.Printf("ID %v\n", id)
 			sql := fmt.Sprintf("DELETE FROM notes WHERE ID = '%d';", id)
-			if e := DbConn.Unscoped().Exec(sql).Error; e != nil {
+			if _, e := DbConn.Exec(sql); e != nil {
 				fmt.Printf("ERROR %v\n", e)
 			}
 		}
@@ -93,7 +96,10 @@ func (app *GnoteApp) DoExportNotes() {
 	outNoteList := []Note{}
 	for _, _id := range *app.selectedID {
 		_n := Note{}
-		DbConn.First(&_n, _id)
+		if err := DbConn.Get(&_n, `SELECT * FROM notes WHERE id=$1`, _id); err != nil {
+			fmt.Printf("[ERROR] DoExportNotes %s\n", err.Error())
+			continue
+		}
 		if _n.ID != -1 {
 			outNoteList = append(outNoteList, _n)
 		}
@@ -150,16 +156,22 @@ func (app *GnoteApp) DoImportNotes() {
 	}
 	for _, note := range inputNotes {
 		_n := Note{}
-		DbConn.First(&_n, Note{Title: note.Title})
-		if _n.ID == 0 {
+		err := DbConn.Get(&_n, `SELECT * FROM notes WHERE title=$1`, note.Title)
+		if errors.Is(err, sql.ErrNoRows) {
 			fmt.Println("new note")
 			note.ID = 0
-			DbConn.Create(&note)
+			_, err = DbConn.NamedExec(`INSERT INTO notes (title, datelog, content,url, flags , reminder_ticks, timestamp, readonly, format_tag , alert_count , pixbuf_dict , time_spent , last_text_mark , language , file_ext ) VALUES(:title, :datelog, :content,:url, :flags , :reminder_ticks,:timestamp, :readonly, :format_tag , :alert_count , :pixbuf_dict , :time_spent , :last_text_mark , :language , :file_ext)`, &note)
+			if err != nil {
+				fmt.Printf("[ERROR] inputNotes %s\n", err.Error())
+				continue
+			}
 		} else {
 			fmt.Printf("update note new: %s - %d\nold: %s - %d\n", note.Title, note.Timestamp, _n.Title, _n.Timestamp)
 			if note.Timestamp >= _n.Timestamp { // Update as input is newer or equal (rare)
 				_n = note
-				DbConn.Save(&_n)
+				if _, e := DbConn.NamedExec(`UPDATE note SET title=:title, timestamp=:timestamp`, &_n); e != nil {
+					fmt.Printf("[ERROR] UPDATE note SET title: %s\n", e.Error())
+				}
 			} else {
 				fmt.Println("Input is older than current. Do not update")
 				fmt.Printf("Existing note ID %d, title: '%s', TS: %d\n", _n.ID, _n.Title, _n.Timestamp)
@@ -181,11 +193,14 @@ func (app *GnoteApp) DoCreateNoteFromClipboard() {
 		MessageBox("ERROR Get clipboard WaitForText" + err.Error())
 		return
 	}
-	note := Note{}
+	note := Note{Datelog: time.Now().Unix()}
 	note.NewNote(map[string]interface{}{
 		"content": content,
 	})
-	DbConn.Save(&note)
+	if _, e := DbConn.NamedExec(`INSERT INTO notes (title, datelog, content,url, flags , reminder_ticks, timestamp, readonly, format_tag , alert_count , pixbuf_dict , time_spent , last_text_mark , language , file_ext ) VALUES(:title, :datelog, :content,:url, :flags , :reminder_ticks,:timestamp, :readonly, :format_tag , :alert_count , :pixbuf_dict , :time_spent , :last_text_mark , :language , :file_ext)`, &note); e != nil {
+		MessageBox("ERROR Create new note" + err.Error())
+		return
+	}
 }
 
 // Change Passphrase
@@ -223,7 +238,7 @@ func (app *GnoteApp) NewNoteFromFile(o *gtk.FileChooserButton) {
 }
 
 func (app *GnoteApp) DoVacuum() {
-	if e := DbConn.Exec("VACUUM").Error; e != nil {
+	if _, e := DbConn.Exec("VACUUM"); e != nil {
 		MessageBox(fmt.Sprintf("ERROR VACUUM %v", e))
 	}
 }
@@ -367,8 +382,8 @@ func (app *GnoteApp) DoSyncNotesFromWebnote() {
 	needToGetContentIds := []string{}
 	for _, webnote := range webnotes {
 		mynote := Note{}
-		DbConnNew := DbConn.Where(&Note{Title: webnote.Title}).First(&mynote)
-		if DbConnNew.RowsAffected == 0 {
+		err := DbConn.Get(&mynote, `SELECT * FROM notes WHERE title=$1`, webnote.Title)
+		if errors.Is(err, sql.ErrNoRows) {
 			fmt.Printf("rec not found for title '%s', going to get it\n", webnote.Title)
 			needToGetContentIds = append(needToGetContentIds, fmt.Sprintf("%d", webnote.ID))
 		} else {
@@ -408,8 +423,8 @@ func (app *GnoteApp) DoSyncNotesFromWebnote() {
 			TimeSpent:     note.TimeSpent,
 			ReminderTicks: note.ReminderTicks,
 		}
-		DbconNew := DbConn.Where(&Note{Title: note.Title}).First(&newnote)
-		if DbconNew.RowsAffected == 0 {
+		err := DbConn.Get(&newnote, `SELECT * FROM notes WHERE title=$1`, note.Title)
+		if errors.Is(err, sql.ErrNoRows) {
 			newnote = noteExp
 		} else {
 			myID := newnote.ID
@@ -417,8 +432,10 @@ func (app *GnoteApp) DoSyncNotesFromWebnote() {
 			newnote.ID = myID
 		}
 		newnote.Title = note.Title
-		// Why DbconNew here does not do the Save? FFS goORM
-		DbConn.Save(&newnote)
+
+		if _, err := DbConn.NamedExec(`INSERT INTO notes (title, datelog, content,url, flags , reminder_ticks, timestamp, readonly, format_tag , alert_count , pixbuf_dict , time_spent , last_text_mark , language , file_ext ) VALUES(:title, :datelog, :content,:url, :flags , :reminder_ticks,:timestamp, :readonly, :format_tag , :alert_count , :pixbuf_dict , :time_spent , :last_text_mark , :language , :file_ext) ON CONFLICT(title) DO UPDATE SET title=excluded.title, datelog=excluded.datelog, content=excluded.content, readonly=excluded.readonly, timestamp=excluded.timestamp, url=excluded.url, flags=excluded.flags, reminder_ticks=excluded.reminder_ticks, format_tag=excluded.format_tag, alert_count=excluded.alert_count, pixbuf_dict=excluded.pixbuf_dict,language=excluded.language, file_ext=excluded.file_ext`, &newnote); err != nil {
+			fmt.Printf("[ERROR %s", err.Error())
+		}
 	}
 	fmt.Printf("Have synced %d notes\n", len(webnotes1))
 }
@@ -455,29 +472,32 @@ func (app *GnoteApp) doFullTextSearch() {
 	b := app.Builder
 	w := GetSearchEntry(b, "searchBox")
 	keyword, _ := w.GetText()
-	var sql string
+	var sqlStr string
 	fmt.Printf("keyword: '%s'\n", keyword)
 	if keyword == "" || strings.HasPrefix(keyword, "f:") || strings.HasPrefix(keyword, "flags:") || strings.HasPrefix(keyword, "F:") || strings.HasPrefix(keyword, "FLAGS:") || strings.HasPrefix(keyword, " ") {
 		app.doSearch()
 		return
 	} else {
-		sql = fmt.Sprintf("SELECT rowid FROM note_fts WHERE note_fts MATCH '%s' ORDER BY datelog DESC LIMIT 200;", keyword)
+		sqlStr = fmt.Sprintf("SELECT rowid FROM note_fts WHERE note_fts MATCH '%s' ORDER BY datelog DESC LIMIT 200;", keyword)
 	}
-
-	rows, e := DbConn.Raw(sql).Rows()
+	foundNotes := []struct {
+		Rowid   int    `db:"rowid"`
+		Content string `db:"content"`
+	}{}
+	e := DbConn.Select(&foundNotes, sqlStr)
 	if e != nil {
 		fmt.Printf("ERROR - exec sql\n")
+		return
 	}
-	defer rows.Close()
 	app.model.Clear()
 
 	rowid, id, count := 0, 0, 0
 	var title string
 	var datelog, lastUpdate int64
-	for rows.Next() {
-		rows.Scan(&rowid)
+	for _, noteFts := range foundNotes {
+		rowid = noteFts.Rowid
 		_note := Note{}
-		if e = DbConn.First(&_note, rowid).Error; e != nil {
+		if e := DbConn.Get(&_note, `SELECT * FROM notes WHERE id=$1`, rowid); errors.Is(e, sql.ErrNoRows) {
 			fmt.Printf("Failt to get note id %d\n", rowid)
 			break
 		}
@@ -542,7 +562,7 @@ func (app *GnoteApp) doSearch() {
 		q = fmt.Sprintf("SELECT id, title, datelog, timestamp from notes WHERE %v", q)
 	}
 	fmt.Println(q)
-	rows, e := DbConn.Raw(q).Rows()
+	rows, e := DbConn.Query(q)
 	if e != nil {
 		fmt.Printf("ERROR - exec sql\n")
 	}

@@ -1,15 +1,17 @@
 package forms
 
 import (
+	"errors"
 	"fmt"
 	"net/http/cookiejar"
 	"os"
 	"time"
 
+	"database/sql"
+
+	"github.com/jmoiron/sqlx"
+	_ "github.com/mutecomm/go-sqlcipher/v4"
 	u "github.com/sunshine69/golang-tools/utils"
-	"gorm.io/driver/sqlite"
-	_ "gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 // DateLayout - global
@@ -24,63 +26,53 @@ var CookieJar *cookiejar.Jar
 
 // AppConfig - Application config struct
 type AppConfig struct {
-	gorm.Model
-	// Section string `gorm:"type:varchar(128);unique_index:section_key"`
-	Key string `gorm:"type:varchar(128);unique_index:section_key"`
-	Val string `gorm:"type:text"`
+	ID  int    `db:"id"`
+	Key string `db:"key"`
+	Val string `db:"val"`
 }
 
 // DbConn - Global DB connection
-var DbConn *gorm.DB
+var DbConn *sqlx.DB
 
 // SetupConfigDB - SetupDB. This is the initial point of config setup. Note init() does not work if it relies
 // on DbConn as at the time the DBPATH is not yet available
 func SetupConfigDB() {
-	var err error
-	dbPath := os.Getenv("DBPATH")
+	// dbPath := os.Getenv("DBPATH")
 	// fmt.Printf("Use dbpath %v\n", dbPath)
-	DbConn, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
-	if err != nil {
-		panic("failed to connect database")
-	}
-	DbConn.AutoMigrate(&AppConfig{})
-	DbConn.AutoMigrate(&Note{})
-	setupSQL := `
-CREATE VIRTUAL TABLE IF NOT EXISTS note_fts USING fts5(title, datelog, content, content='notes', content_rowid='id');
+	// DbConn = sqlx.MustConnect("sqlite3", dbPath)
 
-CREATE TRIGGER IF NOT EXISTS notes_ai AFTER INSERT ON notes BEGIN
+	setupSQL := `
+CREATE TABLE app_configs(id integer PRIMARY KEY AUTOINCREMENT,key varchar(128) UNIQUE, val text);
+
+CREATE TABLE notes(id integer PRIMARY KEY AUTOINCREMENT,title varchar(512) NOT NULL UNIQUE, datelog integer, content text,url text, flags text, reminder_ticks integer,timestamp integer DEFAULT CURRENT_TIMESTAMP, readonly integer DEFAULT 0, format_tag blob, alert_count integer DEFAULT 0, pixbuf_dict blob, time_spent integer DEFAULT 0, last_text_mark blob, language text, file_ext text);
+
+CREATE VIRTUAL TABLE note_fts USING fts5(title, datelog, content, content='notes', content_rowid='id');
+
+CREATE TRIGGER notes_ai AFTER INSERT ON notes BEGIN
   INSERT INTO note_fts(rowid, title, datelog, content) VALUES (new.id, new.title, new.datelog, new.content);
 END;
-
-CREATE TRIGGER IF NOT EXISTS notes_ad AFTER DELETE ON notes BEGIN
+CREATE TRIGGER notes_ad AFTER DELETE ON notes BEGIN
   INSERT INTO note_fts(note_fts, rowid, title, datelog, content) VALUES('delete', old.id, old.title, old.datelog, old.content);
 END;
-
-CREATE TRIGGER IF NOT EXISTS notes_au AFTER UPDATE ON notes BEGIN
+CREATE TRIGGER notes_au AFTER UPDATE ON notes BEGIN
   INSERT INTO note_fts(note_fts, rowid, title, datelog, content) VALUES('delete', old.id, old.title, old.datelog, old.content);
   INSERT INTO note_fts(rowid, title, datelog, content) VALUES (new.id, new.title, new.datelog, new.content);
 END;
 `
-	DbConn.Exec(setupSQL)
-	// DbConn.Exec("CREATE INDEX IF NOT EXISTS iTextContent ON notes(content COLLATE NOCASE);")
-
-	// Example of loading a key dbpath
-	// if err = DbConn.Find(&Config, AppConfig{Key: "dbpath"}).Error; err != nil {
-	// 	log.Printf("Error can not load config table %v",err)
-	// }
-	// value := Config.Val
-	DateLayout, _ = GetConfig("date_layout")
-	WebNoteUser, _ = GetConfig("webnote_user")
-	CreateDataNoteLangFileExt()
-	CreateDataNoteListOfLanguageSupport()
+	if _, err := DbConn.Exec(setupSQL); err == nil {
+		DateLayout, _ = GetConfig("date_layout")
+		WebNoteUser, _ = GetConfig("webnote_user")
+		CreateDataNoteLangFileExt()
+		CreateDataNoteListOfLanguageSupport()
+	}
 }
 
 // SetupDefaultConfig - Setup/reset default configuration set
 func SetupDefaultConfig() {
-	DbConn.Unscoped().Exec("DELETE FROM app_configs;")
+	DbConn.Exec("DELETE FROM app_configs;")
 
 	configSet := map[string]string{
-		"config_created":    "",
+		"config_created":    "1",
 		"pnmain_win_pos":    "2202:54",
 		"select_limit":      "250",
 		"list_flags":        "TODO<|>IMPORTANT<|>URGENT",
@@ -93,90 +85,78 @@ func SetupDefaultConfig() {
 	}
 	for key, val := range configSet {
 		fmt.Printf("Inserting %s - %s\n", key, val)
-		if e := DbConn.Create(&AppConfig{Key: key, Val: val}).Error; e != nil {
+		if _, e := DbConn.NamedExec("INSERT INTO app_configs(key, val) VALUES (:key, :val)", &AppConfig{Key: key, Val: val}); e != nil {
 			fmt.Printf("ERROR %v\n", e)
 		}
 	}
 }
 
-// GetConfig - by key and return value. Give second arg as default value.
+// GetConfig - by key and return value. Give second arg as default value. This runs very first
 func GetConfig(key ...string) (string, error) {
+	DbConn = sqlx.MustConnect("sqlite3", os.Getenv("DBPATH"))
 	var cfg = AppConfig{}
-	tx := DbConn.Find(&cfg, AppConfig{Key: key[0]})
-	if tx.RowsAffected == 0 {
+	// If use Get - sqlx requires strict col mapping to the struct u put into and the old db might have
+	// different schema for app_configs. The QueryRow and scan wont have that problem
+	row := DbConn.QueryRow("SELECT key, val FROM app_configs WHERE `key` = $1", key[0])
+	if row.Err() != nil {
+		// fmt.Printf("[DEBUG 0] %s\n", row.Err().Error())
 		if len(key) == 2 {
 			return key[1], nil
 		} else {
-			return "", tx.Error
+			return "", row.Err()
 		}
 	} else {
-		return cfg.Val, tx.Error
+		row.Scan(&cfg.Key, &cfg.Val)
+		// fmt.Printf("[DEBUG 1] %v - Val %v\n", row.Err(), cfg)
+		return cfg.Val, nil
 	}
 }
 
 // SetConfig - Set a config key with value
 func SetConfig(key, val string) error {
-	var cfg = AppConfig{}
-	if e := DbConn.FirstOrInit(&cfg, AppConfig{Key: key}).Error; e != nil {
-		return e
-	}
-	cfg.Val = val
-	if e := DbConn.Save(&cfg).Error; e != nil {
+	_, err := DbConn.NamedExec("INSERT INTO app_configs(key, val) VALUES (:key, :val) ON CONFLICT(key) DO UPDATE SET val=excluded.val", AppConfig{Key: key, Val: val})
+	return err
+}
+
+// DeleteConfig - delete the config key
+func DeleteConfig(key string) error {
+	if _, e := DbConn.NamedExec("DELETE FROM app_configs WHERE key = :key", AppConfig{Key: key}); e != nil {
 		return e
 	}
 	return nil
 }
 
-// DeleteConfig - delete the config key
-func DeleteConfig(key string) error {
-	var cfg = AppConfig{}
-	if e := DbConn.Find(&cfg, AppConfig{Key: key}).Error; e != nil {
-		return e
-	}
-	return DbConn.Unscoped().Delete(&cfg).Error
-}
-
 // Populate some notes needed for data lookup - used by other part of the app
 // Currently we store the language / file extention data but in the future we might store more
-// This note is used to lookup Language => File Extention so we can save the note to file with correct extension in note-pad.go and note-search.go
-func CreateDataNoteLangFileExt() {
-	note := Note{}
-	if e := DbConn.FirstOrInit(&note, Note{Title: "CreateDataNoteLangFileExt"}).Error; e != nil {
-		fmt.Printf("INFO Can not create data note  CreateDataNoteLangFileExt %s\n", e.Error())
-		return
-	}
-	defer DbConn.Save(&note)
-	if note.Content == "" {
+func CreateDataNote(title string, fetchDataUrl string) {
+	prepareNote := func(note *Note) {
 		// Fetch it so we do not waste memory by adding this resource to go-bindata
-		jsonText, err := u.Curl("GET", "https://raw.githubusercontent.com/sunshine69/gnote/gtksourceview/CreateDataNoteLangFileExt.json", "", "", []string{})
-		if u.CheckErrNonFatal(err, "CreateDataNoteLangFileExt GET") != nil {
-			fmt.Println("Error fetching CreateDataNoteLangFileExt. You can manually search the note with title CreateDataNoteLangFileExt and insert the content yourself. The content is from the this repo project github")
+		jsonText, err := u.Curl("GET", fetchDataUrl, "", "", []string{})
+		if u.CheckErrNonFatal(err, title+"CreateDataNote GET") != nil {
+			fmt.Printf("Error fetching. You can manually search the note with title %s and insert the content yourself. The content is from the this repo project github", title)
 			return
 		}
 		note.Content = jsonText
 		datelog := time.Now().UnixNano()
 		note.Readonly, note.Datelog, note.Timestamp = 1, datelog, datelog
 	}
+
+	note := Note{Title: title, Datelog: time.Now().Unix()}
+	if e := DbConn.Get(&note, "SELECT * FROM notes WHERE title = :title", title); errors.Is(e, sql.ErrNoRows) {
+		prepareNote(&note)
+		_, err := DbConn.NamedExec("INSERT INTO notes(title, datelog, content, readonly, timestamp) VALUES(:title, :datelog, :content, :readonly, :timestamp) ON CONFLICT(title) DO UPDATE SET title=excluded.title, datelog=excluded.datelog, content=excluded.content, readonly=excluded.readonly, timestamp=excluded.timestamp", note)
+		u.CheckErr(err, title+" INSERT")
+		return
+	}
+}
+
+// This note is used to lookup Language => File Extention so we can save the note to file with correct extension in note-pad.go and note-search.go
+func CreateDataNoteLangFileExt() {
+	CreateDataNote("CreateDataNoteLangFileExt", "https://raw.githubusercontent.com/sunshine69/gnote/gtksourceview/CreateDataNoteLangFileExt.json")
 }
 
 // Parse the language string that current gtksourceview support and save it to a note so we can check against it
 // The list is created from this command on linux ls /usr/share/gtksourceview-3.0/language-specs/ | sed 's/.lang//'
 func CreateDataNoteListOfLanguageSupport() {
-	note := Note{}
-	if e := DbConn.FirstOrInit(&note, Note{Title: "CreateDataNoteListOfLanguageSupport"}).Error; e != nil {
-		fmt.Printf("INFO Can not create data note  CreateDataNoteListOfLanguageSupport %s\n", e.Error())
-		return
-	}
-	defer DbConn.Save(&note)
-	if note.Content == "" {
-		// Fetch it so we do not waste memory by adding this resource to go-bindata
-		jsonText, err := u.Curl("GET", "https://raw.githubusercontent.com/sunshine69/gnote/gtksourceview/CreateDataNoteListOfLanguageSupport.json", "", "", []string{})
-		if u.CheckErrNonFatal(err, "CreateDataNoteListOfLanguageSupport GET") != nil {
-			fmt.Println("Error fetching CreateDataNoteListOfLanguageSupport. You can manually search the note with title CreateDataNoteListOfLanguageSupport and insert the content yourself. The content is from the this repo project github")
-			return
-		}
-		note.Content = jsonText
-		datelog := time.Now().UnixNano()
-		note.Readonly, note.Datelog, note.Timestamp = 1, datelog, datelog
-	}
+	CreateDataNote("CreateDataNoteListOfLanguageSupport", "https://raw.githubusercontent.com/sunshine69/gnote/gtksourceview/CreateDataNoteListOfLanguageSupport.json")
 }

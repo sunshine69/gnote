@@ -2,6 +2,8 @@ package forms
 
 import (
 	"bytes"
+	"database/sql"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -66,7 +68,10 @@ func (ns *NoteSearch) OutputToNewNote(o *gtk.CheckButton) {
 func GetNoteFromLua(L *lua.LState) int {
 	title := L.ToString(1) /* get argument */
 	note := Note{}
-	DbConn.First(&note, Note{Title: title})
+	if e := DbConn.Get(&note, `SELECT * FROM notes WHERE title=$1`, title); errors.Is(e, sql.ErrNoRows) {
+		MessageBox("Note title " + title + " not found")
+		return 0
+	}
 	L.Push(lua.LString(u.JsonDump(note, ""))) /* push result */
 	return 1                                  /* number of results */
 }
@@ -77,8 +82,8 @@ func SearchNotesFromLua(L *lua.LState) int {
 		L.Push(lua.LString("ERROR - the arg is a string and should started with 'WHERE'"))
 		return 1
 	}
-	sql := "SELECT id FROM notes " + sqlWhereList
-	rows, err := DbConn.Raw(sql).Rows()
+	sqlStr := "SELECT id FROM notes " + sqlWhereList
+	rows, err := DbConn.Query(sqlStr)
 	if err != nil {
 		fmt.Printf("ERROR - exec sql\n")
 		L.Push(lua.LString(err.Error()))
@@ -89,7 +94,9 @@ func SearchNotesFromLua(L *lua.LState) int {
 	for rows.Next() {
 		_n, nid := Note{}, 0
 		rows.Scan(&nid)
-		DbConn.First(&_n, nid)
+		if e := DbConn.Get(&_n, `SELECT * FROM notes WHERE id=$1`, nid); errors.Is(e, sql.ErrNoRows) {
+			MessageBox("Error not found note ID " + string(nid))
+		}
 		oNoteList = append(oNoteList, _n)
 	}
 	L.Push(lua.LString(u.JsonDump(oNoteList, "")))
@@ -102,9 +109,12 @@ func UpdateNotesFromLua(L *lua.LState) int {
 		L.Push(lua.LString("ERROR - the arg is a string and should started with 'UPDATE'"))
 		return 1
 	}
-	DbConn.Exec(sql)
-	L.Push(lua.LString(fmt.Sprintf("OK %d rows affected", DbConn.RowsAffected)))
-	return 1
+	if res, e := DbConn.Exec(sql); e == nil {
+		RowsAffected, _ := res.RowsAffected()
+		L.Push(lua.LString(fmt.Sprintf("OK %d rows affected", RowsAffected)))
+		return 1
+	}
+	return 0
 }
 
 func RunLuaFile(luaFileName string) string {

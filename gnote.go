@@ -77,21 +77,27 @@ func main() {
 	default:
 		fullDBPath = fmt.Sprintf("%s?_pragma_key=x'%s'", *dbPath, key)
 	}
+	// fmt.Println(fullDBPath)
+	os.Setenv("DBPATH", fullDBPath)
 
 	if *doMigrate {
 		forms.DoMigrationV1(*oldDB, fullDBPath)
 		os.Exit(0)
 	}
+	// forms.SetupConfigDB()
 
-	os.Setenv("DBPATH", fullDBPath)
-	forms.SetupConfigDB()
-
-	if _, e := forms.GetConfig("config_created"); e != nil {
+	config_created, err := forms.GetConfig("config_created")
+	u.CheckErrNonFatal(err, "GetConfig config_created")
+	if config_created == "" {
 		fmt.Println("Setup default config ....")
+		forms.SetupConfigDB()
 		forms.SetupDefaultConfig()
-		forms.MessageBox("Initial setup db completed. The program will exit now. You can start it again.")
-		os.Exit(0)
+		forms.MessageBox("Initial setup db completed.")
+		// os.Exit(0)
 	}
+
+	forms.DateLayout, _ = forms.GetConfig("date_layout")
+	forms.WebNoteUser, _ = forms.GetConfig("webnote_user")
 
 	builder, err := gtk.BuilderNewFromFile("glade/gnote.glade")
 	if err != nil {
