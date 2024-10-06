@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"os"
 	"regexp"
@@ -343,7 +343,7 @@ func (np *NotePad) SaveNoteToFile() {
 	if response == gtk.RESPONSE_OK {
 		filename := dlg.GetFilename()
 		text, _, _ := np.GetSelection()
-		ioutil.WriteFile(filename, []byte(text), 0644)
+		os.WriteFile(filename, []byte(text), 0644)
 	}
 }
 
@@ -508,7 +508,7 @@ func (np *NotePad) SaveToWebnote() {
 		MessageBox(fmt.Sprintf("ERROR - CRITICAL save to webnote %v", err))
 		return
 	}
-	respText, _ := ioutil.ReadAll(resp.Body)
+	respText, _ := io.ReadAll(resp.Body)
 	if string(respText) != "OK note saved" {
 		browser.OpenReader(strings.NewReader(string(respText)))
 	} else {

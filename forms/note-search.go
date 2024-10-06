@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -170,7 +169,7 @@ func (ns *NoteSearch) FindText() bool {
 		}
 		outStr := ""
 		if replaceWith == "<CMD_OUTPUT>" {
-			_tmpF, _ := ioutil.TempFile("", fmt.Sprintf("gnote-*%s", ns.np.FileExt))
+			_tmpF, _ := os.CreateTemp("", fmt.Sprintf("gnote-*%s", ns.np.FileExt))
 			_tmpF.Write([]byte(text))
 			err := _tmpF.Close()
 			u.CheckErrNonFatal(err, "run-command can not close tmp file")

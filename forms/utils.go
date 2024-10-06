@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
@@ -536,7 +535,7 @@ func LoginToWebnote() (*http.Client, string, string) {
 		return nil, "", ""
 	}
 	csrfPtn := regexp.MustCompile(`name="gorilla.csrf.Token" value="([^"]+)"`)
-	respText, _ := ioutil.ReadAll(resp.Body)
+	respText, _ := io.ReadAll(resp.Body)
 
 	if debug, _ := GetConfig("debug", "FALSE"); debug == "TRUE" {
 		respTextStr := string(respText)
@@ -563,7 +562,7 @@ func LoginToWebnote() (*http.Client, string, string) {
 			WebNotePassword = ""
 			WebNoteUser = ""
 		}
-		respText, _ = ioutil.ReadAll(resp.Body)
+		respText, _ = io.ReadAll(resp.Body)
 
 		if strings.HasPrefix(string(respText), "Failed login") {
 			MessageBox(fmt.Sprintf("ERROR Failed login - '%s'\n", respText))

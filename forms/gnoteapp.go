@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"os"
 	"strconv"
@@ -372,7 +372,7 @@ func (app *GnoteApp) DoSyncNotesFromWebnote() {
 	if u.CheckErrNonFatal(err, "DoSyncNotesFromWebnote get_notes_titles") != nil {
 		return
 	}
-	respText, _ := ioutil.ReadAll(resp.Body)
+	respText, _ := io.ReadAll(resp.Body)
 	// Even struct Note and webnote Note has small diff but we only care about common fields thus using Note here does work
 	webnotes := []Note{}
 	err = json.Unmarshal(respText, &webnotes)
@@ -405,7 +405,7 @@ func (app *GnoteApp) DoSyncNotesFromWebnote() {
 	if u.CheckErrNonFatal(err, "DoSyncNotesFromWebnote get_notes_by_id") != nil {
 		return
 	}
-	respText, _ = ioutil.ReadAll(resp.Body)
+	respText, _ = io.ReadAll(resp.Body)
 
 	webnotes1 := []Note{}
 	err = json.Unmarshal(respText, &webnotes1)
