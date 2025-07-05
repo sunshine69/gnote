@@ -364,11 +364,11 @@ func (app *GnoteApp) InitApp() {
 
 func (app *GnoteApp) DoSyncNotesFromWebnote() {
 	duration := InputDialog("title", "Duration", "label", "Enter the time duration you want to sync: eg. 48h will sync all notes created in the last 48 hours", "default", "48h")
-	client, csrfToken, webnoteURL := LoginToWebnote()
+	client, webnoteURL := LoginToWebnote()
 	if client == nil {
 		return
 	}
-	resp, err := client.Get(fmt.Sprintf("%s/get_notes_titles?duration=%s&gorilla.csrf.Token=%s", webnoteURL, duration, csrfToken))
+	resp, err := client.Get(fmt.Sprintf("%s/get_notes_titles?duration=%s", webnoteURL, duration))
 	if u.CheckErrNonFatal(err, "DoSyncNotesFromWebnote get_notes_titles") != nil {
 		return
 	}
@@ -400,7 +400,7 @@ func (app *GnoteApp) DoSyncNotesFromWebnote() {
 	}
 	data := fmt.Sprintf("(%s)", strings.Join(needToGetContentIds, ","))
 	fmt.Printf("Will ask to get these IDs %s\n", data)
-	getURL := fmt.Sprintf("%s/get_notes_by_id?ids=%s&gorilla.csrf.Token=%s", webnoteURL, url.QueryEscape(data), csrfToken)
+	getURL := fmt.Sprintf("%s/get_notes_by_id?ids=%s", webnoteURL, url.QueryEscape(data))
 	resp, err = client.Get(getURL)
 	if u.CheckErrNonFatal(err, "DoSyncNotesFromWebnote get_notes_by_id") != nil {
 		return

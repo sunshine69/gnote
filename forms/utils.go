@@ -409,7 +409,7 @@ func ChangePassphrase(old, new, keyFile string) error {
 	}
 	key, err := u.Decrypt(string(keyEncData), old)
 	if u.CheckErrNonFatal(err, "Decrypt keyEncData") == nil {
-		keyEnc := u.Encrypt(key, new)
+		keyEnc, _ := u.Encrypt(key, new)
 		err = os.WriteFile(keyFile, []byte(keyEnc), 0600)
 		return u.CheckErrNonFatal(err, "WriteFile")
 	} else {
@@ -502,7 +502,7 @@ func GetWebnoteCredential() string {
 	return webnoteUrl
 }
 
-func LoginToWebnote() (*http.Client, string, string) {
+func LoginToWebnote() (*http.Client, string) {
 	webnoteUrl := GetWebnoteCredential()
 	if CookieJar == nil {
 		CookieJar, _ = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
@@ -521,20 +521,20 @@ func LoginToWebnote() (*http.Client, string, string) {
 	}
 	if WebNoteUser == "" || WebNotePassword == "" {
 		MessageBox("No username or password. Aborting. You can retry")
-		return nil, "", ""
+		return nil, ""
 	}
 	//Getfirst to get the csrf token
 	resp, err := client.Get(webnoteUrl)
 	if err != nil {
 		MessageBox(fmt.Sprintf("ERROR sync webnote %v", err))
-		return nil, "", ""
+		return nil, ""
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		MessageBox(fmt.Sprintf("ERROR sync webnote code %v", resp.StatusCode))
-		return nil, "", ""
+		return nil, ""
 	}
-	csrfPtn := regexp.MustCompile(`name="gorilla.csrf.Token" value="([^"]+)"`)
+	// csrfPtn := regexp.MustCompile(`name="gorilla.csrf.Token" value="([^"]+)"`)
 	respText, _ := io.ReadAll(resp.Body)
 
 	if debug, _ := GetConfig("debug", "FALSE"); debug == "TRUE" {
@@ -542,19 +542,19 @@ func LoginToWebnote() (*http.Client, string, string) {
 		fmt.Printf("DEBUG %s\n", respTextStr)
 	}
 
-	matches := csrfPtn.FindSubmatch(respText)
-	if len(matches) == 0 {
-		MessageBox("ERROR sync webnote Can not find csrf token in response\n")
-		return nil, "", ""
-	}
-	csrfToken := string(matches[1])
+	// matches := csrfPtn.FindSubmatch(respText)
+	// if len(matches) == 0 {
+	// 	MessageBox("ERROR sync webnote Can not find csrf token in response\n")
+	// 	return nil, "", ""
+	// }
+	// csrfToken := string(matches[1])
 
 	if bytes.Contains(respText, []byte("Enter login name and password:")) {
 		data := url.Values{
-			"username":           {WebNoteUser},
-			"password":           {WebNotePassword},
-			"totp_number":        {otpCode},
-			"gorilla.csrf.Token": {csrfToken},
+			"username":    {WebNoteUser},
+			"password":    {WebNotePassword},
+			"totp_number": {otpCode},
+			// "gorilla.csrf.Token": {csrfToken},
 		}
 		resp, err = client.PostForm(webnoteUrl+"/login", data)
 		if err != nil {
@@ -568,8 +568,8 @@ func LoginToWebnote() (*http.Client, string, string) {
 			MessageBox(fmt.Sprintf("ERROR Failed login - '%s'\n", respText))
 			WebNotePassword = ""
 			WebNoteUser = ""
-			return nil, "", ""
+			return nil, ""
 		}
 	}
-	return client, csrfToken, webnoteUrl
+	return client, webnoteUrl
 }

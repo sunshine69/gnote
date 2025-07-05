@@ -57,7 +57,7 @@ func main() {
 	if passphrase != "" {
 		if initialSetup {
 			key, _ = u.RandomHex(32)
-			encryptedKey := u.Encrypt(key, passphrase)
+			encryptedKey, _ := u.Encrypt(key, passphrase)
 			err = os.WriteFile(keyFile, []byte(encryptedKey), 0600)
 			u.CheckErr(err, "Write encrypted key file")
 		} else {

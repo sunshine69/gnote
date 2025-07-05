@@ -110,6 +110,7 @@ func GetConfig(key ...string) (string, error) {
 		// fmt.Printf("[DEBUG 1] %v - Val %v\n", row.Err(), cfg)
 		return cfg.Val, nil
 	}
+	
 }
 
 // SetConfig - Set a config key with value
