@@ -245,7 +245,7 @@ func (np *NotePad) DecryptContent() {
 func (np *NotePad) EncryptContent() {
 	key := InputDialog("title", "Password required", "label", "Enter passphrase to encrypt: ", "password-mask", '*')
 	ct, startI, endI := np.GetSelection()
-	eCt := u.Encrypt(ct, key)
+	eCt, _ := u.Encrypt(ct, key)
 	eCt = fmt.Sprintf("ENC:%s:ENC", eCt)
 	np.buff.SelectRange(startI, endI)
 	np.buff.DeleteSelection(true, true)
@@ -485,23 +485,22 @@ func (np *NotePad) FetchDataFromGUI() {
 func (np *NotePad) SaveToWebnote() {
 	np.SaveNote()
 
-	client, csrfToken, webnoteUrl := LoginToWebnote()
+	client, webnoteUrl := LoginToWebnote()
 	if client == nil {
 		return
 	}
 
 	data := url.Values{
-		"title":              {np.Title},
-		"datelog":            {fmt.Sprintf("%d", np.Datelog)},
-		"timestamp":          {fmt.Sprintf("%d", np.Timestamp)},
-		"flags":              {np.Flags},
-		"content":            {np.Content},
-		"url":                {np.URL},
-		"ngroup":             {"default"},
-		"permission":         {"0"},
-		"is_ajax":            {"1"},
-		"raw_editor":         {"1"},
-		"gorilla.csrf.Token": {csrfToken},
+		"title":      {np.Title},
+		"datelog":    {fmt.Sprintf("%d", np.Datelog)},
+		"timestamp":  {fmt.Sprintf("%d", np.Timestamp)},
+		"flags":      {np.Flags},
+		"content":    {np.Content},
+		"url":        {np.URL},
+		"ngroup":     {"default"},
+		"permission": {"0"},
+		"is_ajax":    {"1"},
+		"raw_editor": {"1"},
 	}
 	resp, err := client.PostForm(webnoteUrl+"/savenote", data)
 	if u.CheckErrNonFatal(err, "PostForm") != nil {
