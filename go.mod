@@ -4,9 +4,9 @@ replace github.com/jinzhu/gorm => github.com/sunshine69/gorm v0.0.0-202210140409
 
 replace github.com/linuxerwang/sourceview3 => github.com/sunshine69/sourceview3 v0.0.0-20221014105841-66c9420e858d
 
-go 1.22
+go 1.23.0
 
-toolchain go1.23.1
+toolchain go1.24.4
 
 require (
 	github.com/alecthomas/chroma v0.10.0
@@ -20,10 +20,10 @@ require (
 	github.com/otiai10/copy v1.14.0
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/sunshine69/gluare v0.0.0-20170607022532-d7c94f1a80ed
-	github.com/sunshine69/golang-tools/utils v0.0.0-20240926103530-7d97bcbdbc85
+	github.com/sunshine69/golang-tools/utils v0.0.0-20250704122049-97458a2984ff
 	github.com/sunshine69/gopher-json v0.0.0-20221024001855-6c6de212e5bf
 	github.com/yuin/gopher-lua v1.1.1
-	golang.org/x/net v0.29.0
+	golang.org/x/net v0.41.0
 )
 
 require (
@@ -41,8 +41,10 @@ require (
 	github.com/sendgrid/sendgrid-go v3.16.0+incompatible // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/stvoidit/gosmtp v1.0.7 // indirect
-	golang.org/x/crypto v0.27.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.25.0 // indirect
+	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/sync v0.15.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/text v0.26.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
