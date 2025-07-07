@@ -67,19 +67,12 @@ There is a simple ansible playbook to build it on a windows build agent. To setu
 ```
 # Go and download Golang, Git and Msys2 and install.
 PS C:\> mingw64
-$ pacman -S mingw-w64-x86_64-gtk3 mingw-w64-x86_64-toolchain base-devel glib2-devel
-# Adjust path where u install golang and git. For gcc need /mingw64/bin. msys2 put thigns and never add to PATH, need to do it manually otherwise no gcc available.
-$ echo 'export PATH=/c/Go/bin:/mingw64/bin:$PATH' >> ~/.bashrc
+# Note Need to ucrt version. gtk3 project update their doco - see https://www.gtk.org/docs/installations/windows/
+$ pacman -S mingw-w64-ucrt-x86_64-gtk3 mingw-w64-ucrt-x86_64-toolchain base-devel
+# Adjust path where u install golang and git. For gcc need /ucrt64/bin. msys2 put things and never add to PATH, need to do it manually otherwise no gcc available.
+$ echo 'export PATH=/c/Go/bin:/ucrt64/bin:$PATH' >> ~/.bashrc
 $ echo 'export PATH=/c/Program\ Files/Git/bin:$PATH' >> ~/.bashrc
 $ source ~/.bashrc
-$ sed -i -e 's/-Wl,-luuid/-luuid/g' /mingw64/lib/pkgconfig/gdk-3.0.pc # This fixes a bug in pkgconfig
-# As of now I build and got errors still. Not sure how to fix it -
-# C:/msys64/usr/include/glib-2.0/gio/gcredentials.h:77:1: error: unknown type name 'uid_t'; did you mean 'pid_t'?
-   77 | uid_t            g_credentials_get_unix_user      (GCredentials    *credentials,
-      | ^~~~~
-      | pid_t
-C:/msys64/usr/include/glib-2.0/gio/gcredentials.h:81:52: error: unknown type name 'uid_t'; did you mean 'pid_t'?
-
 ```
 
 - MacOS
