@@ -40,3 +40,11 @@ libbrotlicommon.dll
 libgtksourceview-3.0-1.dll
 libxml2-2.dll
 liblzma-5.dll
+libjpeg-8.dll
+libtiff-6.dll
+libdeflate.dll
+libjbig-0.dll
+libLerc.dll
+libwebp-7.dll
+libzstd.dll
+libsharpyuv-0.dll
