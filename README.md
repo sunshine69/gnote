@@ -62,7 +62,7 @@ My build is using a docker image to build and save cached. Basically at build ho
 go build -ldflags="-s -w -H=windowsgui" --tags "json1 fts5 secure_delete"  -o gnote-windows-amd64.exe gnote.go
 ```
 
-There is a simple ansible playbook to build it on a windows build agent. To setup the windows box see [https://github.com/gotk3/gotk3/wiki/Installing-on-Windows](https://github.com/gotk3/gotk3/wiki/Installing-on-Windows) basically:
+Follow this guide for most up-to-date as they might change it ... https://www.gtk.org/docs/installations/windows/.
 
 ```
 # Go and download Golang, Git and Msys2 and install.
