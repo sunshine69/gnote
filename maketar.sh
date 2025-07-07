@@ -19,10 +19,10 @@ elif [ "$OS" = "Darwin" ]; then
     ProductName=$( sw_vers | grep ProductName | sed 's/ //g; s/\t//g' | cut -f2 -d: )
     ProductVersion=$( sw_vers | grep ProductVersion | sed 's/ //g; s/\t//g' | cut -f2 -d: )
     TARBALL_NAME="gnote-${ProductName}-${ProductVersion}-${ARCH}.tgz"
-elif [[ "$OS" =~ MINGW64 ]]; then
+elif [[ "$OS" =~ MSYS_NT ]]; then
     go build -ldflags="-s -w -H=windowsgui" --tags "json1 fts5 secure_delete"  -o gnote-windows-amd64.exe gnote.go
     if [ "$1" == "" ]; then
-        echo "Enter your mingw64 root dir, example c:/tools/msys64/mingw64: "
+        echo "Enter your mingw64 root dir, example /c/msys64/ucrt64 "
         read MINGW64_ROOT_DIR
     else
         MINGW64_ROOT_DIR=$1
