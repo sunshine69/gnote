@@ -68,7 +68,7 @@ Follow this guide for most up-to-date as they might change it ... https://www.gt
 # Go and download Golang, Git and Msys2 and install.
 PS C:\> mingw64
 # Note Need to ucrt version. gtk3 project update their doco - see https://www.gtk.org/docs/installations/windows/
-$ pacman -S mingw-w64-ucrt-x86_64-gtk3 mingw-w64-ucrt-x86_64-toolchain base-devel
+$ pacman -S mingw-w64-ucrt-x86_64-gtk3 mingw-w64-ucrt-x86_64-toolchain base-devel mingw-w64-ucrt-x86_64-gtksourceview3
 # Adjust path where u install golang and git. For gcc need /ucrt64/bin. msys2 put things and never add to PATH, need to do it manually otherwise no gcc available.
 $ echo 'export PATH=/c/Go/bin:/ucrt64/bin:$PATH' >> ~/.bashrc
 $ echo 'export PATH=/c/Program\ Files/Git/bin:$PATH' >> ~/.bashrc
