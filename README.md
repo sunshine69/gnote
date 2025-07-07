@@ -65,16 +65,21 @@ go build -ldflags="-s -w -H=windowsgui" --tags "json1 fts5 secure_delete"  -o gn
 There is a simple ansible playbook to build it on a windows build agent. To setup the windows box see [https://github.com/gotk3/gotk3/wiki/Installing-on-Windows](https://github.com/gotk3/gotk3/wiki/Installing-on-Windows) basically:
 
 ```
-PS C:\> choco install golang
-PS C:\> choco install git
-PS C:\> choco install msys2
+# Go and download Golang, Git and Msys2 and install.
 PS C:\> mingw64
 $ pacman -S mingw-w64-x86_64-gtk3 mingw-w64-x86_64-toolchain base-devel glib2-devel
-$ echo 'export PATH=/c/Go/bin:$PATH' >> ~/.bashrc
+# Adjust path where u install golang and git. For gcc need /mingw64/bin. msys2 put thigns and never add to PATH, need to do it manually otherwise no gcc available.
+$ echo 'export PATH=/c/Go/bin:/mingw64/bin:$PATH' >> ~/.bashrc
 $ echo 'export PATH=/c/Program\ Files/Git/bin:$PATH' >> ~/.bashrc
 $ source ~/.bashrc
 $ sed -i -e 's/-Wl,-luuid/-luuid/g' /mingw64/lib/pkgconfig/gdk-3.0.pc # This fixes a bug in pkgconfig
-$ go get github.com/gotk3/gotk3/gtk
+# As of now I build and got errors still. Not sure how to fix it -
+# C:/msys64/usr/include/glib-2.0/gio/gcredentials.h:77:1: error: unknown type name 'uid_t'; did you mean 'pid_t'?
+   77 | uid_t            g_credentials_get_unix_user      (GCredentials    *credentials,
+      | ^~~~~
+      | pid_t
+C:/msys64/usr/include/glib-2.0/gio/gcredentials.h:81:52: error: unknown type name 'uid_t'; did you mean 'pid_t'?
+
 ```
 
 - MacOS
