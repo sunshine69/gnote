@@ -110,7 +110,7 @@ func GetConfig(key ...string) (string, error) {
 		// fmt.Printf("[DEBUG 1] %v - Val %v\n", row.Err(), cfg)
 		return cfg.Val, nil
 	}
-	
+
 }
 
 // SetConfig - Set a config key with value
@@ -132,7 +132,7 @@ func DeleteConfig(key string) error {
 func CreateDataNote(title string, fetchDataUrl string) {
 	prepareNote := func(note *Note) {
 		// Fetch it so we do not waste memory by adding this resource to go-bindata
-		jsonText, err := u.Curl("GET", fetchDataUrl, "", "", []string{})
+		jsonText, err := u.Curl("GET", fetchDataUrl, "", "", []string{}, nil)
 		if u.CheckErrNonFatal(err, title+"CreateDataNote GET") != nil {
 			fmt.Printf("Error fetching. You can manually search the note with title %s and insert the content yourself. The content is from the this repo project github", title)
 			return
