@@ -22,7 +22,7 @@ elif [ "$OS" = "Darwin" ]; then
 elif [[ "$OS" =~ MINGW64_NT ]]; then
     go build -ldflags="-s -w -H=windowsgui" --tags "json1 fts5 secure_delete"  -o gnote-windows-amd64.exe gnote.go
     if [ "$1" == "" ]; then
-        echo "Enter your mingw64 root dir, example /c/msys64/mingw64 "
+        echo "Enter your mingw64 root dir, example /c/tools/msys64/mingw64 "
         read MINGW64_ROOT_DIR
     else
         MINGW64_ROOT_DIR=$1
