@@ -20,10 +20,10 @@ require (
 	github.com/otiai10/copy v1.14.1
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/sunshine69/gluare v0.0.0-20170607022532-d7c94f1a80ed
-	github.com/sunshine69/golang-tools/utils v0.0.0-20250704122049-97458a2984ff
+	github.com/sunshine69/golang-tools/utils v0.0.0-20250710081106-99b6ce73ae2d
 	github.com/sunshine69/gopher-json v0.0.0-20221024001855-6c6de212e5bf
 	github.com/yuin/gopher-lua v1.1.1
-	golang.org/x/net v0.41.0
+	golang.org/x/net v0.42.0
 )
 
 require (
@@ -36,10 +36,10 @@ require (
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
-	golang.org/x/crypto v0.39.0 // indirect
-	golang.org/x/sync v0.15.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/crypto v0.40.0 // indirect
+	golang.org/x/sync v0.16.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/text v0.27.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
