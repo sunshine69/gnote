@@ -54,6 +54,7 @@ func main() {
 		initialSetup = true
 	}
 	passphrase = forms.InputDialog("title", "Enter Passphrase", "label", "Enter passphrase to decode key. hit enter if you know your DB is not encrypted", "password-mask", '*')
+
 	if passphrase != "" {
 		if initialSetup {
 			key, _ = u.RandomHex(32)

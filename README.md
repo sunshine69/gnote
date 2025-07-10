@@ -67,12 +67,31 @@ Follow this guide for most up-to-date as they might change it ... https://www.gt
 ```
 # Go and download Golang, Git and Msys2 and install.
 PS C:\> mingw64
-# Note Need to ucrt version. gtk3 project update their doco - see https://www.gtk.org/docs/installations/windows/
+# Use ucrt version. gtk3 project update their doco - see https://www.gtk.org/docs/installations/windows/
+# Start msys2 using ucrt64 (there is three at least icon inside the installation dir - mingw64, msys2, ucrt64). Then run
 $ pacman -S mingw-w64-ucrt-x86_64-gtk3 mingw-w64-ucrt-x86_64-toolchain base-devel mingw-w64-ucrt-x86_64-gtksourceview3
-# Adjust path where u install golang and git. For gcc need /ucrt64/bin. msys2 put things and never add to PATH, need to do it manually otherwise no gcc available.
-$ echo 'export PATH=/c/Go/bin:/ucrt64/bin:$PATH' >> ~/.bashrc
-$ echo 'export PATH=/c/Program\ Files/Git/bin:$PATH' >> ~/.bashrc
+# 
+$ echo 'export PATH=/c/Go/bin:/c/Git/bin:$PATH' >> ~/.bashrc
 $ source ~/.bashrc
+```
+
+For windows when building with ucrt64 I have a problem that the program only run normally inside the ucrt64
+shell. If double click from windows manager and run it only pop up the first dialog and then quit. Still
+investigating the fix.
+
+However If I build under win8 and using mingw64 env (code below) it seems to work for all windows including
+win11. Did test build mingw64 on windows 10 and 11 the problem is still, so it is soemthing in windows 10, 11
+causing it rather than the msys2 environment.
+
+ucrt64 is recommended by the project but I found the build with mingw64 is more stable and works with many
+stacks, example, go-fltk build failed unless mingw64, and fyne also only support on that. Thus I will note the
+command for mingw64 here as well.
+
+```
+pacman -S --needed base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-gtk3 glib2-devel
+mingw-w64-x86_64-gtksourceview3 
+sed -i -e 's/-Wl,-luuid/-luuid/g' /mingw64/lib/pkgconfig/gdk-3.0.pc # This fixes a bug in pkgconfig
+
 ```
 
 - MacOS
