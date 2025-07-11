@@ -11,13 +11,16 @@ import (
 	u "github.com/sunshine69/golang-tools/utils"
 )
 
+var (
+	dbPath          = flag.String("db", "", "Path to the database file")
+	doMigrate       = flag.Bool("mig", false, "Migrate")
+	oldDB           = flag.String("old-db", "", "Path to the old database file. If it is encrypted pass the key like filename?_pragma_key=x'<YOUR_KEY>'")
+	createWinBundle = flag.Bool("create-win-bundle", false, "Create a windows bundle script")
+	mingw64Prefix   = flag.String("mingw64-root", "c:/tools/msys64/mingw64", "Mingw64 root dir. Under this we have the /bin dir which has all gtk dll files")
+)
+
 func main() {
 	gtk.Init(&os.Args)
-	dbPath := flag.String("db", "", "Path to the database file")
-	doMigrate := flag.Bool("mig", false, "Migrate")
-	oldDB := flag.String("old-db", "", "Path to the old database file. If it is encrypted pass the key like filename?_pragma_key=x'<YOUR_KEY>'")
-	createWinBundle := flag.Bool("create-win-bundle", false, "Create a windows bundle script")
-	mingw64Prefix := flag.String("mingw64-root", "c:/tools/msys64/mingw64", "Mingw64 root dir. Under this we have the /bin dir which has all gtk dll files")
 
 	flag.Parse()
 
@@ -26,21 +29,28 @@ func main() {
 		os.Exit(0)
 	}
 
-	binaryDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	u.CheckErr(err, "binaryDir")
+	binaryDir := u.Must(filepath.Abs(filepath.Dir(os.Args[0])))
 
 	if _, e := os.Stat(fmt.Sprintf("%s/glade", binaryDir)); e != nil {
 		forms.RestoreAssetsAll(binaryDir)
 	}
 	// For loading the glade resources etc.. DBPATH should be absolute path
-	os.Chdir(binaryDir)
+	u.Must("", os.Chdir(binaryDir))
 
-	u.CheckErr(err, "Getwd")
-	homeDir, e := os.UserHomeDir()
-	u.CheckErr(e, "UserHomeDir")
+	builder := u.Must(gtk.BuilderNewFromFile("glade/gnote.glade"))
 
+	gnoteApp := forms.GnoteApp{
+		Builder: builder,
+	}
+
+	gnoteApp.InitApp()
+	DoStartup()
+	gtk.Main()
+}
+
+func DoStartup() {
 	var keyFile string = ""
-
+	homeDir := u.Must(os.UserHomeDir())
 	if *dbPath == "" {
 		*dbPath = fmt.Sprintf("%s%s%s", homeDir, string(os.PathSeparator), ".gnote.db")
 		fmt.Println("Use the database file in user home dir")
@@ -59,8 +69,7 @@ func main() {
 		if initialSetup {
 			key, _ = u.RandomHex(32)
 			encryptedKey, _ := u.Encrypt(key, passphrase)
-			err = os.WriteFile(keyFile, []byte(encryptedKey), 0600)
-			u.CheckErr(err, "Write encrypted key file")
+			u.Must("[ERROR] os.WriteFile", os.WriteFile(keyFile, []byte(encryptedKey), 0600))
 		} else {
 			keyEncodedByte, err := os.ReadFile(keyFile)
 			u.CheckErr(err, "keyEncodedByte")
@@ -99,15 +108,4 @@ func main() {
 
 	forms.DateLayout, _ = forms.GetConfig("date_layout")
 	forms.WebNoteUser, _ = forms.GetConfig("webnote_user")
-
-	builder, err := gtk.BuilderNewFromFile("glade/gnote.glade")
-	if err != nil {
-		panic(err)
-	}
-	gnoteApp := forms.GnoteApp{
-		Builder: builder,
-	}
-
-	gnoteApp.InitApp()
-	gtk.Main()
 }
