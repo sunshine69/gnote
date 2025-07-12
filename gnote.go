@@ -42,9 +42,10 @@ func main() {
 	gnoteApp := forms.GnoteApp{
 		Builder: builder,
 	}
+	// DB will only available after DoStartup to prompt passphrase etc. InitApp only init graphic resources
 	gnoteApp.InitApp()
 	DoStartup()
-	gnoteApp.SetDefaultWindowSize()
+	gnoteApp.SetDefaultWindowSize() // This one need the db to get the saved sizes
 	gnoteApp.MainWindow.ShowAll()
 	gtk.Main()
 }
