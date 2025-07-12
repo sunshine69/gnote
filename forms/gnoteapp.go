@@ -335,17 +335,19 @@ func (app *GnoteApp) InitApp() {
 
 	app.curNoteWindowID = make(map[int]*NotePad)
 	app.searchBox = GetSearchEntry(Builder, "searchBox")
+	// window.Move(3000, 0)
+	// window.ShowAll()
+}
 
+func (app *GnoteApp) SetDefaultWindowSize() {
 	wSize, err := GetConfig("main_window_size", "300x291")
 	u.CheckErr(err, "GetConfig window_size")
 	fmt.Printf("[DEBUG] wSize: %s\n", wSize)
 	_size := strings.Split(wSize, "x")
 	w, _ := strconv.Atoi(_size[0])
 	h, _ := strconv.Atoi(_size[1])
-	window.SetDefaultSize(w, h)
-
-	// window.Move(3000, 0)
-	window.ShowAll()
+	fmt.Printf("[DEBUG] main_window_size w: %d - h: %d\n", w, h)
+	app.MainWindow.SetDefaultSize(w, h)
 }
 
 // looks like handlers can literally be any function or method
@@ -449,9 +451,9 @@ func (app *GnoteApp) newNote() *NotePad {
 func (app *GnoteApp) doExit() {
 	w, h := app.MainWindow.GetSize()
 	windowSize := fmt.Sprintf("%dx%d", w, h)
-	fmt.Printf("save side - %dx%d\n", w, h)
+	fmt.Printf("save size - %dx%d\n", w, h)
 	if e := SetConfig("main_window_size", windowSize); e != nil {
-		fmt.Printf("ERROR save side - %v\n", e)
+		fmt.Printf("ERROR save size - %v\n", e)
 	}
 	for _, np := range app.curNoteWindowID {
 		np.saveBtnClick()

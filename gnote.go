@@ -16,7 +16,7 @@ var (
 	doMigrate       = flag.Bool("mig", false, "Migrate")
 	oldDB           = flag.String("old-db", "", "Path to the old database file. If it is encrypted pass the key like filename?_pragma_key=x'<YOUR_KEY>'")
 	createWinBundle = flag.Bool("create-win-bundle", false, "Create a windows bundle script")
-	mingw64Prefix   = flag.String("mingw64-root", "c:/tools/msys64/mingw64", "Mingw64 root dir. Under this we have the /bin dir which has all gtk dll files")
+	mingw64Prefix   = flag.String("mingw64-root", "c:/msys64/mingw64", "Mingw64 root dir. Under this we have the /bin dir which has all gtk dll files")
 )
 
 func main() {
@@ -42,9 +42,10 @@ func main() {
 	gnoteApp := forms.GnoteApp{
 		Builder: builder,
 	}
-
 	gnoteApp.InitApp()
 	DoStartup()
+	gnoteApp.SetDefaultWindowSize()
+	gnoteApp.MainWindow.ShowAll()
 	gtk.Main()
 }
 
@@ -71,10 +72,8 @@ func DoStartup() {
 			encryptedKey, _ := u.Encrypt(key, passphrase)
 			u.Must("[ERROR] os.WriteFile", os.WriteFile(keyFile, []byte(encryptedKey), 0600))
 		} else {
-			keyEncodedByte, err := os.ReadFile(keyFile)
-			u.CheckErr(err, "keyEncodedByte")
-			key, err = u.Decrypt(string(keyEncodedByte), passphrase)
-			u.CheckErr(err, "Decode Key")
+			keyEncodedByte := u.Must(os.ReadFile(keyFile))
+			key = u.Must(u.Decrypt(string(keyEncodedByte), passphrase))
 		}
 	} else {
 		key = ""
@@ -105,7 +104,6 @@ func DoStartup() {
 		forms.MessageBox("Initial setup db completed.")
 		// os.Exit(0)
 	}
-
 	forms.DateLayout, _ = forms.GetConfig("date_layout")
 	forms.WebNoteUser, _ = forms.GetConfig("webnote_user")
 }

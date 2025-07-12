@@ -30,3 +30,5 @@ gnote-macos*
 ansible/test*.yaml
 *.orig
 \#*\#
+**/debug.**
+**/__debug_bin**
