@@ -22,7 +22,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.19
+        go-version: 1.24
 
     - name: Install depends
       run: ./install-depends.sh
@@ -33,5 +33,5 @@ jobs:
     - name: Upload my-artifact
       uses: actions/upload-artifact@v4
       with:
-        name: my-artifact
+        name: my-artifact-${{ matrix.os }}
         path: ./gnote*.tgz
