@@ -20,7 +20,7 @@ require (
 	github.com/otiai10/copy v1.14.1
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/sunshine69/gluare v0.0.0-20170607022532-d7c94f1a80ed
-	github.com/sunshine69/golang-tools/utils v0.0.0-20250710081106-99b6ce73ae2d
+	github.com/sunshine69/golang-tools/utils v0.0.0-20250726064109-92fcd0f4fe85
 	github.com/sunshine69/gopher-json v0.0.0-20221024001855-6c6de212e5bf
 	github.com/yuin/gopher-lua v1.1.1
 	golang.org/x/net v0.42.0
