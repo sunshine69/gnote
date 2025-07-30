@@ -24,6 +24,7 @@ require (
 	github.com/sunshine69/gopher-json v0.0.0-20221024001855-6c6de212e5bf
 	github.com/yuin/gopher-lua v1.1.1
 	golang.org/x/net v0.42.0
+	golang.org/x/term v0.33.0
 )
 
 require (

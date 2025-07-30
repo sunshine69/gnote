@@ -21,6 +21,7 @@ elif [ "$OS" = "Darwin" ]; then
     TARBALL_NAME="gnote-${ProductName}-${ProductVersion}-${ARCH}.tgz"
 elif [[ "$OS" =~ MINGW64_NT ]]; then
     go build -ldflags="-s -w -H=windowsgui" --tags "json1 fts5 secure_delete"  -o gnote-windows-amd64.exe gnote.go
+    env CGO_ENABLED=0 go build -ldflags="-s -w" -o gnote-migrate-encryption.exe tools/migrate-old-enc.go
     if [ "$1" == "" ]; then
         echo "Enter your mingw64 root dir, example /c/tools/msys64/mingw64 "
         read MINGW64_ROOT_DIR
@@ -33,7 +34,7 @@ elif [[ "$OS" =~ MINGW64_NT ]]; then
     ./gnote-windows-amd64.exe -create-win-bundle $MINGW64_ROOT_OPT
     pushd .
     cd ..
-
+    mv gnote-migrate-encryption.exe gnote-windows-bundle/bin/gnote-migrate-encryption.exe
     zip -r gnote-windows-bundle.zip gnote-windows-bundle
     echo "Output bundle file: $(pwd)/gnote-windows-bundle.zip"
     rm -rf gnote-windows-bundle
@@ -42,10 +43,11 @@ elif [[ "$OS" =~ MINGW64_NT ]]; then
 fi
 
 go build --tags "${GO_TAG}" -ldflags='-s -w' -o gnote
+env CGO_ENABLED=0 go build -ldflags="-s -w" -o gnote-migrate-encryption tools/migrate-old-enc.go
 
 rm -rf gnote.app >/dev/null 2>&1
 mkdir gnote.app
-cp -a gnote gnote.app/
+cp -a gnote gnote-migrate-encryption gnote.app/
 tar czf $TARBALL_NAME gnote.app
 
 echo Tar ball pkg is $TARBALL_NAME
