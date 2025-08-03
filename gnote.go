@@ -28,8 +28,8 @@ var (
 	mingw64Prefix      = cliflag.String("mingw64-root", "c:/tools/msys64/mingw64", "Mingw64 root dir. Under this we have the /bin dir which has all gtk dll files")
 	cliCmd             = cliflag.String("command", "", "Cli commands. List commands: "+u.JsonDump(u.MapKeysToSlice(cliCommand), ""))
 	keyfilePass        = cliflag.String("keyfile-pass", "", "Current keyfile password. Will prompt if it is empty")
-	inputcipher        = cliflag.String("data", "", "Input base64 text to decrypt. If data is not base64 then action is encrypt the data. If provided the cli will decode this texst only and not migrate key file")
-	inputcipherVersion = cliflag.Int("data-version", 0, "The version that the data is encrypted with. If 0 it is the old depricated version. Other than that it could be a version number, like 1 or 2 matching with encryption config on utils")
+	inputcipher        = cliflag.String("data", "", "Input text to decrypt/encrypt. If provided the cli will action on this text only and not migrate key file")
+	inputcipherVersion = cliflag.Int("data-version", 1, "The version that the data is encrypted with. If 0 it is the old depricated version. Other than that it could be a version number, like 1 or 2 matching with encryption config on utils")
 	action             = cliflag.String("action", "decrypt", "What to do, encrypt or decrypt")
 )
 
