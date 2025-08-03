@@ -30,6 +30,7 @@ var (
 	keyfilePass        = cliflag.String("keyfile-pass", "", "Current keyfile password. Will prompt if it is empty")
 	inputcipher        = cliflag.String("data", "", "Input base64 text to decrypt. If data is not base64 then action is encrypt the data. If provided the cli will decode this texst only and not migrate key file")
 	inputcipherVersion = cliflag.Int("data-version", 0, "The version that the data is encrypted with. If 0 it is the old depricated version. Other than that it could be a version number, like 1 or 2 matching with encryption config on utils")
+	action             = cliflag.String("action", "decrypt", "What to do, encrypt or decrypt")
 )
 
 func MigrateKeyFile() error {
@@ -39,23 +40,29 @@ func MigrateKeyFile() error {
 		keyFile = filepath.Join(u.Must(os.UserHomeDir()), ".gnote.db.key")
 	}
 	if *keyfilePass == "" {
-		fmt.Fprintln(os.Stderr, "Enter encryption key to decode: ")
+		fmt.Fprintln(os.Stderr, "Enter encryption key to decode/encode: ")
 		*keyfilePass = string(u.Must(term.ReadPassword(int(syscall.Stdin))))
 	}
 
-	encCfg := u.Must(u.NewEncConfigForVersion(byte(*inputcipherVersion)))
 	if *inputcipher != "" {
+		o := ""
 		switch *inputcipherVersion {
 		case 0:
-			o, err := u.Decrypt_v0(*inputcipher, *keyfilePass)
-			if err != nil && u.IsBase64DecodeError(err) {
-				o = u.Must(u.Encrypt(*inputcipher, *keyfilePass, encCfg))
+			fmt.Fprintf(os.Stderr, "[WARN] use old and weak Encrypt_v0 func\n")
+			switch *action {
+			case "encrypt":
+				o = u.Must(u.Encrypt_v0(*inputcipher, *keyfilePass))
+			case "decrypt":
+				o = u.Must(u.Decrypt_v0(*inputcipher, *keyfilePass))
 			}
 			fmt.Fprintln(os.Stdout, o)
 		default:
-			o, err := u.Decrypt(*inputcipher, *keyfilePass, encCfg)
-			if err != nil && u.IsBase64DecodeError(err) {
+			encCfg := u.Must(u.NewEncConfigForVersion(byte(*inputcipherVersion)))
+			switch *action {
+			case "encrypt":
 				o = u.Must(u.Encrypt(*inputcipher, *keyfilePass, encCfg))
+			case "decrypt":
+				o = u.Must(u.Decrypt(*inputcipher, *keyfilePass, encCfg))
 			}
 			fmt.Fprintln(os.Stdout, o)
 		}

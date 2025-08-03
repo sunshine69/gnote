@@ -232,7 +232,7 @@ func (np *NotePad) DecryptContent() {
 	eCt, startI, endI := np.GetSelection()
 	eCt = strings.TrimPrefix(eCt, "ENC:")
 	eCt = strings.TrimSuffix(eCt, ":ENC")
-	ct, e := u.Decrypt(eCt, key)
+	ct, e := u.Decrypt(eCt, key, nil)
 	if e != nil {
 		MessageBox("Decrypt error. Please check password")
 	} else {
@@ -245,7 +245,7 @@ func (np *NotePad) DecryptContent() {
 func (np *NotePad) EncryptContent() {
 	key := InputDialog("title", "Password required", "label", "Enter passphrase to encrypt: ", "password-mask", '*')
 	ct, startI, endI := np.GetSelection()
-	eCt, _ := u.Encrypt(ct, key)
+	eCt, _ := u.Encrypt(ct, key, nil)
 	eCt = fmt.Sprintf("ENC:%s:ENC", eCt)
 	np.buff.SelectRange(startI, endI)
 	np.buff.DeleteSelection(true, true)

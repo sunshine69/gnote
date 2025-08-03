@@ -407,9 +407,9 @@ func ChangePassphrase(old, new, keyFile string) error {
 	if u.CheckErrNonFatal(err, "keyEncData") != nil {
 		return nil
 	}
-	key, err := u.Decrypt(string(keyEncData), old)
+	key, err := u.Decrypt(string(keyEncData), old, nil)
 	if u.CheckErrNonFatal(err, "Decrypt keyEncData") == nil {
-		keyEnc, _ := u.Encrypt(key, new)
+		keyEnc, _ := u.Encrypt(key, new, nil)
 		err = os.WriteFile(keyFile, []byte(keyEnc), 0600)
 		return u.CheckErrNonFatal(err, "WriteFile")
 	} else {
