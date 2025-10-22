@@ -483,8 +483,8 @@ func (app *GnoteApp) doFullTextSearch() {
 		sqlStr = fmt.Sprintf("SELECT rowid FROM note_fts WHERE note_fts MATCH '%s' ORDER BY datelog DESC LIMIT 200;", keyword)
 	}
 	foundNotes := []struct {
-		Rowid   int    `db:"rowid"`
-		Content string `db:"content"`
+		Rowid int `db:"rowid"`
+		// Content string `db:"content"`
 	}{}
 	e := DbConn.Select(&foundNotes, sqlStr)
 	if e != nil {
@@ -493,18 +493,22 @@ func (app *GnoteApp) doFullTextSearch() {
 	}
 	app.model.Clear()
 
-	rowid, id, count := 0, 0, 0
+	sqlTextListID := []string{}
+	for _, _item := range foundNotes {
+		sqlTextListID = append(sqlTextListID, strconv.Itoa(_item.Rowid))
+	}
+	sqlTextListIDStr := strings.Join(sqlTextListID, ",")
+	_notes := []Note{}
+	sqlStr = `SELECT * FROM notes WHERE id IN (` + sqlTextListIDStr + `) ORDER BY timestamp DESC, datelog DESC`
+	if e := DbConn.Select(&_notes, sqlStr); e != nil {
+		fmt.Printf("Fail to get notes %s\n", e.Error())
+		return
+	}
+	id, count := 0, 0
 	var title string
 	var datelog, lastUpdate int64
-	for _, noteFts := range foundNotes {
-		rowid = noteFts.Rowid
-		_note := Note{}
-		if e := DbConn.Get(&_note, `SELECT * FROM notes WHERE id=$1`, rowid); errors.Is(e, sql.ErrNoRows) {
-			fmt.Printf("Failt to get note id %d\n", rowid)
-			break
-		}
+	for _, _note := range _notes {
 		id, title, datelog, lastUpdate = _note.ID, _note.Title, _note.Datelog, _note.Timestamp
-		// fmt.Printf("row: %v - %v %v\n", id, title, datelog)
 		_dateLogStr := u.NsToTime(datelog).Format(DateLayout)
 		_lastUpdateStr := u.NsToTime(lastUpdate).Format(DateLayout)
 		iter := app.model.Append()
@@ -540,7 +544,7 @@ func (app *GnoteApp) doSearch() {
 		_l := len(tokens)
 		for i, t := range tokens {
 			if i == _l-1 {
-				q = fmt.Sprintf("%v (flags LIKE '%%%v%%') ORDER BY datelog DESC LIMIT 200;", q, t)
+				q = fmt.Sprintf("%v (flags LIKE '%%%v%%') ORDER BY timestamp DESC, datelog DESC LIMIT 200;", q, t)
 			} else {
 				q = fmt.Sprintf("%v (flags LIKE '%%%v%%') AND ", q, t)
 			}
@@ -556,7 +560,7 @@ func (app *GnoteApp) doSearch() {
 		for i, t := range tokens {
 			t = strings.TrimSpace(t)
 			if i == _l-1 {
-				q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') ORDER BY datelog DESC LIMIT 200;", q, t, t)
+				q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') ORDER BY timestamp DESC, datelog DESC LIMIT 200;", q, t, t)
 			} else {
 				q = fmt.Sprintf("%v (title LIKE '%%%v%%' OR content LIKE '%%%v%%') AND ", q, t, t)
 			}
