@@ -4,7 +4,7 @@
 
 ARCH=$(uname -m)
 OS=$(uname -s)
-GO_TAG="icu json1 fts5 secure_delete"
+GO_TAG="json1 fts5 secure_delete"
 
 if [ "$OS" = "Linux" ]; then
     sudo apt-get update

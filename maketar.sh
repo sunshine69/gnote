@@ -40,10 +40,10 @@ elif [[ "$OS" =~ MINGW64_NT ]]; then
     exit 0
 fi
 
-go build --tags "${GO_TAG}" -ldflags='-s -w' -o gnote
-
 rm -rf gnote.app >/dev/null 2>&1
 mkdir gnote.app
+go build --tags "${GO_TAG}" -ldflags='-s -w' -o gnote.app/gnote
+
 tar czf $TARBALL_NAME gnote.app
 
 echo Tar ball pkg is $TARBALL_NAME
