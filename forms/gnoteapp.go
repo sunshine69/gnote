@@ -294,6 +294,7 @@ func (app *GnoteApp) InitApp() {
 		"DoImportNotes":        app.DoImportNotes,
 		"NewNoteFromClipboard": app.DoCreateNoteFromClipboard,
 		"DoSyncNotes":          app.DoSyncNotesFromWebnote,
+		"DoRunSQLScript":       app.DoRunSQLScript,
 	}
 
 	Builder.ConnectSignals(signals)
@@ -337,6 +338,54 @@ func (app *GnoteApp) InitApp() {
 	app.searchBox = GetSearchEntry(Builder, "searchBox")
 	// window.Move(3000, 0)
 	// window.ShowAll()
+}
+
+func (app *GnoteApp) DoRunSQLScript() {
+	MessageBox(`This functionality is to allow user to run an arbitratry SQL script on the note database. If you are upgrading and it requires a update schema of existing database, use this feature.
+	*** NOTE ***
+	The system will automatically backup your current DB file.`)
+	dlg, _ := gtk.FileChooserDialogNewWith2Buttons(
+		"choose file", nil, gtk.FILE_CHOOSER_ACTION_OPEN,
+		"Open", gtk.RESPONSE_OK, "Cancel", gtk.RESPONSE_CANCEL,
+	)
+	defer dlg.Destroy()
+	dlg.SetDefaultResponse(gtk.RESPONSE_OK)
+	filter, _ := gtk.FileFilterNew()
+	filter.SetName("update-schema.sql")
+	filter.AddPattern("*.sql")
+	dlg.SetFilter(filter)
+	response := dlg.Run()
+	if response == gtk.RESPONSE_OK {
+		dbfile := strings.Split(os.Getenv("DBPATH"), "?")[0]
+		dbbackupfile := dbfile + ".backup"
+		if err := u.Copy(dbfile, dbbackupfile); err != nil {
+			MessageBox("[ERROR] backup existing file. " + err.Error())
+			return
+		}
+		MessageBox("Back up to " + dbbackupfile + " success")
+
+		filename := dlg.GetFilename()
+		inputByte, err := os.ReadFile(filename)
+		if u.CheckErrNonFatal(err, "ReadFile DoRunSQLScript") != nil {
+			MessageBox("ERROR ReadFile DoRunSQLScript")
+			return
+		}
+		sqlstring := string(inputByte)
+		println(sqlstring)
+		_tx := DbConn.MustBegin()
+		if _, err := _tx.Exec(sqlstring); err != nil {
+			MessageBox("[ERROR] executing script. If you hit problems, quit program and restore the backup file " + dbbackupfile + " to original " + dbfile + "\n" + err.Error())
+			_tx.Rollback()
+			return
+		}
+		_tx.Commit()
+
+		MessageBox("SQL script executed successfully")
+		return
+	}
+	if response == gtk.RESPONSE_CANCEL {
+		return
+	}
 }
 
 func (app *GnoteApp) SetDefaultWindowSize() {
