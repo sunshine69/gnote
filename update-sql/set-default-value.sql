@@ -11,5 +11,5 @@ INSERT INTO notes_new SELECT * FROM notes;
 DROP TABLE notes;
 ALTER TABLE notes_new RENAME TO notes;
 
-INSERT INTO notes(title, content) VALUES("update schema success", "See app log for more details")
+INSERT INTO notes(title, content) VALUES("script set-default-value.sql success", "Keep this note as we record the update history")
 -- you better restart the app after
