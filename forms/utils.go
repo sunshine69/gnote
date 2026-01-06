@@ -16,6 +16,7 @@ import (
 	"github.com/alecthomas/chroma"
 	"github.com/alecthomas/chroma/formatters"
 	"github.com/alecthomas/chroma/quick"
+	"github.com/jmoiron/sqlx"
 	sourceview "github.com/linuxerwang/sourceview3"
 	"golang.org/x/net/publicsuffix"
 
@@ -400,8 +401,25 @@ func CreateWinBundle(mingw64Prefix string) {
 }
 
 func ChangePassphrase(old, new, keyFile string) error {
-	if old == "" || new == "" || keyFile == "" {
+	if old == "" || keyFile == "" {
 		return fmt.Errorf("[ERROR] oldpass, newpass or keyfile is empty string")
+	}
+	if new == "" { // remove passphrase from the DB
+		dburlSPlit := strings.Split(os.Getenv("DBPATH"), "?")
+		if len(dburlSPlit) == 1 { //
+			return errors.New("Current DB is not encrypted and you supplied empty key - do not need to do anything")
+		}
+		currentDBFile := dburlSPlit[0]
+		newDBFile := currentDBFile + ".raw"
+		newDBConn, err := sqlx.Connect("sqlite3", newDBFile)
+		if err != nil {
+			return errors.New("[ERROR] when creating temp db. " + err.Error())
+		}
+		setupSQL := string(u.Must(os.ReadFile("update-sql/schema.sql")))
+		if _, err := newDBConn.Exec(setupSQL); err != nil {
+			return errors.New("[ERROR] when creating schame for temp db. " + err.Error())
+		}
+
 	}
 	keyEncData, err := os.ReadFile(keyFile)
 	if u.CheckErrNonFatal(err, "keyEncData") != nil {

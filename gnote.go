@@ -159,6 +159,7 @@ func DoStartup() {
 		// Example see https://www.zetetic.net/sqlcipher/sqlcipher-api/index.html#rekey
 		// sqlite> PRAGMA key = x'old hex';
 		// sqlite> PRAGMA rekey = x'new hex'; In go use the func Query
+		// Maybe build the cli from https://github.com/sqlcipher/sqlcipher and handle it directly
 		fullDBPath = fmt.Sprintf("%s?_pragma_key=x'%s'", *dbPath, key)
 	}
 	// fmt.Println(fullDBPath)
